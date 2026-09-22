@@ -1,0 +1,20 @@
+{
+  "name": "my-internship-notebook",
+  "private": true,
+  "description": "Development tooling for My Internship Notebook. The app itself ships with zero dependencies.",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "serve": "node scripts/serve.mjs",
+    "check": "node scripts/check-syntax.mjs",
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "test:e2e": "playwright test",
+    "test": "npm run check && npm run test:unit && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

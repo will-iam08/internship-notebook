@@ -1,40 +1,85 @@
-name: Deploy Safari web edition
+name: Test and deploy website
+
+# Every push and pull request runs the Java and frontend checks.
+# Only a push to main (or a manual run) publishes the website, and only after the checks pass.
+#
+# One-time setup: GitHub Pages must be switched on for this repository before the deploy job
+# can succeed. In the repository go to Settings -> Pages -> Build and deployment -> Source and
+# choose "GitHub Actions". The workflow token is not allowed to change that setting itself.
 
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
-  build:
+  java-tests:
+    name: Java tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out the project
         uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Compile and run the repository tests
+        run: |
+          javac --add-modules jdk.httpserver -d out $(find src/main/java src/test/java -name '*.java')
+          java --add-modules jdk.httpserver -ea -cp out com.coopcompass.ApplicationRepositoryTest
+
+  frontend-checks:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install test tools
+        run: npm ci
+      - name: Check script syntax
+        run: npm run check
+
+  build:
+    name: Build website
+    needs: [java-tests, frontend-checks]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Build the browser-only edition
-        run: |
-          mkdir -p _site
-          cp -R src/main/resources/public/. _site
-          printf 'window.NOTEBOOK_STORAGE_MODE = "browser";\n' > _site/site-mode.js
-      - name: Upload the web edition
+        run: node scripts/build-site.mjs _site
+      - name: Upload the website
         uses: actions/upload-pages-artifact@v3
         with:
           path: _site
 
   deploy:
+    name: Deploy to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
