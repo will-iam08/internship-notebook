@@ -2,158 +2,171 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A calm command centre for internship applications, interviews, and offers." />
-    <meta name="theme-color" content="#f5f2eb" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app." />
+    <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#111418" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Notebook" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>My Internship Notebook</title>
-    <link rel="icon" href="/favicon-20260915-v4.ico" type="image/x-icon" sizes="32x32" />
-    <link rel="icon" href="/favicon-20260915-v4.png" type="image/png" sizes="32x32" />
-    <link rel="shortcut icon" href="/favicon-20260915-v4.ico" type="image/x-icon" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon-180-20260915.png" sizes="180x180" />
+    <link rel="icon" href="favicon-20260915-v4.ico" type="image/x-icon" sizes="32x32" />
+    <link rel="icon" href="favicon-20260915-v4.png" type="image/png" sizes="32x32" />
+    <link rel="shortcut icon" href="favicon-20260915-v4.ico" type="image/x-icon" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <script>
+      // Apply the saved theme before the first paint so dark mode never flashes white.
+      (() => {
+        let theme = null;
+        try { theme = localStorage.getItem("my-internship-notebook-theme"); } catch { /* private windows */ }
+        if (theme !== "light" && theme !== "dark") theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="aurora aurora-one"></div>
-    <div class="aurora aurora-two"></div>
-    <main class="shell">
-      <header class="hero">
-        <div class="hero-copy">
-          <div class="status-pill" id="storage-mode"><i></i> Search mode: on</div>
-          <p class="eyebrow">INTERNSHIP APPLICATIONS &amp; INTERVIEWS, ORGANIZED</p>
-          <h1>My Internship Notebook<span>.</span></h1>
-          <p class="subtitle">A calm, focused home base for applications, interviews, and offers.</p>
-          <p class="browser-storage-note" id="browser-storage-note" hidden>Website mode: your entries stay privately in this browser.</p>
+    <a class="skip-link" href="#view">Skip to content</a>
+    <div class="app" id="app">
+      <aside class="cover" aria-label="Notebook">
+        <a class="cover-label" href="#/today" aria-label="My Internship Notebook, go to Today">
+          <span class="cover-logo" aria-hidden="true"></span>
+          <span class="cover-title">My Internship<br />Notebook</span>
+          <span class="cover-sub">Applications &amp; interviews</span>
+        </a>
+
+        <div class="cover-actions">
+          <button class="button primary cover-new" type="button" data-action="new">
+            <span data-icon="plus"></span> New application <kbd>N</kbd>
+          </button>
+          <button class="cover-search" type="button" data-action="palette" aria-keyshortcuts="Control+K Meta+K /">
+            <span data-icon="search"></span><span>Search</span><kbd class="shortcut-key">⌘K</kbd>
+          </button>
         </div>
-      </header>
 
-      <section class="stats" aria-label="Application statistics">
-        <article><div class="stat-icon">⌁</div><p>In your pipeline</p><strong id="total-count">0</strong><span>applications</span></article>
-        <article><div class="stat-icon blue">↗</div><p>Applied</p><strong id="applied-count">0</strong><span>sent out</span></article>
-        <article><div class="stat-icon pink">✦</div><p>Interviews</p><strong id="interview-count">0</strong><span>in progress</span></article>
-        <article class="highlight"><div class="stat-icon mint">◎</div><p>Response rate</p><strong id="response-rate">0%</strong><span>from submitted apps</span></article>
-      </section>
+        <nav class="tabs" aria-label="Sections">
+          <a class="tab" href="#/today" data-nav="today" style="--tab: var(--tab-today)"><span data-icon="today"></span><span>Today</span></a>
+          <a class="tab" href="#/board" data-nav="board" style="--tab: var(--tab-board)"><span data-icon="board"></span><span>Board</span><b class="tab-count" data-count="active"></b></a>
+          <a class="tab" href="#/notebook" data-nav="notebook" style="--tab: var(--tab-notebook)"><span data-icon="notebook"></span><span>All pages</span><b class="tab-count" data-count="total"></b></a>
+          <a class="tab" href="#/insights" data-nav="insights" style="--tab: var(--tab-insights)"><span data-icon="insights"></span><span>Insights</span></a>
+          <span class="tab-divider" role="presentation"></span>
+          <a class="tab" href="#/deleted" data-nav="deleted" style="--tab: var(--tab-deleted)"><span data-icon="trash"></span><span>Recently Deleted</span><b class="tab-count" data-count="deleted"></b></a>
+          <a class="tab" href="#/settings" data-nav="settings" style="--tab: var(--tab-settings)"><span data-icon="settings"></span><span>Settings</span></a>
+        </nav>
 
-      <section class="insights" aria-label="Search insights">
-        <article class="insight-card goal-card">
-          <div class="insight-heading"><div><p class="eyebrow">THIS WEEK</p><h2>Build your rhythm</h2></div><label class="goal-input"><span class="sr-only">Weekly application goal</span><input id="weekly-goal" type="number" min="1" max="50" value="6" /><span>apps</span></label></div>
-          <div class="progress-track"><span id="goal-progress"></span></div>
-          <p class="goal-copy" id="goal-copy">Add applications to get started.</p>
-        </article>
-        <article class="insight-card">
-          <div class="insight-heading"><div><p class="eyebrow">NEXT UP</p><h2>Deadline radar</h2></div><span class="insight-mark">◷</span></div>
-          <div class="deadline-list" id="up-next"></div>
-        </article>
-        <article class="insight-card">
-          <div class="insight-heading"><div><p class="eyebrow">YOUR MARKET</p><h2>Skill signals</h2></div><span class="insight-mark">⌘</span></div>
-          <div class="signal-tags" id="top-skills"></div>
-        </article>
-      </section>
+        <div class="cover-footer">
+          <p class="storage-chip" data-storage-chip><span data-icon="lock"></span><span data-storage-label>Private to this browser</span></p>
+          <button class="icon-button cover-theme" type="button" data-action="cycle-theme" aria-label="Change theme" title="Change theme"><span data-theme-icon></span></button>
+        </div>
+      </aside>
 
-      <section class="workspace">
-        <aside class="panel form-panel">
-          <div class="panel-heading"><div><p class="eyebrow">ADD APPLICATION</p><h2>Make your next move.</h2></div><span class="plus-mark">+</span></div>
-          <form id="application-form">
-            <label>Company<input required maxlength="80" name="company" placeholder="e.g. Shopify" /></label>
-            <label>Role<input required maxlength="100" name="role" placeholder="e.g. Backend Developer" /></label>
-            <div class="two-column">
-              <label>Location<input maxlength="80" name="location" placeholder="Toronto / Remote" /></label>
-              <label>Deadline<input name="deadline" type="date" /></label>
-            </div>
-            <div class="two-column">
-              <label>Source<input maxlength="60" name="source" placeholder="WaterlooWorks" /></label>
-              <label>Status<select name="status"><option value="SAVED">Saved</option><option value="APPLIED">Applied</option><option value="INTERVIEW">Interview</option><option value="OFFER">Offer</option></select></label>
-            </div>
-            <label>Skills<input maxlength="250" name="skills" placeholder="Java, React, SQL" /><small>Separate skills with commas.</small></label>
-            <label>Notes<textarea maxlength="1000" name="notes" placeholder="What makes this role worth a closer look?"></textarea></label>
-            <button class="button" type="submit">Add to pipeline <span aria-hidden="true">→</span></button>
-          </form>
-        </aside>
+      <div class="page-wrap">
+        <div class="binding" aria-hidden="true"></div>
+        <header class="mobile-bar">
+          <a class="mobile-brand" href="#/today" aria-label="Today"><span class="cover-logo small" aria-hidden="true"></span></a>
+          <p class="mobile-title" id="mobile-title">Today</p>
+          <button class="icon-button" type="button" data-action="palette" aria-label="Search"><span data-icon="search"></span></button>
+          <a class="icon-button" href="#/settings" aria-label="Settings"><span data-icon="settings"></span></a>
+        </header>
+        <main class="page" id="page">
+          <div class="view" id="view" tabindex="-1"></div>
+        </main>
+      </div>
 
-        <section class="panel board-panel" aria-label="Application pipeline">
-          <div class="panel-heading board-heading">
-            <div><p class="eyebrow">YOUR PIPELINE</p><h2>Every opportunity, visible.</h2></div>
-            <button class="button icon-button" id="export-csv" type="button" title="Export applications as CSV">↓ <span>Export</span></button>
-          </div>
-          <div class="filter-row">
-            <label class="search-label"><span class="sr-only">Search applications</span><input id="search" type="search" placeholder="⌕  Search company, role or skill" /></label>
-            <label class="filter-label">Show<select id="status-filter"><option value="ALL">All applications</option><option value="ACTIVE">Active search</option><option value="SAVED">Saved</option><option value="APPLIED">Applied</option><option value="INTERVIEW">Interview</option><option value="OFFER">Offers</option><option value="REJECTED">Rejected</option></select></label>
-            <label class="filter-label">Sort<select id="sort-by"><option value="newest">Recently added</option><option value="deadline">Deadline soonest</option><option value="company">Company A–Z</option></select></label>
-          </div>
-          <section class="selection-toolbar" id="selection-toolbar" aria-label="Batch application actions">
-            <div class="selection-copy"><strong id="selection-count" aria-live="polite">0 selected</strong><span>Choose cards, then move them together.</span></div>
-            <div class="selection-actions">
-              <button class="text-button" id="select-visible" type="button">Select visible</button>
-              <label class="batch-status-label">Move to<select id="batch-status" disabled><option value="SAVED">Saved</option><option value="APPLIED">Applied</option><option value="INTERVIEW">Interview</option><option value="OFFER">Offer</option><option value="REJECTED">Rejected</option></select></label>
-              <button class="button batch-move" id="move-selected" type="button" disabled>Move</button>
-              <button class="text-button batch-delete" id="delete-selected" type="button" disabled>Recently Deleted</button>
-              <button class="text-button clear-selection" id="clear-selection" type="button" disabled>Clear</button>
-            </div>
-          </section>
-          <p class="notice" id="notice" aria-live="polite" hidden></p>
-          <div class="board" id="board"></div>
-        </section>
-      </section>
+      <nav class="bottom-tabs" aria-label="Sections">
+        <a href="#/today" data-nav="today"><span data-icon="today"></span><span>Today</span></a>
+        <a href="#/board" data-nav="board"><span data-icon="board"></span><span>Board</span></a>
+        <button class="bottom-new" type="button" data-action="new" aria-label="New application"><span data-icon="plus"></span></button>
+        <a href="#/notebook" data-nav="notebook"><span data-icon="notebook"></span><span>Pages</span></a>
+        <a href="#/insights" data-nav="insights"><span data-icon="insights"></span><span>Insights</span></a>
+      </nav>
+    </div>
 
-      <section class="panel deleted-panel" aria-labelledby="recently-deleted-heading">
-        <div class="deleted-heading">
+    <div class="selection-bar" id="selection-bar" role="toolbar" aria-label="Selected applications" hidden></div>
+
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
+    <div class="menu" id="menu" role="menu" hidden></div>
+
+    <dialog class="sheet" id="new-dialog" aria-labelledby="new-title">
+      <form class="sheet-card" id="new-form" method="dialog" novalidate>
+        <header class="sheet-head">
           <div>
-            <p class="eyebrow">A SMALL SAFETY NET</p>
-            <div class="deleted-title-row">
-              <h2 id="recently-deleted-heading">Recently Deleted</h2>
-              <button class="text-button deleted-select-toggle" id="toggle-deleted-selection" type="button" aria-controls="deleted-selection-toolbar" aria-expanded="false">Select items</button>
-            </div>
-            <p>Applications you remove stay here for seven days. Restore them during that window, or delete them permanently when you’re sure.</p>
+            <p class="eyebrow">New page</p>
+            <h2 id="new-title">Add an application</h2>
           </div>
-          <span class="deleted-count" id="deleted-count" aria-live="polite">0 items</span>
-        </div>
-        <section class="selection-toolbar deleted-selection-toolbar" id="deleted-selection-toolbar" aria-label="Recently Deleted batch actions" hidden>
-          <div class="selection-copy"><strong id="deleted-selection-count" aria-live="polite">0 selected</strong><span>Select cards, then restore or delete them together.</span></div>
-          <div class="selection-actions deleted-selection-actions">
-            <button class="text-button" id="select-all-deleted" type="button">Select all</button>
-            <button class="button restore-selected-button" id="restore-selected-deleted" type="button" disabled>Restore selected</button>
-            <button class="button permanently-delete-selected" id="permanently-delete-selected" type="button" disabled>Delete permanently</button>
+          <button class="icon-button" type="button" data-action="close-new" aria-label="Close"><span data-icon="x"></span></button>
+        </header>
+        <div class="sheet-body">
+          <div class="field-grid">
+            <label class="field span-2"><span class="field-label">Company <span class="req" aria-hidden="true">*</span></span>
+              <input required maxlength="80" name="company" autocomplete="organization" placeholder="e.g. Shopify" />
+            </label>
+            <label class="field span-2"><span class="field-label">Role <span class="req" aria-hidden="true">*</span></span>
+              <input required maxlength="100" name="role" autocomplete="off" placeholder="e.g. Backend Developer Intern" />
+            </label>
+            <fieldset class="field span-2 stage-field">
+              <legend>Stage</legend>
+              <div class="stage-picker" id="new-stage"></div>
+            </fieldset>
+            <label class="field">Deadline
+              <input name="deadline" type="date" />
+            </label>
+            <label class="field">Location
+              <input maxlength="80" name="location" placeholder="Toronto or Remote" />
+            </label>
+            <label class="field">Where you found it
+              <input maxlength="60" name="source" list="source-options" placeholder="LinkedIn, WaterlooWorks…" />
+            </label>
+            <label class="field">Job posting link
+              <input maxlength="500" name="link" type="url" inputmode="url" placeholder="https://…" />
+            </label>
+            <label class="field span-2">Skills
+              <input maxlength="250" name="skills" placeholder="Java, React, SQL" />
+              <small>Separate skills with commas.</small>
+            </label>
+            <label class="field span-2">Notes
+              <textarea maxlength="10000" name="notes" rows="3" placeholder="Why this role? Anything to remember?"></textarea>
+            </label>
           </div>
-        </section>
-        <div class="deleted-list" id="recently-deleted"></div>
-      </section>
-    </main>
-    <template id="card-template">
-      <article class="application-card">
-        <div class="card-top"><p class="company"></p><div class="card-actions"><input class="select-application" type="checkbox" title="Select application" /><button class="delete" type="button" title="Move to Recently Deleted" aria-label="Move to Recently Deleted">×</button></div></div>
-        <h3 class="role"></h3>
-        <p class="meta"></p>
-        <p class="deadline"></p>
-        <div class="tags"></div>
-        <p class="notes"></p>
-        <label class="status-label"><span>Move to</span><select class="status-select"></select></label>
-      </article>
-    </template>
-    <dialog class="confirm-dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-copy">
-      <section class="confirm-card">
-        <button class="dialog-close" type="button" id="cancel-remove" aria-label="Keep this application">×</button>
-        <div class="dialog-mark" aria-hidden="true">✦</div>
-        <p class="eyebrow">A SMALL SAFETY NET</p>
-        <h2 id="confirm-title">Move this to Recently Deleted?</h2>
-        <p id="confirm-copy">You can always add it back later.</p>
-        <div class="dialog-actions">
-          <button class="button button-secondary" type="button" id="keep-application">Keep it</button>
-          <button class="button danger-button" type="button" id="confirm-remove">Move it</button>
+          <p class="form-error" id="new-error" role="alert" hidden></p>
         </div>
-      </section>
+        <footer class="sheet-foot">
+          <button class="button ghost" type="button" data-action="close-new">Cancel</button>
+          <button class="button primary" type="submit">Add to notebook</button>
+        </footer>
+      </form>
     </dialog>
-    <dialog class="confirm-dialog" id="permanent-delete-dialog" aria-labelledby="permanent-delete-title" aria-describedby="permanent-delete-copy">
-      <section class="confirm-card">
-        <button class="dialog-close" type="button" id="cancel-permanent-delete" aria-label="Cancel permanent deletion">×</button>
-        <div class="dialog-mark" aria-hidden="true">!</div>
-        <p class="eyebrow">THIS CAN'T BE UNDONE</p>
-        <h2 id="permanent-delete-title">Delete permanently?</h2>
-        <p id="permanent-delete-copy">This application will be removed immediately and cannot be restored.</p>
-        <div class="dialog-actions">
-          <button class="button button-secondary" type="button" id="keep-deleted">Keep it</button>
-          <button class="button danger-button" type="button" id="confirm-permanent-delete">Delete permanently</button>
+    <datalist id="source-options"></datalist>
+
+    <dialog class="confirm" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-copy">
+      <div class="confirm-card">
+        <div class="confirm-mark" id="confirm-mark" aria-hidden="true"></div>
+        <p class="eyebrow" id="confirm-eyebrow">A small safety net</p>
+        <h2 id="confirm-title">Are you sure?</h2>
+        <p id="confirm-copy"></p>
+        <div class="confirm-actions">
+          <button class="button ghost" type="button" data-confirm="no" id="confirm-no">Keep it</button>
+          <button class="button danger" type="button" data-confirm="yes" id="confirm-yes">Continue</button>
         </div>
-      </section>
+      </div>
     </dialog>
+
+    <dialog class="palette" id="palette" aria-label="Search your notebook">
+      <div class="palette-card">
+        <label class="palette-input"><span data-icon="search"></span>
+          <span class="sr-only">Search</span>
+          <input id="palette-input" type="search" placeholder="Search companies, roles, skills, notes…" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="palette-results" aria-autocomplete="list" />
+          <kbd>Esc</kbd>
+        </label>
+        <ul class="palette-results" id="palette-results" role="listbox"></ul>
+      </div>
+    </dialog>
+
+    <input type="file" id="import-file" accept="application/json,.json" hidden />
     <script src="site-mode.js"></script>
     <script src="app.js"></script>
   </body>

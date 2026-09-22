@@ -119,7 +119,66 @@ public final class ApplicationRepositoryTest {
         ApplicationRepository batchReloaded = new ApplicationRepository(dataFile, afterRetention);
         assert batchReloaded.list().size() == 1;
         assert batchReloaded.recentlyDeleted().isEmpty();
+
+        notebookPagesCanBeEditedAndKeepATimeline(directory, now);
+        rowsFromTheFirstVersionStillLoad(directory, now);
         System.out.println("ApplicationRepositoryTest passed");
+    }
+
+    private static void notebookPagesCanBeEditedAndKeepATimeline(Path directory, Instant now) throws Exception {
+        Path dataFile = directory.resolve("notebook-pages.tsv");
+        ApplicationRepository repository = new ApplicationRepository(dataFile, Clock.fixed(now, ZoneOffset.UTC));
+        Application created = repository.create(Map.of(
+                "company", "Northwind", "role", "Data Intern", "status", "SAVED",
+                "link", "careers.northwind.example/jobs/42", "starred", "true"));
+        assert created.link().equals("https://careers.northwind.example/jobs/42");
+        assert created.starred();
+        assert created.history().size() == 1;
+        assert created.history().getFirst().status() == Application.Status.SAVED;
+
+        Instant later = now.plusSeconds(3L * 24 * 60 * 60);
+        ApplicationRepository laterRepository = new ApplicationRepository(dataFile, Clock.fixed(later, ZoneOffset.UTC));
+        Application edited = laterRepository.update(created.id(), Map.of(
+                "status", "APPLIED", "notes", "Line one\nLine two\twith a tab",
+                "nextStep", "Follow up with recruiter", "nextStepDate", "2026-09-30", "contact", "Sam (recruiter)")).orElseThrow();
+        assert edited.status() == Application.Status.APPLIED;
+        assert edited.company().equals("Northwind");
+        assert edited.history().size() == 2;
+        assert edited.history().get(1).at().equals(later);
+        assert edited.updatedAt().equals(later);
+
+        Application sameStatus = laterRepository.update(created.id(), Map.of("status", "APPLIED")).orElseThrow();
+        assert sameStatus.history().size() == 2;
+
+        ApplicationRepository reloaded = new ApplicationRepository(dataFile, Clock.fixed(later, ZoneOffset.UTC));
+        Application saved = reloaded.list().getFirst();
+        assert saved.notes().equals("Line one\nLine two\twith a tab");
+        assert saved.nextStepDate().equals("2026-09-30");
+        assert saved.contact().equals("Sam (recruiter)");
+        assert saved.history().size() == 2;
+        assert saved.starred();
+
+        assertIllegalArgument(() -> reloaded.update(created.id(), Map.of("company", "  ")));
+        assertIllegalArgument(() -> reloaded.update(created.id(), Map.of("link", "javascript:alert(1)")));
+        assertIllegalArgument(() -> reloaded.update(created.id(), Map.of("nextStepDate", "next week")));
+        assertIllegalArgument(() -> reloaded.update(created.id(), Map.of()));
+        assert reloaded.update(9999L, Map.of("notes", "missing")).isEmpty();
+        assert reloaded.list().getFirst().company().equals("Northwind");
+    }
+
+    private static void rowsFromTheFirstVersionStillLoad(Path directory, Instant now) throws Exception {
+        Path dataFile = directory.resolve("first-version.tsv");
+        Files.writeString(dataFile, String.join("\t", "7", "Legacy Co", "Backend Intern", "Toronto", "WaterlooWorks",
+                "INTERVIEW", "2026-10-01", "Old note", "Java,SQL", "2026-09-01T10:00:00Z", "") + "\n");
+        ApplicationRepository repository = new ApplicationRepository(dataFile, Clock.fixed(now, ZoneOffset.UTC));
+        Application legacy = repository.list().getFirst();
+        assert legacy.id() == 7;
+        assert legacy.link().isEmpty();
+        assert !legacy.starred();
+        assert legacy.history().size() == 1;
+        assert legacy.history().getFirst().status() == Application.Status.INTERVIEW;
+        assert legacy.updatedAt().equals(legacy.createdAt());
+        assert repository.create(Map.of("company", "Next", "role", "Intern")).id() == 8;
     }
 
     private static void assertIllegalArgument(ThrowingRunnable action) throws Exception {

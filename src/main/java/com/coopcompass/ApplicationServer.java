@@ -69,8 +69,9 @@ public final class ApplicationServer {
             }
             long id = idFrom(path);
             if ("PATCH".equals(method) && id > 0) {
-                String status = Json.string(readBody(exchange), "status").orElseThrow(() -> new IllegalArgumentException("status is required."));
-                Application application = repository.updateStatus(id, status).orElseThrow(() -> new NotFoundException("Application not found."));
+                // Accepts any subset of fields: {"status":"APPLIED"} still works, and the notebook page sends edits.
+                Application application = repository.update(id, payload(readBody(exchange)))
+                        .orElseThrow(() -> new NotFoundException("Application not found."));
                 respondJson(exchange, 200, applicationJson(application));
                 return;
             }
@@ -184,9 +185,11 @@ public final class ApplicationServer {
 
     private Map<String, String> payload(String body) {
         Map<String, String> values = new LinkedHashMap<>();
-        for (String field : new String[]{"company", "role", "location", "source", "status", "deadline", "notes", "skills"}) {
+        for (String field : new String[]{"company", "role", "location", "source", "status", "deadline", "notes", "skills",
+                "link", "contact", "nextStep", "nextStepDate"}) {
             Json.string(body, field).ifPresent(value -> values.put(field, value));
         }
+        Json.bool(body, "starred").ifPresent(value -> values.put("starred", Boolean.toString(value)));
         return values;
     }
 
@@ -227,6 +230,16 @@ public final class ApplicationServer {
                 + ",\"notes\":\"" + Json.escape(application.notes()) + "\""
                 + ",\"skills\":[" + application.skills().stream().map(skill -> "\"" + Json.escape(skill) + "\"").reduce((left, right) -> left + "," + right).orElse("") + "]"
                 + ",\"createdAt\":\"" + DateTimeFormatter.ISO_INSTANT.format(application.createdAt()) + "\""
+                + ",\"updatedAt\":\"" + DateTimeFormatter.ISO_INSTANT.format(application.updatedAt()) + "\""
+                + ",\"link\":\"" + Json.escape(application.link()) + "\""
+                + ",\"contact\":\"" + Json.escape(application.contact()) + "\""
+                + ",\"nextStep\":\"" + Json.escape(application.nextStep()) + "\""
+                + ",\"nextStepDate\":\"" + application.nextStepDate() + "\""
+                + ",\"starred\":" + application.starred()
+                + ",\"history\":[" + application.history().stream()
+                        .map(change -> "{\"status\":\"" + change.status().name() + "\",\"at\":\""
+                                + DateTimeFormatter.ISO_INSTANT.format(change.at()) + "\"}")
+                        .reduce((left, right) -> left + "," + right).orElse("") + "]"
                 + (deletedAt == null ? "" : ",\"deletedAt\":\"" + DateTimeFormatter.ISO_INSTANT.format(deletedAt) + "\"")
                 + "}";
     }
@@ -251,6 +264,10 @@ public final class ApplicationServer {
             case "css" -> "text/css; charset=utf-8";
             case "js" -> "application/javascript; charset=utf-8";
             case "svg" -> "image/svg+xml";
+            case "png" -> "image/png";
+            case "ico" -> "image/x-icon";
+            case "json" -> "application/json; charset=utf-8";
+            case "webmanifest" -> "application/manifest+json; charset=utf-8";
             default -> "text/html; charset=utf-8";
         };
     }

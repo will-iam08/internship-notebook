@@ -15,6 +15,12 @@ final class Json {
         return matcher.find() ? Optional.of(unescape(matcher.group(1))) : Optional.empty();
     }
 
+    static Optional<Boolean> bool(String json, String field) {
+        Pattern pattern = Pattern.compile("\\\"" + Pattern.quote(field) + "\\\"\\s*:\\s*\\\"?(true|false)\\\"?");
+        Matcher matcher = pattern.matcher(json);
+        return matcher.find() ? Optional.of(Boolean.parseBoolean(matcher.group(1))) : Optional.empty();
+    }
+
     static List<Long> longArray(String json, String field) {
         Pattern property = Pattern.compile("\\\"" + Pattern.quote(field) + "\\\"\\s*:\\s*");
         Matcher matcher = property.matcher(json);

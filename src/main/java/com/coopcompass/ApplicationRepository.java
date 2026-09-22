@@ -1,6 +1,7 @@
 package com.coopcompass;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
 
 public final class ApplicationRepository {
     private static final Duration RECENTLY_DELETED_RETENTION = Duration.ofDays(7);
+    private static final int EXTENDED_COLUMNS = 18;
+    static final int MAX_NOTES = 10_000;
 
     private final Path dataFile;
     private final Clock clock;
@@ -56,13 +59,20 @@ public final class ApplicationRepository {
         String role = required(input, "role", 100);
         String location = optional(input, "location", 80);
         String source = optional(input, "source", 60);
-        String notes = optional(input, "notes", 1000);
-        String deadline = deadline(input.getOrDefault("deadline", ""));
+        String notes = optional(input, "notes", MAX_NOTES);
+        String deadline = date(input.getOrDefault("deadline", ""), "Deadline");
         Application.Status status = Application.Status.from(input.get("status"));
         List<String> skills = skills(input.getOrDefault("skills", ""));
+        String link = link(input.getOrDefault("link", ""));
+        String contact = optional(input, "contact", 120);
+        String nextStep = optional(input, "nextStep", 140);
+        String nextStepDate = date(input.getOrDefault("nextStepDate", ""), "Next step date");
+        boolean starred = Boolean.parseBoolean(input.getOrDefault("starred", "false"));
+        Instant now = clock.instant();
 
         Application application = new Application(nextId.getAndIncrement(), company, role, location, source, status,
-                deadline, notes, skills, clock.instant());
+                deadline, notes, skills, now, link, contact, nextStep, nextStepDate, starred,
+                List.of(new Application.StatusChange(status, now)), now);
         applications.put(application.id(), application);
         try {
             save();
@@ -77,7 +87,7 @@ public final class ApplicationRepository {
         purgeExpiredAndSave();
         Application existing = applications.get(id);
         if (existing == null) return Optional.empty();
-        Application updated = existing.withStatus(Application.Status.from(rawStatus));
+        Application updated = existing.withStatus(Application.Status.from(rawStatus), clock.instant());
         applications.put(id, updated);
         try {
             save();
@@ -86,6 +96,47 @@ public final class ApplicationRepository {
             throw exception;
         }
         return Optional.of(updated);
+    }
+
+    /**
+     * Edits an active application. Only the fields present in {@code input} change, so the
+     * notebook page can save one field at a time. A status change is added to the timeline.
+     */
+    public synchronized Optional<Application> update(long id, Map<String, String> input) throws IOException {
+        purgeExpiredAndSave();
+        Application existing = applications.get(id);
+        if (existing == null) return Optional.empty();
+        if (input == null || input.isEmpty()) throw new IllegalArgumentException("Nothing to update.");
+
+        Instant now = clock.instant();
+        Application edited = new Application(
+                id,
+                input.containsKey("company") ? required(input, "company", 80) : existing.company(),
+                input.containsKey("role") ? required(input, "role", 100) : existing.role(),
+                input.containsKey("location") ? optional(input, "location", 80) : existing.location(),
+                input.containsKey("source") ? optional(input, "source", 60) : existing.source(),
+                existing.status(),
+                input.containsKey("deadline") ? date(input.get("deadline"), "Deadline") : existing.deadline(),
+                input.containsKey("notes") ? optional(input, "notes", MAX_NOTES) : existing.notes(),
+                input.containsKey("skills") ? skills(input.get("skills")) : existing.skills(),
+                existing.createdAt(),
+                input.containsKey("link") ? link(input.get("link")) : existing.link(),
+                input.containsKey("contact") ? optional(input, "contact", 120) : existing.contact(),
+                input.containsKey("nextStep") ? optional(input, "nextStep", 140) : existing.nextStep(),
+                input.containsKey("nextStepDate") ? date(input.get("nextStepDate"), "Next step date") : existing.nextStepDate(),
+                input.containsKey("starred") ? Boolean.parseBoolean(input.get("starred")) : existing.starred(),
+                existing.history(),
+                now);
+        if (input.containsKey("status")) edited = edited.withStatus(requiredStatus(input.get("status")), now);
+
+        applications.put(id, edited);
+        try {
+            save();
+        } catch (IOException exception) {
+            applications.put(id, existing);
+            throw exception;
+        }
+        return Optional.of(edited);
     }
 
     /**
@@ -99,7 +150,8 @@ public final class ApplicationRepository {
         List<Application> originals = activeApplications(requestedIds);
         if (originals == null) return Optional.empty();
 
-        List<Application> updated = originals.stream().map(application -> application.withStatus(status)).toList();
+        Instant changedAt = clock.instant();
+        List<Application> updated = originals.stream().map(application -> application.withStatus(status, changedAt)).toList();
         updated.forEach(application -> applications.put(application.id(), application));
         try {
             save();
@@ -253,13 +305,24 @@ public final class ApplicationRepository {
         for (String row : Files.readAllLines(dataFile, StandardCharsets.UTF_8)) {
             if (row.isBlank()) continue;
             String[] values = row.split("\\t", -1);
-            if (values.length != 10 && values.length != 11) continue;
+            // 10/11 columns: rows written before notebook pages existed. 18 columns: current format.
+            if (values.length != 10 && values.length != 11 && values.length < EXTENDED_COLUMNS) continue;
             try {
                 long id = Long.parseLong(values[0]);
+                Application.Status status = Application.Status.valueOf(values[5]);
+                Instant createdAt = Instant.parse(values[9]);
+                boolean extended = values.length >= EXTENDED_COLUMNS;
                 Application application = new Application(id, decode(values[1]), decode(values[2]), decode(values[3]),
-                        decode(values[4]), Application.Status.valueOf(values[5]), decode(values[6]), decode(values[7]),
-                        skills(decode(values[8])), Instant.parse(values[9]));
-                String deletedAt = values.length == 11 ? decode(values[10]) : "";
+                        decode(values[4]), status, decode(values[6]), decode(values[7]),
+                        skills(decode(values[8])), createdAt,
+                        extended ? decode(values[11]) : "",
+                        extended ? decode(values[12]) : "",
+                        extended ? decode(values[13]) : "",
+                        extended ? decode(values[14]) : "",
+                        extended && "1".equals(values[15]),
+                        extended ? history(values[16], status, createdAt) : List.of(new Application.StatusChange(status, createdAt)),
+                        extended && !values[17].isBlank() ? Instant.parse(values[17]) : createdAt);
+                String deletedAt = values.length >= 11 ? decode(values[10]) : "";
                 if (deletedAt.isBlank()) {
                     recentlyDeleted.remove(id);
                     applications.put(id, application);
@@ -299,7 +362,23 @@ public final class ApplicationRepository {
                 Long.toString(application.id()), encode(application.company()), encode(application.role()),
                 encode(application.location()), encode(application.source()), application.status().name(),
                 encode(application.deadline()), encode(application.notes()), encode(String.join(",", application.skills())),
-                application.createdAt().toString(), deletedAt);
+                application.createdAt().toString(), deletedAt,
+                encode(application.link()), encode(application.contact()), encode(application.nextStep()),
+                encode(application.nextStepDate()), application.starred() ? "1" : "0",
+                application.history().stream().map(change -> change.status().name() + "@" + change.at())
+                        .collect(Collectors.joining(";")),
+                application.updatedAt().toString());
+    }
+
+    private static List<Application.StatusChange> history(String raw, Application.Status status, Instant createdAt) {
+        List<Application.StatusChange> changes = new ArrayList<>();
+        for (String entry : raw.split(";")) {
+            int separator = entry.indexOf('@');
+            if (separator <= 0) continue;
+            changes.add(new Application.StatusChange(Application.Status.valueOf(entry.substring(0, separator)),
+                    Instant.parse(entry.substring(separator + 1))));
+        }
+        return changes.isEmpty() ? List.of(new Application.StatusChange(status, createdAt)) : changes;
     }
 
     private void purgeExpiredAndSave() throws IOException {
@@ -358,13 +437,36 @@ public final class ApplicationRepository {
         return value;
     }
 
-    private static String deadline(String value) {
+    private static String date(String value, String label) {
         if (value == null || value.isBlank()) return "";
         try {
-            return LocalDate.parse(value).toString();
+            return LocalDate.parse(value.trim()).toString();
         } catch (DateTimeParseException exception) {
-            throw new IllegalArgumentException("Deadline must be a valid date.");
+            throw new IllegalArgumentException(label + " must be a valid date.");
         }
+    }
+
+    /** Accepts web links only, so a saved link can never run script when it is opened. */
+    static String link(String raw) {
+        String value = raw == null ? "" : raw.trim();
+        if (value.isEmpty()) return "";
+        if (value.length() > 500) throw new IllegalArgumentException("link must be 500 characters or fewer.");
+        if (!value.matches("(?i)^[a-z][a-z0-9+.-]*://.*")) {
+            if (value.matches("(?i)^[a-z][a-z0-9+.-]*:.*") && !value.matches("(?i)^[^:/]+\\.[^:/]+:\\d+.*")) {
+                throw new IllegalArgumentException("Link must be a web address starting with http:// or https://.");
+            }
+            value = "https://" + value;
+        }
+        String lower = value.toLowerCase(Locale.ROOT);
+        if (!lower.startsWith("http://") && !lower.startsWith("https://")) {
+            throw new IllegalArgumentException("Link must be a web address starting with http:// or https://.");
+        }
+        try {
+            if (URI.create(value).getHost() == null) throw new IllegalArgumentException();
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Link must be a valid web address.");
+        }
+        return value;
     }
 
     private static List<String> skills(String rawSkills) {
