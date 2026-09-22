@@ -2,31 +2,23 @@
  * My Internship Notebook
  * A dependency-free single-page app. It talks to the Java API when it runs locally
  * ("server" mode) and keeps entries privately in this browser on the public website
- * ("browser" mode). Both modes share one interface: the `api` object below.
+ * ("browser" mode). Both modes share one interface: the `api` object in api.js.
+ *
+ * Modules: domain.js (rules and numbers), storage.js (browser storage), api.js (backends),
+ * ui/icons.js (inline icons). This file holds state, views, routing, and event handling.
  */
-(() => {
-"use strict";
+import {
+  STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
+  plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
+  cleanSkills, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy
+} from "./domain.js";
+import { KEYS, storage } from "./storage.js";
+import { api, BROWSER_MODE } from "./api.js";
+import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
    1. Constants
    ========================================================================== */
-const STAGES = ["SAVED", "APPLIED", "INTERVIEW", "OFFER", "REJECTED"];
-const PIPELINE = ["SAVED", "APPLIED", "INTERVIEW", "OFFER"];
-const OPEN_STAGES = ["SAVED", "APPLIED", "INTERVIEW"];
-const LABELS = { SAVED: "Saved", APPLIED: "Applied", INTERVIEW: "Interview", OFFER: "Offer", REJECTED: "Rejected" };
-const DAY_MS = 24 * 60 * 60 * 1000;
-const RETENTION_MS = 7 * DAY_MS;
-const FOLLOW_UP_DAYS = 14;
-const KEYS = {
-  data: "my-internship-notebook-browser-data-v1",
-  goal: "my-internship-notebook-weekly-goal",
-  legacyGoal: "coop-compass-weekly-goal",
-  theme: "my-internship-notebook-theme",
-  prefs: "my-internship-notebook-prefs-v1"
-};
-const LIMITS = { company: 80, role: 100, location: 80, source: 60, notes: 10000, contact: 120, nextStep: 140, link: 500 };
-const BROWSER_MODE = window.NOTEBOOK_STORAGE_MODE === "browser" || window.location.hostname.endsWith(".github.io");
-const SOURCE_SUGGESTIONS = ["LinkedIn", "WaterlooWorks", "Company website", "Referral", "Handshake", "Indeed", "Career fair", "Recruiter"];
 const VIEWS = {
   today: { title: "Today", tab: "--tab-today" },
   board: { title: "Board", tab: "--tab-board" },
@@ -43,384 +35,13 @@ const VIEWS = {
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const esc = (value = "") => String(value).replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);
-const plural = (count, word, many = `${word}s`) => `${count} ${count === 1 ? word : many}`;
-const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-const isValidDate = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(parseDay(value).getTime());
-const isValidIso = value => typeof value === "string" && !Number.isNaN(new Date(value).getTime());
 
-const storage = {
-  get(key) { try { return window.localStorage.getItem(key); } catch { return null; } },
-  set(key, value) { try { window.localStorage.setItem(key, value); return true; } catch { return false; } }
-};
-
-function pad(number) { return String(number).padStart(2, "0"); }
-function dayKey(date = new Date()) { return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`; }
-function parseDay(value) { const [year, month, day] = String(value).split("-").map(Number); return new Date(year, month - 1, day, 12); }
-function startOfDay(date = new Date()) { return new Date(date.getFullYear(), date.getMonth(), date.getDate()); }
-function startOfWeek(date = new Date()) {
-  const start = startOfDay(date);
-  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
-  return start;
-}
-function daysUntil(value) { return Math.round((parseDay(value) - parseDay(dayKey())) / DAY_MS); }
-function formatDay(value, options = {}) {
-  return parseDay(value).toLocaleDateString(undefined, { month: "short", day: "numeric", ...options });
-}
-function relativeDay(value) {
-  const days = daysUntil(value);
-  if (days === 0) return "today";
-  if (days === 1) return "tomorrow";
-  if (days === -1) return "yesterday";
-  if (days > 1 && days < 7) return `in ${days} days`;
-  if (days < -1 && days > -7) return `${-days} days ago`;
-  return formatDay(value);
-}
-function timeAgo(iso) {
-  const then = new Date(iso);
-  const seconds = Math.round((Date.now() - then.getTime()) / 1000);
-  if (seconds < 45) return "just now";
-  if (seconds < 3600) return `${Math.max(1, Math.round(seconds / 60))} min ago`;
-  if (seconds < 86400) return `${Math.round(seconds / 3600)} h ago`;
-  const days = Math.round((startOfDay() - startOfDay(then)) / DAY_MS);
-  if (days <= 1) return "yesterday";
-  if (days < 7) return `${days} days ago`;
-  return then.toLocaleDateString(undefined, { month: "short", day: "numeric", year: then.getFullYear() === new Date().getFullYear() ? undefined : "numeric" });
-}
-function formatDateTime(iso) {
-  return new Date(iso).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
-}
 function debounce(fn, wait) {
   let timer;
   const debounced = (...args) => { window.clearTimeout(timer); timer = window.setTimeout(() => fn(...args), wait); };
   debounced.cancel = () => window.clearTimeout(timer);
   return debounced;
 }
-
-/* ==========================================================================
-   3. Icons (inline SVG, drawn on a 24px grid)
-   ========================================================================== */
-const ICONS = {
-  today: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
-  board: '<rect x="3" y="3.5" width="18" height="17" rx="2.5"/><path d="M8.5 7.5v8M12.5 7.5v4.5M16.5 7.5v10"/>',
-  notebook: '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5v-15Z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 7.5h6M9 11h4"/>',
-  insights: '<path d="M3.5 3.5v17h17"/><path d="M8 16.5v-4M12.5 16.5V8M17 16.5v-6"/>',
-  trash: '<path d="M3.5 6.5h17M9 6.5V4.8c0-.7.6-1.3 1.3-1.3h3.4c.7 0 1.3.6 1.3 1.3v1.7M18.5 6.5l-.8 12.6c-.1 1.3-1.1 2.4-2.4 2.4H8.7c-1.3 0-2.3-1.1-2.4-2.4L5.5 6.5M10 11v6M14 11v6"/>',
-  settings: '<path d="M4 21v-6.5M4 10.5V3M12 21v-8.5M12 8.5V3M20 21v-4.5M20 12.5V3M1.5 14.5h5M9.5 8.5h5M17.5 16.5h5"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>',
-  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20.5 20.5-4.9-4.9"/>',
-  star: '<path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9L12 3Z"/>',
-  x: '<path d="M18 6 6 18M6 6l12 12"/>',
-  check: '<path d="M20 6.5 9.5 17 4 11.5"/>',
-  back: '<path d="m15 18-6-6 6-6"/>',
-  forward: '<path d="m9 18 6-6-6-6"/>',
-  external: '<path d="M14 4h6v6M20 4l-9 9M18 13.5V19a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 19V7.5A1.5 1.5 0 0 1 5.5 6H11"/>',
-  calendar: '<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/>',
-  moon: '<path d="M20.5 14.2A8.5 8.5 0 1 1 9.8 3.5a6.6 6.6 0 0 0 10.7 10.7Z"/>',
-  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6l1.4 1.4M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
-  system: '<rect x="3" y="4" width="18" height="12.5" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/>',
-  download: '<path d="M12 3.5v11M7 10l5 5 5-5M4 16.5V19a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-2.5"/>',
-  upload: '<path d="M12 15V4M7 8.5l5-5 5 5M4 16.5V19a1.5 1.5 0 0 0 1.5 1.5h13A1.5 1.5 0 0 0 20 19v-2.5"/>',
-  lock: '<rect x="4.5" y="10.5" width="15" height="10" rx="2.5"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/>',
-  more: '<circle cx="5.5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18.5" cy="12" r="1.2" fill="currentColor"/>',
-  move: '<path d="M16 3.5 20 7.5l-4 4M20 7.5H5M8 20.5l-4-4 4-4M4 16.5h15"/>',
-  select: '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="m8 12 3 3 5-6"/>',
-  restore: '<path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1L3.5 8.5"/><path d="M3.5 3.5v5h5"/>',
-  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
-  pin: '<path d="M19 10c0 5.2-7 11-7 11s-7-5.8-7-11a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/>',
-  user: '<circle cx="12" cy="8" r="4"/><path d="M4 20.5c.8-3.6 4-5.5 8-5.5s7.2 1.9 8 5.5"/>',
-  flag: '<path d="M5 21V4.5M5 4.5c4-2.4 7 2.4 14 0v9c-7 2.4-10-2.4-14 0"/>',
-  globe: '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.3 3.5 5.2 3.5 8.5s-1.1 6.2-3.5 8.5c-2.4-2.3-3.5-5.2-3.5-8.5S9.6 5.8 12 3.5Z"/>',
-  link: '<path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3A4.5 4.5 0 0 0 13 4.6l-1.2 1.2M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>',
-  alert: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5.5M12 16.5h.01"/>',
-  mail: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m4 7 8 6 8-6"/>',
-  edit: '<path d="M4 20h4L19 9l-4-4L4 16v4ZM13.5 6.5l4 4"/>',
-  sparkle: '<path d="M12 3.5c.6 4.3 2.2 6 6.5 6.5-4.3.6-5.9 2.2-6.5 6.5-.6-4.3-2.2-5.9-6.5-6.5 4.3-.5 5.9-2.2 6.5-6.5ZM18.5 15.5c.2 1.6.9 2.3 2.5 2.5-1.6.2-2.3.9-2.5 2.5-.2-1.6-.9-2.3-2.5-2.5 1.6-.2 2.3-.9 2.5-2.5Z"/>',
-  install: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M12 7v7M9 11.5l3 3 3-3M10.5 18.5h3"/>',
-  keyboard: '<rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M8 14h8"/>',
-  copy: '<rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6A2.5 2.5 0 0 0 13 3.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/>',
-  file: '<path d="M14 3.5H7A2.5 2.5 0 0 0 4.5 6v12A2.5 2.5 0 0 0 7 20.5h10a2.5 2.5 0 0 0 2.5-2.5V9L14 3.5Z"/><path d="M14 3.5V9h5.5M8.5 13h7M8.5 16.5h5"/>',
-  inbox: '<path d="M3.5 13.5 6 5.5A2 2 0 0 1 8 4h8a2 2 0 0 1 2 1.5l2.5 8M3.5 13.5V18a2.5 2.5 0 0 0 2.5 2.5h12a2.5 2.5 0 0 0 2.5-2.5v-4.5M3.5 13.5h5l1.5 2.5h4l1.5-2.5h5"/>'
-};
-const LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="9" fill="#1f3447"/><rect x="10" y="8.5" width="21" height="24" rx="3" fill="#fbf8f1"/><path d="M14.5 16h11M14.5 20.5h11M14.5 25h7" stroke="#9fb1bd" stroke-width="1.8" stroke-linecap="round"/><path d="M25 8.5h4.5v10l-2.25-1.8L25 18.5Z" fill="#e0663f"/><g fill="#1f3447"><circle cx="10" cy="13" r="1.4"/><circle cx="10" cy="19" r="1.4"/><circle cx="10" cy="25" r="1.4"/></g></svg>';
-
-function icon(name, className = "") {
-  return `<svg class="icon ${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name] || ""}</svg>`;
-}
-
-/* ==========================================================================
-   4. Validation and data shape (mirrors ApplicationRepository.java)
-   ========================================================================== */
-function cleanText(value, field, { required = false } = {}) {
-  const text = String(value ?? "").trim();
-  if (required && !text) throw new Error(`${field === "role" ? "Role" : "Company"} is required.`);
-  if (text.length > LIMITS[field]) throw new Error(`${field} must be ${LIMITS[field]} characters or fewer.`);
-  return text;
-}
-
-function cleanDate(value, label) {
-  const text = String(value ?? "").trim();
-  if (!text) return "";
-  if (!isValidDate(text)) throw new Error(`${label} must be a valid date.`);
-  return text;
-}
-
-/** Only web links are allowed, so a saved link can never run script when it is opened. */
-function cleanLink(value) {
-  let link = String(value ?? "").trim();
-  if (!link) return "";
-  if (link.length > LIMITS.link) throw new Error("Link must be 500 characters or fewer.");
-  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(link)) {
-    if (/^[a-z][a-z0-9+.-]*:/i.test(link) && !/^[^:/]+\.[^:/]+:\d+/i.test(link)) {
-      throw new Error("Link must be a web address starting with http:// or https://.");
-    }
-    link = `https://${link}`;
-  }
-  if (!/^https?:\/\//i.test(link)) throw new Error("Link must be a web address starting with http:// or https://.");
-  try {
-    if (!new URL(link).hostname) throw new Error();
-  } catch {
-    throw new Error("Link must be a valid web address.");
-  }
-  return link;
-}
-
-function cleanSkills(value) {
-  const list = Array.isArray(value) ? value : String(value ?? "").split(",");
-  const seen = new Set();
-  const skills = [];
-  for (const raw of list) {
-    const skill = String(raw).trim();
-    if (!skill) continue;
-    const formatted = skill.charAt(0).toUpperCase() + skill.slice(1);
-    if (seen.has(formatted)) continue;
-    seen.add(formatted);
-    skills.push(formatted.slice(0, 40));
-    if (skills.length === 12) break;
-  }
-  return skills;
-}
-
-function cleanStage(value) {
-  const stage = String(value ?? "").toUpperCase();
-  if (!STAGES.includes(stage)) throw new Error("Choose a valid pipeline stage.");
-  return stage;
-}
-
-/** Validates only the fields that are present, so one field can be saved at a time. */
-function cleanChanges(changes, { creating = false } = {}) {
-  const clean = {};
-  const has = key => Object.prototype.hasOwnProperty.call(changes, key);
-  if (creating || has("company")) clean.company = cleanText(changes.company, "company", { required: true });
-  if (creating || has("role")) clean.role = cleanText(changes.role, "role", { required: true });
-  for (const field of ["location", "source", "notes", "contact", "nextStep"]) {
-    if (has(field)) clean[field] = cleanText(changes[field], field);
-  }
-  if (has("deadline")) clean.deadline = cleanDate(changes.deadline, "Deadline");
-  if (has("nextStepDate")) clean.nextStepDate = cleanDate(changes.nextStepDate, "Next step date");
-  if (has("link")) clean.link = cleanLink(changes.link);
-  if (has("skills")) clean.skills = cleanSkills(changes.skills);
-  if (has("starred")) clean.starred = Boolean(changes.starred);
-  if (has("status")) clean.status = cleanStage(changes.status || "SAVED");
-  return clean;
-}
-
-/** Fills in fields that older saved entries do not have yet, without losing anything. */
-function normalize(entry) {
-  const status = STAGES.includes(entry.status) ? entry.status : "SAVED";
-  const createdAt = isValidIso(entry.createdAt) ? entry.createdAt : new Date().toISOString();
-  const history = Array.isArray(entry.history)
-    ? entry.history.filter(change => change && STAGES.includes(change.status) && isValidIso(change.at)).map(change => ({ status: change.status, at: change.at }))
-    : [];
-  const text = value => (value == null ? "" : String(value));
-  const application = {
-    id: Number(entry.id),
-    company: text(entry.company),
-    role: text(entry.role),
-    location: text(entry.location),
-    source: text(entry.source),
-    status,
-    deadline: isValidDate(text(entry.deadline)) ? entry.deadline : "",
-    notes: text(entry.notes),
-    skills: cleanSkills(entry.skills),
-    createdAt,
-    updatedAt: isValidIso(entry.updatedAt) ? entry.updatedAt : createdAt,
-    link: text(entry.link),
-    contact: text(entry.contact),
-    nextStep: text(entry.nextStep),
-    nextStepDate: isValidDate(text(entry.nextStepDate)) ? entry.nextStepDate : "",
-    starred: entry.starred === true,
-    history: history.length ? history : [{ status, at: createdAt }]
-  };
-  if (entry.deletedAt) application.deletedAt = entry.deletedAt;
-  return application;
-}
-
-function withStatus(application, status, at) {
-  if (application.status === status) return application;
-  return { ...application, status, updatedAt: at, history: [...application.history, { status, at }] };
-}
-
-/* ==========================================================================
-   5. Storage backends: one interface, two implementations
-   ========================================================================== */
-const browserApi = {
-  read() {
-    let saved = {};
-    try { saved = JSON.parse(storage.get(KEYS.data) || "{}") || {}; } catch { saved = {}; }
-    const cutoff = Date.now() - RETENTION_MS;
-    const applications = (Array.isArray(saved.applications) ? saved.applications : []).map(normalize).filter(entry => entry.id > 0);
-    const recentlyDeleted = (Array.isArray(saved.recentlyDeleted) ? saved.recentlyDeleted : [])
-      .map(normalize)
-      .filter(entry => entry.id > 0 && new Date(entry.deletedAt).getTime() > cutoff);
-    const largestId = Math.max(0, ...applications.map(entry => entry.id), ...recentlyDeleted.map(entry => entry.id));
-    return {
-      nextId: Number.isInteger(saved.nextId) && saved.nextId > largestId ? saved.nextId : largestId + 1,
-      applications,
-      recentlyDeleted
-    };
-  },
-  write(data) {
-    if (!storage.set(KEYS.data, JSON.stringify(data))) {
-      throw new Error("This browser would not save your change. Storage may be full or blocked (for example in a private window).");
-    }
-  },
-  byIds(list, ids, message) {
-    const found = ids.map(id => list.find(entry => entry.id === id));
-    if (!ids.length || found.some(entry => !entry)) throw new Error(message);
-    return found;
-  },
-  async load() {
-    const data = this.read();
-    return { applications: data.applications, deleted: data.recentlyDeleted };
-  },
-  async create(fields) {
-    const data = this.read();
-    const clean = cleanChanges(fields, { creating: true });
-    const now = new Date().toISOString();
-    const status = clean.status || "SAVED";
-    const application = normalize({ ...clean, id: data.nextId++, status, createdAt: now, updatedAt: now, history: [{ status, at: now }] });
-    data.applications.push(application);
-    this.write(data);
-    return application;
-  },
-  async update(id, changes) {
-    const data = this.read();
-    const index = data.applications.findIndex(entry => entry.id === id);
-    if (index < 0) throw new Error("This page is no longer in your notebook.");
-    const { status, ...fields } = cleanChanges(changes);
-    if (!Object.keys(fields).length && !status) throw new Error("Nothing to update.");
-    const now = new Date().toISOString();
-    let updated = { ...data.applications[index], ...fields, updatedAt: now };
-    if (status) updated = withStatus(updated, status, now);
-    data.applications[index] = updated;
-    this.write(data);
-    return updated;
-  },
-  async setStatus(ids, status) {
-    const data = this.read();
-    const stage = cleanStage(status);
-    const now = new Date().toISOString();
-    const updated = this.byIds(data.applications, ids, "One or more applications could not be found.").map(entry => withStatus(entry, stage, now));
-    data.applications = data.applications.map(entry => updated.find(changed => changed.id === entry.id) || entry);
-    this.write(data);
-    return updated;
-  },
-  async remove(ids) {
-    const data = this.read();
-    const deletedAt = new Date().toISOString();
-    const removed = this.byIds(data.applications, ids, "One or more applications could not be found.").map(entry => ({ ...entry, deletedAt }));
-    data.applications = data.applications.filter(entry => !ids.includes(entry.id));
-    data.recentlyDeleted.push(...removed);
-    this.write(data);
-    return removed;
-  },
-  async restore(ids) {
-    const data = this.read();
-    const restored = this.byIds(data.recentlyDeleted, ids, "One or more deleted applications could not be found.").map(({ deletedAt, ...entry }) => entry);
-    data.recentlyDeleted = data.recentlyDeleted.filter(entry => !ids.includes(entry.id));
-    data.applications.push(...restored);
-    this.write(data);
-    return restored;
-  },
-  async purge(ids) {
-    const data = this.read();
-    const purged = this.byIds(data.recentlyDeleted, ids, "One or more deleted applications could not be found.");
-    data.recentlyDeleted = data.recentlyDeleted.filter(entry => !ids.includes(entry.id));
-    this.write(data);
-    return purged;
-  },
-  async importEntries(entries) {
-    const data = this.read();
-    const fingerprint = entry => `${entry.company.toLowerCase()}|${entry.role.toLowerCase()}|${entry.createdAt}`;
-    const existing = new Set([...data.applications, ...data.recentlyDeleted].map(fingerprint));
-    const added = [];
-    for (const raw of entries) {
-      const entry = normalize({ ...raw, id: 1 });
-      delete entry.deletedAt;
-      if (!entry.company.trim() || !entry.role.trim() || existing.has(fingerprint(entry))) continue;
-      entry.id = data.nextId++;
-      existing.add(fingerprint(entry));
-      added.push(entry);
-    }
-    data.applications.push(...added);
-    this.write(data);
-    return added;
-  }
-};
-
-const serverApi = {
-  async request(url, options = {}) {
-    let response;
-    try {
-      response = await fetch(url, { headers: { "Content-Type": "application/json" }, ...options });
-    } catch {
-      throw new Error("Could not reach the notebook server. Is it still running?");
-    }
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || "Could not save your change.");
-    }
-    return response.status === 204 ? null : response.json();
-  },
-  body(fields) {
-    const payload = { ...fields };
-    if (Array.isArray(payload.skills)) payload.skills = payload.skills.join(", ");
-    return JSON.stringify(payload);
-  },
-  async load() {
-    const [applications, deleted] = await Promise.all([this.request("/api/applications"), this.request("/api/recently-deleted")]);
-    return { applications: applications.map(normalize), deleted: deleted.map(normalize) };
-  },
-  async create(fields) {
-    return normalize(await this.request("/api/applications", { method: "POST", body: this.body(cleanChanges(fields, { creating: true })) }));
-  },
-  async update(id, changes) {
-    return normalize(await this.request(`/api/applications/${id}`, { method: "PATCH", body: this.body(cleanChanges(changes)) }));
-  },
-  async setStatus(ids, status) {
-    const updated = await this.request("/api/applications/bulk-status", { method: "POST", body: JSON.stringify({ ids, status: cleanStage(status) }) });
-    return updated.map(normalize);
-  },
-  async remove(ids) {
-    return (await this.request("/api/applications/bulk-delete", { method: "POST", body: JSON.stringify({ ids }) })).map(normalize);
-  },
-  async restore(ids) {
-    return (await this.request("/api/recently-deleted/bulk-restore", { method: "POST", body: JSON.stringify({ ids }) })).map(normalize);
-  },
-  async purge(ids) {
-    return (await this.request("/api/recently-deleted/bulk-permanent-delete", { method: "POST", body: JSON.stringify({ ids }) })).map(normalize);
-  },
-  async importEntries(entries) {
-    const added = [];
-    for (const entry of entries) {
-      const { id, createdAt, updatedAt, history, deletedAt, status, ...fields } = normalize({ ...entry, id: 1 });
-      added.push(await this.create({ ...fields, status }));
-    }
-    return added;
-  }
-};
-
-const api = BROWSER_MODE ? browserApi : serverApi;
 
 /* ==========================================================================
    6. State and preferences
@@ -492,97 +113,6 @@ function setTheme(theme) {
   if (state.route.view === "settings") rerender();
 }
 darkQuery.addEventListener?.("change", () => { if (state.prefs.theme === "system") applyTheme(); });
-
-/* ==========================================================================
-   8. Derived numbers (all computed from the entries themselves)
-   ========================================================================== */
-const countBy = list => Object.fromEntries(STAGES.map(stage => [stage, list.filter(entry => entry.status === stage).length]));
-const reached = (entry, stage) => entry.status === stage || entry.history.some(change => change.status === stage)
-  || (stage === "INTERVIEW" && entry.status === "OFFER");
-
-/** When an application was sent: the first time it left "Saved". */
-function sentAt(entry) {
-  const change = entry.history.find(item => item.status !== "SAVED");
-  if (change) return change.at;
-  return entry.status === "SAVED" ? null : entry.createdAt;
-}
-
-/** The date the stage last changed, used to spot applications waiting for a reply. */
-function stageSince(entry) {
-  const last = [...entry.history].reverse().find(change => change.status === entry.status);
-  return last ? last.at : entry.createdAt;
-}
-
-function metrics(list = state.applications) {
-  const counts = countBy(list);
-  const sent = list.length - counts.SAVED;
-  const responses = counts.INTERVIEW + counts.OFFER + counts.REJECTED;
-  const interviews = list.filter(entry => entry.status !== "SAVED" && reached(entry, "INTERVIEW")).length;
-  return {
-    counts,
-    total: list.length,
-    open: counts.SAVED + counts.APPLIED + counts.INTERVIEW,
-    sent,
-    responseRate: sent ? Math.round((responses * 100) / sent) : 0,
-    interviewRate: sent ? Math.round((interviews * 100) / sent) : 0,
-    interviews
-  };
-}
-
-function weekActivity(weekOffset = 0) {
-  const start = startOfWeek();
-  start.setDate(start.getDate() + weekOffset * 7);
-  const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return { date, key: dayKey(date), count: 0 };
-  });
-  for (const entry of state.applications) {
-    const at = sentAt(entry);
-    if (!at) continue;
-    const key = dayKey(new Date(at));
-    const day = days.find(item => item.key === key);
-    if (day) day.count++;
-  }
-  return { start, days, total: days.reduce((sum, day) => sum + day.count, 0) };
-}
-
-/** Dated things coming up: deadlines for saved roles and next steps for everything still open. */
-function agendaItems() {
-  const items = [];
-  for (const entry of state.applications) {
-    if (entry.status === "SAVED" && entry.deadline && daysUntil(entry.deadline) >= 0) {
-      items.push({ date: entry.deadline, kind: "deadline", entry });
-    }
-    if (entry.nextStepDate && entry.status !== "REJECTED") {
-      items.push({ date: entry.nextStepDate, kind: "next", entry });
-    }
-  }
-  return items
-    .filter(item => daysUntil(item.date) <= 21 && (item.kind === "deadline" || daysUntil(item.date) >= -30))
-    .sort((left, right) => left.date.localeCompare(right.date) || left.entry.company.localeCompare(right.entry.company));
-}
-
-/** Gentle nudges: roles about to close, closed deadlines, and applications waiting a long time. */
-function attentionItems() {
-  const items = [];
-  for (const entry of state.applications) {
-    if (entry.status === "SAVED" && entry.deadline) {
-      const days = daysUntil(entry.deadline);
-      if (days >= 0 && days <= 3) items.push({ level: "warn", rank: 1, entry, icon: "clock", title: `Due ${relativeDay(entry.deadline)}`, copy: `Apply to ${entry.company} before ${formatDay(entry.deadline, { weekday: "short" })}` });
-      else if (days < 0 && days >= -30) items.push({ level: "danger", rank: 0, entry, icon: "alert", title: "Deadline passed", copy: `${entry.company}: mark it applied, or move it to Rejected` });
-    }
-    if (entry.status === "APPLIED") {
-      const waited = Math.floor((Date.now() - new Date(stageSince(entry)).getTime()) / DAY_MS);
-      const upcomingStep = entry.nextStepDate && daysUntil(entry.nextStepDate) >= 0;
-      if (waited >= FOLLOW_UP_DAYS && !upcomingStep) items.push({ level: "info", rank: 2, entry, icon: "mail", title: `No reply in ${waited} days`, copy: `${entry.company}: a short follow-up email could help` });
-    }
-    if (entry.status === "INTERVIEW" && !entry.nextStepDate) {
-      items.push({ level: "info", rank: 3, entry, icon: "calendar", title: "Interview stage", copy: `${entry.company}: add the interview date as a next step` });
-    }
-  }
-  return items.sort((left, right) => left.rank - right.rank).slice(0, 5);
-}
 
 /* ==========================================================================
    9. Shared rendering pieces
@@ -677,7 +207,7 @@ function viewToday() {
       </section>`;
   }
 
-  const stats = metrics();
+  const stats = metrics(state.applications);
   const segments = STAGES.filter(stage => stats.counts[stage]).map(stage =>
     `<span class="st-${stage}" style="flex-grow:${stats.counts[stage]}" title="${LABELS[stage]}: ${stats.counts[stage]}"></span>`).join("");
   const legend = STAGES.map(stage => `<li><a href="#/notebook" data-action="filter-stage" data-stage="${stage}" class="st-${stage}"><i></i>${LABELS[stage]} <b>${stats.counts[stage]}</b></a></li>`).join("");
@@ -691,7 +221,7 @@ function viewToday() {
       <ul class="legend">${legend}</ul>
     </section>`;
 
-  const week = weekActivity();
+  const week = weekActivity(state.applications);
   const goal = state.prefs.goal;
   const progress = Math.min(1, week.total / goal);
   const circumference = 2 * Math.PI * 48;
@@ -721,7 +251,7 @@ function viewToday() {
       </div>
     </section>`;
 
-  const agenda = agendaItems();
+  const agenda = agendaItems(state.applications);
   const groups = [];
   for (const item of agenda.slice(0, 9)) {
     const days = daysUntil(item.date);
@@ -749,7 +279,7 @@ function viewToday() {
       : `<p class="empty-note">Nothing dated yet. Add a deadline or a next step (like an interview date) to a page and it shows up here.</p>`}
     </section>`;
 
-  const attention = attentionItems();
+  const attention = attentionItems(state.applications);
   const attentionCard = `
     <section class="card attention-card" aria-labelledby="attention-title">
       <div class="card-head"><div><h2 class="card-title" id="attention-title">Worth a look</h2><p class="card-note">Small nudges based on your dates and stages</p></div></div>
@@ -770,12 +300,6 @@ function viewToday() {
     </section>`;
 
   return `${head}<div class="today-grid">${strip}${goalCard}${agendaCard}${attentionCard}${recentCard}</div>`;
-}
-
-function matchesQuery(entry, query) {
-  if (!query) return true;
-  const haystack = [entry.company, entry.role, entry.location, entry.source, entry.contact, entry.nextStep, entry.notes, entry.skills.join(" ")].join(" ").toLowerCase();
-  return query.toLowerCase().split(/\s+/).every(word => haystack.includes(word));
 }
 
 function viewBoard() {
@@ -803,19 +327,6 @@ function viewBoard() {
       ${finePointer ? `<p class="drag-hint">Drag cards between columns to change their stage.</p>` : ""}
     </div>
     <div class="board" id="board">${columns}</div>`;
-}
-
-function compareBy(sort) {
-  return (left, right) => {
-    if (sort === "company") return left.company.localeCompare(right.company) || left.role.localeCompare(right.role);
-    if (sort === "deadline") {
-      const leftDate = (left.status === "SAVED" && left.deadline) || left.nextStepDate || "9999-12-31";
-      const rightDate = (right.status === "SAVED" && right.deadline) || right.nextStepDate || "9999-12-31";
-      return leftDate.localeCompare(rightDate) || right.updatedAt.localeCompare(left.updatedAt);
-    }
-    if (sort === "created") return right.createdAt.localeCompare(left.createdAt);
-    return right.updatedAt.localeCompare(left.updatedAt);
-  };
 }
 
 function notebookList() {
@@ -876,7 +387,7 @@ function viewNotebook() {
 function weeklyChart(containerWidth = 520) {
   const width = Math.max(260, Math.round(containerWidth));
   const weeks = width < 420 ? 6 : 10;
-  const data = Array.from({ length: weeks }, (_, index) => weekActivity(index - weeks + 1));
+  const data = Array.from({ length: weeks }, (_, index) => weekActivity(state.applications, index - weeks + 1));
   const goal = state.prefs.goal;
   const max = Math.max(goal, ...data.map(week => week.total), 1);
   const top = Math.ceil(max / 2) * 2;
@@ -1220,7 +731,7 @@ function go(hash) {
 }
 
 function updateCounts() {
-  const stats = metrics();
+  const stats = metrics(state.applications);
   const values = { active: stats.open, total: stats.total, deleted: state.deleted.length };
   $$("[data-count]").forEach(element => { element.textContent = values[element.dataset.count] || ""; });
 }
@@ -2127,4 +1638,3 @@ const openNewOnStart = window.location.hash === "#/new";
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
 load().then(() => { if (openNewOnStart && state.loaded) openNew(); });
-})();
