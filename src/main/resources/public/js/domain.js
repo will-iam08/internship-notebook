@@ -16,6 +16,8 @@ export const LIMITS = { company: 80, role: 100, location: 80, source: 60, notes:
 export const SKILL_LIMIT = 12;
 export const SKILL_LENGTH = 40;
 export const SOURCE_SUGGESTIONS = ["LinkedIn", "WaterlooWorks", "Company website", "Referral", "Handshake", "Indeed", "Career fair", "Recruiter"];
+export const BACKUP_FORMAT = "my-internship-notebook-backup";
+export const BACKUP_VERSION = 2;
 
 /* ---------- Small helpers ---------- */
 export const plural = (count, word, many = `${word}s`) => `${count} ${count === 1 ? word : many}`;
@@ -276,6 +278,50 @@ export function matchesQuery(entry, query) {
   if (!query) return true;
   const haystack = [entry.company, entry.role, entry.location, entry.source, entry.contact, entry.nextStep, entry.notes, entry.skills.join(" ")].join(" ").toLowerCase();
   return query.toLowerCase().split(/\s+/).every(word => haystack.includes(word));
+}
+
+/* ---------- Backup import: the same rules a normal entry goes through, but forgiving ---------- */
+const clampText = (value, limit) => String(value ?? "").trim().slice(0, limit);
+
+/**
+ * Prepares one record from an imported backup file for saving. It applies the same limits and
+ * safety rules cleanChanges applies to a normal edit (see cleanLink in particular: an imported
+ * link is validated exactly like a typed one, so a backup can never smuggle in a javascript: or
+ * other unsafe scheme), but it is forgiving rather than throwing: the point of an import is to
+ * keep as much of the person's own data as possible, so a field that cannot be made safe (an
+ * unsafe link, a garbled date) is quietly dropped rather than discarding the whole entry over it.
+ * Returns { entry: null } when there is no usable company or role to import.
+ */
+export function sanitizeImportedEntry(raw) {
+  const company = clampText(raw?.company, LIMITS.company);
+  const role = clampText(raw?.role, LIMITS.role);
+  if (!company || !role) return { entry: null, issues: [] };
+  const issues = [];
+  const rawLink = String(raw?.link ?? "").trim();
+  let link = "";
+  try { link = cleanLink(rawLink); } catch { if (rawLink) issues.push("link"); }
+  const deadline = isValidDate(String(raw?.deadline ?? "")) ? raw.deadline : "";
+  const nextStepDate = isValidDate(String(raw?.nextStepDate ?? "")) ? raw.nextStepDate : "";
+  const entry = normalize({
+    ...raw,
+    company, role, link, deadline, nextStepDate,
+    location: clampText(raw?.location, LIMITS.location),
+    source: clampText(raw?.source, LIMITS.source),
+    notes: clampText(raw?.notes, LIMITS.notes),
+    contact: clampText(raw?.contact, LIMITS.contact),
+    nextStep: clampText(raw?.nextStep, LIMITS.nextStep)
+  });
+  return { entry, issues };
+}
+
+/** Runs every record in an imported file through sanitizeImportedEntry and totals the results,
+ *  so the import dialog can tell the person what will actually happen before they confirm. */
+export function previewImport(rawEntries) {
+  const results = rawEntries.map(sanitizeImportedEntry);
+  const usable = results.filter(result => result.entry).map(result => result.entry);
+  const skipped = results.length - usable.length;
+  const linksRemoved = results.filter(result => result.entry && result.issues.includes("link")).length;
+  return { usable, skipped, linksRemoved };
 }
 
 export function compareBy(sort) {

@@ -797,7 +797,12 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .save-state { align-items: center; color: var(--muted); display: inline-flex; font-size: .8rem; font-weight: 600; gap: 5px; margin-left: auto; transition: opacity .3s; }
 .save-state .icon { height: 15px; width: 15px; }
 .save-state.saving { color: var(--faint); }
+.save-state.draft { color: var(--muted); }
 .save-state.error { color: var(--danger); }
+.save-retry { background: var(--danger-soft); border: 0; border-radius: 7px; color: var(--danger); font-size: .76rem; font-weight: 700; margin-left: 2px; min-height: 26px; padding: 3px 8px; }
+.save-retry:hover { background: var(--danger); color: #fff; }
+.recovery { max-width: 640px; margin-left: auto; margin-right: auto; }
+.recovery .empty-state { padding: 12px 4px 4px; }
 .view.animate .sheet-page { animation: page-in .5s var(--ease) both; }
 .sheet-page {
   background-color: var(--card);

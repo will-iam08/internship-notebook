@@ -9,11 +9,13 @@
  */
 import {
   STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
+  BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
-  cleanSkills, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy
+  cleanSkills, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  previewImport
 } from "./domain.js";
-import { KEYS, storage } from "./storage.js";
-import { api, BROWSER_MODE } from "./api.js";
+import { KEYS, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
+import { api, BROWSER_MODE, StorageCorruptedError } from "./api.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -64,6 +66,7 @@ const state = {
   deleted: [],
   loaded: false,
   loadError: "",
+  corrupted: null,
   route: { view: "today", id: null },
   backRoute: "#/board",
   selecting: false,
@@ -516,6 +519,23 @@ function viewDeleted() {
       : `<div class="card">${emptyState({ iconName: "trash", title: "Nothing here", copy: "When you remove a page, you'll have seven days to bring it back." })}</div>`}`;
 }
 
+/** Shown instead of the notebook when this browser's saved data cannot be read (see StorageCorruptedError). */
+function viewRecovery(corrupted) {
+  return `
+    <div class="card recovery" role="alert" style="margin-top:24px">
+      ${emptyState({
+        iconName: "alert",
+        title: "This browser's saved notebook could not be read",
+        copy: "This can happen if a tab closed in the middle of a save, or if the browser ran out of storage space. Nothing has been deleted: the original data is still here, kept exactly as found, and you can download it below."
+      })}
+      <div class="welcome-actions" style="justify-content:center;margin-top:6px">
+        <button class="button" type="button" data-action="download-corrupted">${icon("download")}Download the raw data</button>
+        <button class="button ghost" type="button" data-action="recovery-import">${icon("upload")}Import a backup instead</button>
+        <button class="button danger-soft" type="button" data-action="recovery-reset">Start a new notebook</button>
+      </div>
+    </div>`;
+}
+
 function isStandalone() {
   return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
@@ -583,13 +603,17 @@ function viewSettings() {
 }
 
 function viewEntry(id) {
-  const entry = find(id);
-  if (!entry) {
+  const stored = find(id);
+  if (!stored) {
     const deleted = findDeleted(id);
     return `<div class="entry"><div class="card not-found">${deleted
       ? emptyState({ iconName: "trash", title: "This page is in Recently Deleted", copy: `${esc(deleted.company)} can be restored for ${esc(daysLeft(deleted.deletedAt).replace(" left", ""))}.`, action: `<button class="button primary" type="button" data-action="restore" data-id="${deleted.id}">${icon("restore")}Restore page</button>` })
       : emptyState({ iconName: "notebook", title: "Page not found", copy: "It may have been deleted permanently.", action: `<a class="button" href="#/notebook">Back to all pages</a>` })}</div></div>`;
   }
+  // A draft that never got confirmed (the save failed, or the app closed before it ran) shows here
+  // in place of the last-saved values, so opening the page never looks like the edit was lost.
+  const draft = readDrafts()[id]?.changes;
+  const entry = draft ? { ...stored, ...draft } : stored;
   const backLabel = { "#/board": "Board", "#/notebook": "All pages", "#/today": "Today", "#/insights": "Insights" }[state.backRoute] || "Back";
   const pipelineIndex = PIPELINE.indexOf(entry.status);
   const beforeRejection = [...entry.history].reverse().find(change => change.status !== "REJECTED")?.status || "APPLIED";
@@ -611,7 +635,7 @@ function viewEntry(id) {
     <article class="entry" data-entry="${entry.id}">
       <nav class="entry-nav" aria-label="Page actions">
         <a class="back" href="${state.backRoute}">${icon("back")}${backLabel}</a>
-        <span class="save-state" id="save-state" aria-live="polite">${icon("check")}Saved</span>
+        <span class="save-state" id="save-state" aria-live="polite">${icon("check")}<span>${BROWSER_MODE ? "Saved locally" : "Synced"}</span></span>
         <div class="entry-actions">
           <button class="icon-button star${entry.starred ? " on" : ""}" type="button" data-action="toggle-star" data-id="${entry.id}" aria-pressed="${entry.starred}" aria-label="${entry.starred ? "Unstar" : "Star"} this page" title="Star">${icon("star")}</button>
           <button class="icon-button" type="button" data-action="entry-menu" data-id="${entry.id}" aria-label="More actions" title="More">${icon("more")}</button>
@@ -677,6 +701,12 @@ function render({ animate = false, keepScroll = true } = {}) {
   const { view, id } = state.route;
   const scrollTop = page.scrollTop;
   const windowScroll = window.scrollY;
+  if (state.corrupted) {
+    document.title = "Recover your notebook · My Internship Notebook";
+    $("#mobile-title").textContent = "Recover your notebook";
+    viewRoot.innerHTML = viewRecovery(state.corrupted);
+    return;
+  }
   if (!state.loaded) {
     viewRoot.innerHTML = state.loadError
       ? `<div class="card" style="margin-top:24px">${emptyState({ iconName: "alert", title: "The notebook server isn't answering", copy: `${esc(state.loadError)} Start it with the command in the README, then try again.`, action: `<button class="button primary" type="button" data-action="reload">Try again</button>` })}</div>`
@@ -689,7 +719,9 @@ function render({ animate = false, keepScroll = true } = {}) {
   const title = entry ? `${entry.company}` : VIEWS[view].title;
   document.title = `${title} · My Internship Notebook`;
   $("#mobile-title").textContent = title;
-  const navKey = view === "entry" ? "" : view;
+  // An open application page is still a page of "All pages", so that tab stays highlighted
+  // instead of every tab looking unselected while you are reading or editing an entry.
+  const navKey = view === "entry" ? "notebook" : view;
   $$("[data-nav]").forEach(link => {
     if (link.dataset.nav === navKey) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -1146,57 +1178,98 @@ $$("dialog").forEach(dialog => dialog.addEventListener("close", () => {
 }));
 
 /* ==========================================================================
-   17. Notebook page editing (autosave)
-   ========================================================================== */
-let pendingChanges = {};
+   17. Notebook page editing (autosave, with a disk-backed retry queue)
+   ==========================================================================
+   Every field edit is written to this browser's drafts store (see storage.js) the instant it
+   happens - not just held in memory - so it survives a refresh, going offline, or the app or
+   tab closing before the debounced save runs. That draft is the only source of truth for "what
+   is unsaved for entry X"; flushEntrySave() always reads from it and only clears it once api.update()
+   has actually confirmed the write, so a failed save keeps the edit queued for automatic retry
+   (on a timer and when the connection comes back) instead of discarding it.
+
+   Four states are shown, and each means something different:
+     "Saving…"       a request to save is in flight right now
+     "Saved locally" the edit is captured in this browser (the draft above), but not yet confirmed
+     "Synced"        the Java server has confirmed the write (server mode only)
+     "Couldn't save" the last attempt failed; the edit is still queued and will retry, or press Retry
+   The website edition has no server to sync to, so it never claims "Synced": once api.update()
+   succeeds there, the browser's storage *is* the confirmed record, so it stays "Saved locally". */
 let saveChain = Promise.resolve();
+const inFlight = new Set();
+const retryTimers = new Map();
+const RETRY_DELAY_MS = 4000;
 
 function setSaveState(mode, message = "") {
   const element = $("#save-state");
   if (!element) return;
   element.className = `save-state ${mode}`;
-  element.innerHTML = mode === "saving" ? `${icon("clock")}Saving…`
-    : mode === "error" ? `${icon("alert")}${esc(message || "Not saved")}`
-    : `${icon("check")}Saved`;
+  const label = mode === "saving" ? "Saving…"
+    : mode === "draft" ? "Saved locally"
+    : mode === "synced" ? (BROWSER_MODE ? "Saved locally" : "Synced")
+    : mode === "error" ? (message || "Couldn't save")
+    : (BROWSER_MODE ? "Saved locally" : "Synced");
+  const iconName = mode === "saving" ? "clock" : mode === "error" ? "alert" : "check";
+  element.innerHTML = `${icon(iconName)}<span>${esc(label)}</span>${mode === "error" ? `<button type="button" class="save-retry" data-action="retry-save">Retry</button>` : ""}`;
 }
 
-function flushEntrySave() {
+/** Saves whatever is drafted for `targetId` (the open entry by default). Safe to call repeatedly:
+ *  a save already in flight for that entry is left alone rather than duplicated. */
+function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id : null) {
   entrySave.cancel();
-  const id = state.route.id;
-  const changes = pendingChanges;
-  pendingChanges = {};
-  if (!Object.keys(changes).length || !id) return saveChain;
+  if (targetId == null) return saveChain;
+  const changes = readDrafts()[targetId]?.changes;
+  if (!changes || !Object.keys(changes).length) return saveChain;
+  if (inFlight.has(targetId)) return saveChain;
+  inFlight.add(targetId);
+  const isCurrent = () => state.route.view === "entry" && state.route.id === targetId;
+  if (isCurrent()) setSaveState("saving");
   saveChain = saveChain.then(async () => {
-    if (!find(id)) return;
     try {
-      const updated = await api.update(id, changes);
+      if (!find(targetId)) { clearDraft(targetId); return; } // the page was deleted while a draft was pending
+      const updated = await api.update(targetId, changes);
       replaceApplications([updated]);
+      clearDraft(targetId);
+      window.clearTimeout(retryTimers.get(targetId));
+      retryTimers.delete(targetId);
       updateCounts();
-      if (state.route.view === "entry" && state.route.id === id) {
-        setSaveState("saved");
+      if (isCurrent()) {
+        setSaveState("synced");
         const edited = $("[data-edited]");
         if (edited) edited.textContent = timeAgo(updated.updatedAt);
         if ("link" in changes) refreshLinkButton(updated);
         if ("company" in changes) { $("#mobile-title").textContent = updated.company; document.title = `${updated.company} · My Internship Notebook`; }
       }
     } catch (error) {
-      setSaveState("error", error.message);
-      toast(error.message, { error: true });
+      // The draft on disk is untouched (it was written before this attempt started), so nothing
+      // typed is lost - only the confirmation failed. Keep retrying instead of giving up on it.
+      if (isCurrent()) setSaveState("error", error.message);
+      toast(`Couldn't save ${find(targetId)?.company || "your change"}: ${error.message}`, { error: true, action: "Retry", run: () => flushEntrySave(targetId) });
+      window.clearTimeout(retryTimers.get(targetId));
+      retryTimers.set(targetId, window.setTimeout(() => flushEntrySave(targetId), RETRY_DELAY_MS));
+    } finally {
+      inFlight.delete(targetId);
     }
   });
   return saveChain;
 }
-const entrySave = debounce(flushEntrySave, 650);
+const entrySave = debounce(() => flushEntrySave(), 650);
+
+/** Retries every draft left over from a previous visit (a save that failed, or never got the
+ *  chance to run before the app closed) for entries that still exist. */
+async function retryPendingDrafts() {
+  for (const id of Object.keys(readDrafts()).map(Number).filter(id => find(id))) await flushEntrySave(id);
+}
+window.addEventListener("online", retryPendingDrafts);
 
 function queueChange(field, value, { immediate = false } = {}) {
+  const id = state.route.id;
   if ((field === "company" || field === "role") && !String(value).trim()) {
     setSaveState("error", `${field === "company" ? "Company" : "Role"} can't be empty`);
-    delete pendingChanges[field];
     return;
   }
-  pendingChanges[field] = value;
-  setSaveState("saving");
-  if (immediate) flushEntrySave();
+  writeDraft(id, { [field]: value });
+  setSaveState("draft");
+  if (immediate) flushEntrySave(id);
   else entrySave();
 }
 
@@ -1218,33 +1291,38 @@ function autosize(textarea) {
 function setupEntry() {
   const notes = $("#entry-notes");
   if (notes) autosize(notes);
+  // A draft left over from a previous visit (the save never got the chance to run, or it failed)
+  // shows as "Saved locally" right away, and retries as soon as the page opens.
+  if (readDrafts()[state.route.id]) { setSaveState("draft"); flushEntrySave(); }
 }
 
-/** Skill edits run in order on the save queue, each one starting from the latest saved list. */
+/** Reads what a field currently shows, preferring an unconfirmed draft over the last saved value. */
+function draftValue(id, field, fallback) {
+  const draft = readDrafts()[id]?.changes;
+  return draft && field in draft ? draft[field] : fallback;
+}
+
 function saveSkills(update) {
   const id = state.route.id;
-  flushEntrySave();
-  saveChain = saveChain.then(async () => {
-    const entry = find(id);
-    if (!entry) return;
-    try {
-      replaceApplications([await api.update(id, { skills: cleanSkills(update(entry.skills)) })]);
-      if (state.route.view === "entry" && state.route.id === id) { setSaveState("saved"); renderSkillChips(); }
-    } catch (error) { fail(error); }
-  });
-  return saveChain;
+  const entry = find(id);
+  if (!entry) return;
+  const skills = cleanSkills(update(draftValue(id, "skills", entry.skills)));
+  queueChange("skills", skills, { immediate: true });
+  renderSkillChips();
 }
 
 function renderSkillChips() {
-  const entry = find(state.route.id);
+  const stored = find(state.route.id);
+  if (!stored) return;
+  const skills = draftValue(state.route.id, "skills", stored.skills);
   const editor = $("#skills-editor");
-  if (!entry || !editor) return;
+  if (!editor) return;
   const input = $("#skill-input");
   const value = input.value;
   editor.querySelectorAll(".skill-chip").forEach(chip => chip.remove());
-  input.insertAdjacentHTML("beforebegin", entry.skills.map(skill => `<span class="skill-chip">${esc(skill)}<button type="button" data-action="remove-skill" data-skill="${esc(skill)}" aria-label="Remove ${esc(skill)}">${icon("x")}</button></span>`).join(""));
+  input.insertAdjacentHTML("beforebegin", skills.map(skill => `<span class="skill-chip">${esc(skill)}<button type="button" data-action="remove-skill" data-skill="${esc(skill)}" aria-label="Remove ${esc(skill)}">${icon("x")}</button></span>`).join(""));
   input.value = value;
-  input.placeholder = entry.skills.length ? "Add another…" : "Add skills, press Enter";
+  input.placeholder = skills.length ? "Add another…" : "Add skills, press Enter";
 }
 
 viewRoot.addEventListener("input", event => {
@@ -1381,7 +1459,31 @@ const actions = {
   "export-json": () => exportJson(),
   "import-json": () => $("#import-file").click(),
   install: () => promptInstall(),
-  reload: () => load()
+  reload: () => load(),
+  "retry-save": () => flushEntrySave(),
+  "download-corrupted": () => {
+    if (state.corrupted) download(`notebook-recovery-${dayKey()}.txt`, state.corrupted.raw, "text/plain;charset=utf-8");
+  },
+  "recovery-reset": async () => {
+    const ok = await confirmDialog({
+      eyebrow: "This can't be undone",
+      title: "Start a new notebook?",
+      copy: "The unreadable data stays kept, exactly as found, at a separate backup key in this browser in case it can be recovered later. Your visible notebook will start empty.",
+      yes: "Start new",
+      iconName: "alert"
+    });
+    if (!ok) return;
+    storage.set(KEYS.data, JSON.stringify({ nextId: 1, applications: [], recentlyDeleted: [] }));
+    state.corrupted = null;
+    load();
+  },
+  "recovery-import": () => {
+    // The unreadable copy is already kept at its own key (see StorageCorruptedError), so it is
+    // safe to give the primary key a valid empty starting point before opening the file picker.
+    storage.set(KEYS.data, JSON.stringify({ nextId: 1, applications: [], recentlyDeleted: [] }));
+    state.corrupted = null;
+    load().then(() => $("#import-file").click());
+  }
 };
 
 document.addEventListener("click", event => {
@@ -1509,7 +1611,7 @@ function exportCsv() {
 }
 
 function exportJson() {
-  const backup = { format: "my-internship-notebook-backup", version: 2, exportedAt: new Date().toISOString(), applications: state.applications, recentlyDeleted: state.deleted };
+  const backup = { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), applications: state.applications, recentlyDeleted: state.deleted };
   download(`internship-notebook-backup-${dayKey()}.json`, JSON.stringify(backup, null, 2), "application/json");
   toast("Backup downloaded. Keep it somewhere safe.");
 }
@@ -1521,24 +1623,38 @@ $("#import-file").addEventListener("change", async event => {
   try {
     if (file.size > 5 * 1024 * 1024) throw new Error("That file is too large to be a notebook backup.");
     const parsed = JSON.parse(await file.text());
-    const entries = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.applications) ? parsed.applications : null;
-    if (!entries) throw new Error("That file isn't a My Internship Notebook backup.");
-    const valid = entries.filter(entry => entry && typeof entry === "object" && String(entry.company || "").trim() && String(entry.role || "").trim());
-    if (!valid.length) throw new Error("No applications were found in that backup.");
+    const rawEntries = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.applications) ? parsed.applications : null;
+    if (!rawEntries || !rawEntries.length) throw new Error("That file isn't a My Internship Notebook backup.");
+    const format = Array.isArray(parsed) ? null : parsed?.format;
+    const version = Array.isArray(parsed) ? NaN : Number(parsed?.version);
+    // Every field goes through the same limits and safety rules as a normal entry (see
+    // sanitizeImportedEntry in domain.js) - in particular, a link is only kept if it survives the
+    // same http(s)-only check a typed link does, so a backup can never smuggle in an unsafe URL.
+    const { usable, skipped, linksRemoved } = previewImport(rawEntries);
+    if (!usable.length) throw new Error("No applications with a company and role were found in that backup.");
+    const notes = [
+      format && format !== BACKUP_FORMAT ? "This file wasn't made by My Internship Notebook. Importing what looks like application data." : "",
+      Number.isFinite(version) && version > BACKUP_VERSION ? "This backup was made with a newer version of the app; some newer fields may be ignored." : "",
+      skipped ? `${plural(skipped, "entry", "entries")} without a company and role will be skipped.` : "",
+      linksRemoved ? `${plural(linksRemoved, "link")} could not be verified as safe and will be left blank.` : ""
+    ].filter(Boolean);
     const ok = await confirmDialog({
       eyebrow: "Import backup",
-      title: `Add ${plural(valid.length, "page")} to your notebook?`,
-      copy: "Your current pages stay as they are. Pages that are already in your notebook are skipped.",
+      title: `Add ${plural(usable.length, "page")} to your notebook?`,
+      copy: ["Your current pages stay as they are. Pages already in your notebook are skipped.", ...notes].join(" "),
       yes: "Import",
       no: "Cancel",
       iconName: "upload",
       danger: false
     });
     if (!ok) return;
-    const added = await api.importEntries(valid);
+    const added = await api.importEntries(usable);
     state.applications.push(...added);
     rerender();
-    toast(added.length ? `Imported ${plural(added.length, "page")}` : "Everything in that backup is already in your notebook");
+    if (!added.length) { toast("Everything in that backup is already in your notebook."); return; }
+    const duplicates = usable.length - added.length;
+    const detail = [duplicates ? `${plural(duplicates, "duplicate")} skipped` : "", skipped ? `${plural(skipped, "entry", "entries")} skipped` : "", linksRemoved ? `${plural(linksRemoved, "link")} removed for safety` : ""].filter(Boolean).join(", ");
+    toast(`Imported ${plural(added.length, "page")}${detail ? ` (${detail})` : ""}`, { action: "Undo", run: () => removeApplications(added.map(entry => entry.id), { confirmFirst: false }) });
   } catch (error) {
     fail(error instanceof SyntaxError ? new Error("That file couldn't be read as a backup.") : error);
   }
@@ -1601,14 +1717,17 @@ if ("serviceWorker" in navigator && (window.location.protocol === "https:" || ["
    ========================================================================== */
 async function load() {
   state.loadError = "";
+  state.corrupted = null;
   render();
   try {
     const { applications, deleted } = await api.load();
     state.applications = applications;
     state.deleted = deleted;
     state.loaded = true;
+    retryPendingDrafts();
   } catch (error) {
-    state.loadError = error.message;
+    if (error instanceof StorageCorruptedError) state.corrupted = error;
+    else state.loadError = error.message;
   }
   render({ animate: true, keepScroll: false });
 }

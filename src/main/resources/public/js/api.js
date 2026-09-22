@@ -4,15 +4,22 @@
  * - serverApi talks to the Java server (the full-stack local project).
  */
 import { RETENTION_MS, cleanChanges, cleanStage, normalize, withStatus } from "./domain.js";
-import { KEYS, storage } from "./storage.js";
+import { KEYS, StorageCorruptedError, quarantine, readJsonRecord, storage } from "./storage.js";
 
 export const BROWSER_MODE = globalThis.NOTEBOOK_STORAGE_MODE === "browser"
   || Boolean(globalThis.location?.hostname.endsWith(".github.io"));
 
 export const browserApi = {
   read() {
-    let saved = {};
-    try { saved = JSON.parse(storage.get(KEYS.data) || "{}") || {}; } catch { saved = {}; }
+    // A key that exists but cannot be parsed is never treated as "empty": that is exactly how a
+    // damaged notebook gets silently replaced by a blank one on the next save. Instead the raw
+    // bytes are copied to a separate key (never touched again) and the caller is told to show a
+    // recovery screen instead of the notebook.
+    const result = readJsonRecord(KEYS.data);
+    if (result.status === "corrupted") {
+      throw new StorageCorruptedError(KEYS.data, result.raw, quarantine(KEYS.data, result.raw));
+    }
+    const saved = result.data || {};
     const cutoff = Date.now() - RETENTION_MS;
     const applications = (Array.isArray(saved.applications) ? saved.applications : []).map(normalize).filter(entry => entry.id > 0);
     const recentlyDeleted = (Array.isArray(saved.recentlyDeleted) ? saved.recentlyDeleted : [])
@@ -167,3 +174,4 @@ export const serverApi = {
 };
 
 export const api = BROWSER_MODE ? browserApi : serverApi;
+export { StorageCorruptedError } from "./storage.js";
