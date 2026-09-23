@@ -703,6 +703,16 @@ const viewRoot = $("#view");
 const page = $("#page");
 const renderers = { today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings };
 
+// The skip link targets #view directly with JS, not a "#view" hash change: every hash change
+// goes through the router below, and "view" isn't a route name, so letting the browser's default
+// anchor jump happen would fire hashchange -> parseRoute() -> fall back to Today, sending
+// keyboard and screen-reader users away from the page they meant to skip into.
+$(".skip-link").addEventListener("click", event => {
+  event.preventDefault();
+  viewRoot.focus({ preventScroll: false });
+  viewRoot.scrollIntoView({ block: "start" });
+});
+
 function parseRoute() {
   const [view, id] = window.location.hash.replace(/^#\/?/, "").split("/");
   if (view === "entry" && Number(id) > 0) return { view: "entry", id: Number(id) };
@@ -784,15 +794,27 @@ function updateCounts() {
    12. Toasts, confirm dialog, popover menu
    ========================================================================== */
 const toasts = $("#toasts");
-function toast(message, { action, run, error = false, duration = 5200 } = {}) {
+/**
+ * A toast with an Undo (or Retry) action gets a longer 10s timer instead of ~5s, since deciding
+ * whether to undo something and then pressing a small button takes longer than reading a plain
+ * status message - and the timer pauses entirely while the toast is hovered or has keyboard
+ * focus, so a screen-reader or keyboard user who has landed on the Undo button never has it
+ * disappear out from under them while they're still using it (WCAG 2.2.1, Timing Adjustable).
+ */
+function toast(message, { action, run, error = false, duration } = {}) {
   const element = document.createElement("div");
   element.className = `toast${error ? " error" : ""}`;
   element.innerHTML = `<span>${esc(message)}</span>`;
+  let timer = null;
   const dismiss = () => {
     if (!element.isConnected) return;
+    window.clearTimeout(timer);
     element.classList.add("leaving");
     window.setTimeout(() => element.remove(), 240);
   };
+  const totalMs = duration ?? (action ? 10000 : error ? 7000 : 5200);
+  const arm = () => { timer = window.setTimeout(dismiss, totalMs); };
+  const disarm = () => window.clearTimeout(timer);
   if (action) {
     const button = document.createElement("button");
     button.type = "button";
@@ -800,15 +822,20 @@ function toast(message, { action, run, error = false, duration = 5200 } = {}) {
     button.addEventListener("click", () => { dismiss(); run?.(); });
     element.append(button);
   }
+  element.addEventListener("pointerenter", disarm);
+  element.addEventListener("pointerleave", arm);
+  element.addEventListener("focusin", disarm);
+  element.addEventListener("focusout", arm);
   toasts.append(element);
   while (toasts.children.length > 3) toasts.firstElementChild.remove();
-  window.setTimeout(dismiss, error ? 7000 : duration);
+  arm();
 }
 const fail = error => toast(error?.message || "Something went wrong.", { error: true });
 
 const confirmElement = $("#confirm-dialog");
 let confirmResolve = null;
 function confirmDialog({ eyebrow = "A small safety net", title, copy, yes = "Continue", no = "Keep it", iconName = "trash", danger = true }) {
+  dialogOpener = document.activeElement;
   $("#confirm-eyebrow").textContent = eyebrow;
   $("#confirm-title").textContent = title;
   $("#confirm-copy").textContent = copy;
@@ -841,9 +868,13 @@ function openMenu(anchor, items) {
   menuItems = items;
   menuAnchor = anchor;
   menu.innerHTML = items.map((item, index) => {
-    if (item.separator) return "<hr />";
-    if (item.header) return `<p class="menu-label">${esc(item.header)}</p>`;
-    return `<button type="button" role="menuitem" data-menu-index="${index}" class="${item.danger ? "danger" : ""} ${item.stage ? `st-${item.stage}` : ""}" ${item.checked ? 'aria-checked="true"' : ""}>
+    if (item.separator) return '<hr role="separator" />';
+    if (item.header) return `<p class="menu-label" role="presentation">${esc(item.header)}</p>`;
+    // A stage choice is one of a mutually exclusive set (only one stage is ever "checked"), so it
+    // gets menuitemradio with aria-checked; a plain action is menuitem and has neither.
+    const role = item.stage ? "menuitemradio" : "menuitem";
+    const checkedAttr = item.stage ? ` aria-checked="${Boolean(item.checked)}"` : "";
+    return `<button type="button" role="${role}" data-menu-index="${index}" class="${item.danger ? "danger" : ""} ${item.stage ? `st-${item.stage}` : ""}"${checkedAttr}>
       ${item.stage ? '<i class="menu-dot"></i>' : icon(item.icon || "forward")}<span>${esc(item.label)}</span></button>`;
   }).join("");
   menu.hidden = false;
@@ -1057,9 +1088,17 @@ const newDialog = $("#new-dialog");
 const newForm = $("#new-form");
 let newStage = "SAVED";
 function renderStagePicker() {
-  $("#new-stage").innerHTML = STAGES.map(stage => `<button class="stage-option st-${stage}" type="button" role="radio" aria-checked="${stage === newStage}" data-action="pick-stage" data-stage="${stage}">${LABELS[stage]}</button>`).join("");
+  // Roving tabindex: only the checked option is a Tab stop, matching how a native radio group
+  // behaves, and letting arrow keys move both focus and the selection between options.
+  $("#new-stage").innerHTML = STAGES.map(stage => `<button class="stage-option st-${stage}" type="button" role="radio" aria-checked="${stage === newStage}" tabindex="${stage === newStage ? "0" : "-1"}" data-action="pick-stage" data-stage="${stage}">${LABELS[stage]}</button>`).join("");
   $("#new-stage").setAttribute("role", "radiogroup");
   $("#new-stage").setAttribute("aria-label", "Stage");
+}
+function moveStagePicker(delta) {
+  const index = STAGES.indexOf(newStage);
+  newStage = STAGES[(index + delta + STAGES.length) % STAGES.length];
+  renderStagePicker();
+  $(`[data-stage="${newStage}"]`, $("#new-stage")).focus();
 }
 function updateSourceOptions() {
   const used = [...new Set(state.applications.map(entry => entry.source.trim()).filter(Boolean))];
@@ -1067,6 +1106,7 @@ function updateSourceOptions() {
   $("#source-options").innerHTML = options.map(source => `<option value="${esc(source)}"></option>`).join("");
 }
 function openNew(stage = "SAVED") {
+  dialogOpener = document.activeElement;
   closeMenu();
   if ($("#palette").open) $("#palette").close();
   newForm.reset();
@@ -1099,6 +1139,13 @@ newDialog.addEventListener("click", event => {
   if (event.target.closest('[data-action="close-new"]')) newDialog.close();
   const option = event.target.closest('[data-action="pick-stage"]');
   if (option) { newStage = option.dataset.stage; renderStagePicker(); $(`[data-stage="${newStage}"]`, $("#new-stage")).focus(); }
+});
+$("#new-stage").addEventListener("keydown", event => {
+  if (!event.target.matches('[role="radio"]')) return;
+  if (["ArrowRight", "ArrowDown"].includes(event.key)) { event.preventDefault(); moveStagePicker(1); }
+  else if (["ArrowLeft", "ArrowUp"].includes(event.key)) { event.preventDefault(); moveStagePicker(-1); }
+  else if (event.key === "Home") { event.preventDefault(); newStage = STAGES[0]; renderStagePicker(); $(`[data-stage="${newStage}"]`, $("#new-stage")).focus(); }
+  else if (event.key === "End") { event.preventDefault(); newStage = STAGES[STAGES.length - 1]; renderStagePicker(); $(`[data-stage="${newStage}"]`, $("#new-stage")).focus(); }
 });
 
 /* ==========================================================================
@@ -1154,6 +1201,7 @@ function renderPalette() {
   $(`#palette-option-${paletteIndex}`)?.scrollIntoView({ block: "nearest" });
 }
 function openPalette() {
+  dialogOpener = document.activeElement;
   closeMenu();
   paletteInput.value = "";
   paletteIndex = 0;
@@ -1184,9 +1232,16 @@ paletteResults.addEventListener("click", event => {
   if (option) runPalette(Number(option.dataset.paletteIndex));
 });
 palette.addEventListener("click", event => { if (event.target === palette) palette.close(); });
-// When a dialog closes, don't leave keyboard focus stranded inside it (shortcuts would think you're typing).
+// Remembers whatever had focus when a dialog opened, so closing it can put focus back there even
+// after a rerender has replaced that element with an equivalent new one (the browser's own
+// dialog focus-restore only works if the original DOM node is still attached, which a rerender
+// between open and close - e.g. adding an application - breaks). Falls back to the main view.
+let dialogOpener = null;
 $$("dialog").forEach(dialog => dialog.addEventListener("close", () => {
   if (dialog.contains(document.activeElement)) document.activeElement.blur();
+  const target = dialogOpener && document.body.contains(dialogOpener) ? dialogOpener : viewRoot;
+  dialogOpener = null;
+  target.focus({ preventScroll: true });
 }));
 
 /* ==========================================================================

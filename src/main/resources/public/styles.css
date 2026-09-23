@@ -21,8 +21,10 @@
   --card: #fffdf8;
   --ink: #1c2833;
   --ink-2: #394753;
-  --muted: #69747d;
-  --faint: #98a1a8;
+  /* Darkened from the original design pass to clear WCAG AA (4.5:1) on --paper-2, the busiest
+     background these colours sit on (--muted was 4.13:1, --faint as low as 2.3:1). */
+  --muted: #565f67;
+  --faint: #646d76;
   --line: #e5ddce;
   --line-strong: #d4cab7;
   --rule: #d9e2e8;
@@ -36,6 +38,9 @@
   --primary-ink: #fbf8f1;
   --accent: #e0663f;
   --accent-soft: #fbe3d7;
+  /* --accent itself is 3.2:1 as text (fine as a background, an icon stroke, or a decorative dot,
+     but not for something meant to be read); --accent-ink is the same hue darkened for text. */
+  --accent-ink: #9c3f1c;
   --focus: #2a78d6;
   --danger: #c2413c;
   --danger-soft: #fbe6e3;
@@ -82,7 +87,8 @@
   --ink: #ece7dc;
   --ink-2: #cfc9bd;
   --muted: #9aa3ab;
-  --faint: #6e7780;
+  /* Lightened from the original pass to clear WCAG AA on --paper-2 (was 3.56:1). */
+  --faint: #8a939c;
   --line: #2c343d;
   --line-strong: #3a434d;
   --rule: #28313a;
@@ -96,6 +102,8 @@
   --primary-ink: #151a20;
   --accent: #f08a63;
   --accent-soft: rgba(240, 138, 99, .16);
+  /* Already 6.3:1+ as text in dark mode, so --accent-ink can just reuse --accent here. */
+  --accent-ink: #f08a63;
   --focus: #6aa8f0;
   --danger: #ec7771;
   --danger-soft: rgba(236, 119, 113, .14);
@@ -394,7 +402,7 @@ kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-rad
 .icon-button .icon { height: 20px; width: 20px; }
 .text-button { background: none; border: 0; border-radius: 8px; color: var(--ink-2); font-size: .84rem; font-weight: 650; padding: 7px 9px; }
 .text-button:hover { background: var(--wash-strong); }
-.link-button { background: none; border: 0; color: var(--accent); font-weight: 650; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.link-button { background: none; border: 0; color: var(--accent-ink); font-weight: 650; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
 
 /* ---------- Page header ---------- */
 .view-head { align-items: flex-end; display: flex; flex-wrap: wrap; gap: 14px 18px; justify-content: space-between; margin-bottom: 22px; padding-bottom: 16px; position: relative; }
@@ -404,7 +412,7 @@ kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-rad
 .view-head .eyebrow { align-items: center; display: flex; gap: 8px; }
 .view-head .eyebrow::before { background: var(--tab, var(--accent)); border-radius: 2px; content: ""; height: 10px; width: 10px; }
 .view-title { color: var(--ink); font-size: clamp(1.9rem, 4.4vw, 2.75rem); line-height: 1.05; }
-.view-title .dot { color: var(--accent); }
+.view-title .dot { color: var(--accent-ink); }
 .view-sub { color: var(--muted); margin-top: 8px; max-width: 60ch; }
 .view-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 1023px) { .view-actions .button.primary[data-action="new"] { display: none; } .view-actions:empty { display: none; } }
@@ -458,7 +466,7 @@ kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-rad
 .field { color: var(--ink-2); display: grid; font-size: .8rem; font-weight: 650; gap: 6px; min-width: 0; }
 .field-label { display: block; }
 .field small { color: var(--muted); font-size: .72rem; font-weight: 500; }
-.req { color: var(--accent); }
+.req { color: var(--accent-ink); }
 input, select, textarea {
   background: var(--card);
   border: 1px solid var(--line-strong);
@@ -604,7 +612,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .agenda-day:first-child { border-top: 0; padding-top: 0; }
 .agenda-date { color: var(--muted); font-size: .8rem; font-weight: 700; line-height: 1.3; padding-top: 7px; }
 .agenda-date.overdue { color: var(--danger); }
-.agenda-date.today { color: var(--accent); }
+.agenda-date.today { color: var(--accent-ink); }
 .agenda-items { display: grid; gap: 4px; min-width: 0; }
 .agenda-item {
   align-items: center;
@@ -766,7 +774,8 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   }
   .board-stage-tab b { font-weight: 700; opacity: .8; }
   .board-stage-tab[aria-selected="true"] { background: var(--s); border-color: var(--s); color: #fff; }
-  .board-stage-tab.st-INTERVIEW[aria-selected="true"] { color: #2a1d00; }
+  .board-stage-tab.st-SAVED[aria-selected="true"], .board-stage-tab.st-INTERVIEW[aria-selected="true"], .board-stage-tab.st-REJECTED[aria-selected="true"] { color: #10202b; }
+  :root[data-theme="dark"] .board-stage-tab.st-APPLIED[aria-selected="true"] { color: #10202b; }
   .board { display: block; margin: 0; overflow: visible; padding: 0; }
   .column { display: none; min-height: 0; }
   .column.active-stage { display: flex; }
@@ -873,7 +882,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   background: none;
   border: 0;
   border-radius: 6px;
-  color: var(--accent);
+  color: var(--accent-ink);
   font-size: .8rem;
   font-weight: 800;
   letter-spacing: .1em;
@@ -915,8 +924,13 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .step:first-child { border-radius: 10px 0 0 10px; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 50%, calc(100% - 12px) 100%, 0 100%); margin-left: 0; padding-left: 12px; }
 .step:hover { background: var(--line); color: var(--ink); }
 .step.done { background: var(--s-bg); color: var(--ink-2); }
+/* White text on the current step's colour only reaches WCAG AA contrast for Applied and Offer;
+   Saved, Interview, and Rejected need a dark ink instead (checked against both themes' stage
+   colours - Interview's own light/dark hues differ enough that Applied is the one stage that
+   needs a theme-specific flip below). */
 .step.current { background: var(--s); color: #fff; }
-.step.current.st-INTERVIEW { color: #2a1d00; }
+.step.current.st-SAVED, .step.current.st-INTERVIEW, .step.current.st-REJECTED { color: #10202b; }
+:root[data-theme="dark"] .step.current.st-APPLIED { color: #10202b; }
 .step .icon { height: 15px; width: 15px; }
 .step span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .reject-toggle { border-radius: 10px; }
