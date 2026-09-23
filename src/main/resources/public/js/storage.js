@@ -58,17 +58,49 @@ export function readDrafts() {
 }
 
 /** Merges `changes` into entry `id`'s on-disk draft. Called on every keystroke: cheap, and it
- *  means an edit survives a refresh, a lost connection, or the tab closing before autosave runs. */
+ *  means an edit survives a refresh, a lost connection, or the tab closing before autosave runs.
+ *  Returns whether the write actually landed on disk - callers must check this and say so
+ *  honestly (storage.set never throws, but a full or blocked store means nothing was captured,
+ *  which is not the same thing as "captured but not yet confirmed"). */
 export function writeDraft(id, changes) {
   const drafts = readDrafts();
   const existing = drafts[id]?.changes || {};
   drafts[id] = { changes: { ...existing, ...changes }, updatedAt: new Date().toISOString() };
-  storage.set(KEYS.drafts, JSON.stringify(drafts));
+  return storage.set(KEYS.drafts, JSON.stringify(drafts));
 }
 
 export function clearDraft(id) {
   const drafts = readDrafts();
   if (!(id in drafts)) return;
   delete drafts[id];
+  storage.set(KEYS.drafts, JSON.stringify(drafts));
+}
+
+/**
+ * Clears only the part of entry `id`'s draft that a just-confirmed save actually accounted for.
+ *
+ * flushEntrySave() takes a snapshot of the draft before the (async) save request goes out; if the
+ * person keeps typing while that request is in flight, writeDraft() merges the new keystrokes into
+ * the *current* on-disk draft, which is no longer the same object as the snapshot. Deleting the
+ * whole draft once the snapshot's save is confirmed - which is what a plain clearDraft() does -
+ * would silently throw those newer, never-sent keystrokes away. Comparing each field's *current*
+ * value against what the snapshot actually sent (JSON.stringify, since values can be arrays, e.g.
+ * skills) tells the two cases apart: unchanged since the snapshot -> safe to clear; changed since
+ * -> a real edit that still needs to be saved, so it stays queued for the next flush.
+ */
+export function clearConfirmedDraft(id, confirmedChanges) {
+  const drafts = readDrafts();
+  const entry = drafts[id];
+  if (!entry) return;
+  const remaining = {};
+  for (const [field, value] of Object.entries(entry.changes)) {
+    const wasJustSaved = field in confirmedChanges && JSON.stringify(value) === JSON.stringify(confirmedChanges[field]);
+    if (!wasJustSaved) remaining[field] = value;
+  }
+  if (Object.keys(remaining).length) {
+    drafts[id] = { changes: remaining, updatedAt: new Date().toISOString() };
+  } else {
+    delete drafts[id];
+  }
   storage.set(KEYS.drafts, JSON.stringify(drafts));
 }

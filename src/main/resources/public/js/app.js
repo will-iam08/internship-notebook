@@ -14,7 +14,7 @@ import {
   cleanSkills, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   previewImport
 } from "./domain.js";
-import { KEYS, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
+import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
 import { api, BROWSER_MODE, StorageCorruptedError } from "./api.js";
 import { icon, LOGO } from "./ui/icons.js";
 
@@ -1280,22 +1280,31 @@ function setSaveState(mode, message = "") {
 }
 
 /** Saves whatever is drafted for `targetId` (the open entry by default). Safe to call repeatedly:
- *  a save already in flight for that entry is left alone rather than duplicated. */
-function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id : null) {
+ *  a save already in flight for that entry is left alone rather than duplicated. Pass
+ *  `overrideChanges` to save specific fields directly instead of whatever is currently drafted -
+ *  used when the draft itself couldn't be written (see queueChange) so there is nothing on disk
+ *  to read back. */
+function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id : null, overrideChanges = null) {
   entrySave.cancel();
   if (targetId == null) return saveChain;
-  const changes = readDrafts()[targetId]?.changes;
+  const changes = overrideChanges || readDrafts()[targetId]?.changes;
   if (!changes || !Object.keys(changes).length) return saveChain;
   if (inFlight.has(targetId)) return saveChain;
   inFlight.add(targetId);
   const isCurrent = () => state.route.view === "entry" && state.route.id === targetId;
   if (isCurrent()) setSaveState("saving");
   saveChain = saveChain.then(async () => {
+    let resendQueued = false;
     try {
       if (!find(targetId)) { clearDraft(targetId); return; } // the page was deleted while a draft was pending
       const updated = await api.update(targetId, changes);
       replaceApplications([updated]);
-      clearDraft(targetId);
+      // Only the fields whose current draft value still matches what was just sent are cleared.
+      // Anything typed *during* this request (queued by writeDraft while the await above was
+      // pending) is a different value than what `changes` captured, so it is left queued instead
+      // of being silently thrown away with the rest of the draft - that was the actual bug: a
+      // plain clearDraft() here deleted the whole draft, snapshot and any later edits alike.
+      clearConfirmedDraft(targetId, changes);
       window.clearTimeout(retryTimers.get(targetId));
       retryTimers.delete(targetId);
       updateCounts();
@@ -1306,6 +1315,7 @@ function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id
         if ("link" in changes) refreshLinkButton(updated);
         if ("company" in changes) { $("#mobile-title").textContent = updated.company; document.title = `${updated.company} · My Internship Notebook`; }
       }
+      resendQueued = Boolean(readDrafts()[targetId]); // something else arrived while this save was in flight
     } catch (error) {
       // The draft on disk is untouched (it was written before this attempt started), so nothing
       // typed is lost - only the confirmation failed. Keep retrying instead of giving up on it.
@@ -1316,6 +1326,8 @@ function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id
     } finally {
       inFlight.delete(targetId);
     }
+    // Send the newer edit right away instead of waiting for the next keystroke or retry timer.
+    if (resendQueued) flushEntrySave(targetId);
   });
   return saveChain;
 }
@@ -1334,7 +1346,16 @@ function queueChange(field, value, { immediate = false } = {}) {
     setSaveState("error", `${field === "company" ? "Company" : "Role"} can't be empty`);
     return;
   }
-  writeDraft(id, { [field]: value });
+  const draftWritten = writeDraft(id, { [field]: value });
+  if (!draftWritten) {
+    // The safety-net draft itself could not be written (storage full or blocked) - this is a
+    // stronger failure than "saved locally but not yet confirmed", so it must not be reported as
+    // "Saved locally". Try to save this field directly instead of silently losing it.
+    setSaveState("error", "This browser couldn't save your change (storage may be full or blocked)");
+    toast("This browser couldn't save your change locally. Storage may be full or blocked (for example in a private window). Trying to save it directly...", { error: true });
+    flushEntrySave(id, { [field]: value });
+    return;
+  }
   setSaveState("draft");
   if (immediate) flushEntrySave(id);
   else entrySave();
