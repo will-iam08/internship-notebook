@@ -34,7 +34,7 @@ jobs:
           java --add-modules jdk.httpserver -ea -cp out com.coopcompass.ApplicationRepositoryTest
 
   frontend-checks:
-    name: Frontend checks
+    name: Frontend checks and unit tests
     runs-on: ubuntu-latest
     steps:
       - name: Check out the project
@@ -48,10 +48,41 @@ jobs:
         run: npm ci
       - name: Check script syntax
         run: npm run check
+      - name: Run frontend unit tests
+        run: npm run test:unit
+
+  frontend-e2e:
+    name: End-to-end tests (desktop and mobile browsers)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install test tools
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Run end-to-end tests
+        # playwright.config.js runs this against two projects: desktop-chromium and
+        # iphone-webkit (an iPhone 13 profile - 390px, touch, mobile Safari UA), covering
+        # routing, data safety, accessibility, PWA basics, and the mobile layout checks in
+        # tests/e2e/mobile.spec.js (320/375/390/430px, stage tabs, touch targets).
+        run: npm run test:e2e
+      - name: Upload the Playwright report if something failed
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
   build:
     name: Build website
-    needs: [java-tests, frontend-checks]
+    needs: [java-tests, frontend-checks, frontend-e2e]
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
