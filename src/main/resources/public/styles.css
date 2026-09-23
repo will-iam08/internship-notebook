@@ -383,12 +383,12 @@ kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-rad
   border-radius: 10px;
   color: var(--muted);
   display: inline-grid;
-  height: 38px;
+  height: 44px;
   justify-content: center;
   place-items: center;
   text-decoration: none;
   transition: background .15s, color .15s;
-  width: 38px;
+  width: 44px;
 }
 .icon-button:hover { background: var(--wash-strong); color: var(--ink); }
 .icon-button .icon { height: 20px; width: 20px; }
@@ -503,6 +503,16 @@ fieldset { border: 0; margin: 0; padding: 0; }
 legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom: 6px; padding: 0; }
 .form-error { background: var(--danger-soft); border-radius: 10px; color: var(--danger); font-size: .86rem; font-weight: 600; margin-top: 14px; padding: 10px 12px; }
 
+/* Quick-add keeps only company, role, and stage visible; everything else waits behind this
+   native disclosure so adding an application stays a two-field, one-tap action. */
+.more-fields { margin-top: 6px; }
+.more-fields summary { align-items: center; border-radius: 8px; color: var(--ink-2); cursor: pointer; display: flex; font-size: .86rem; font-weight: 650; gap: 8px; list-style: none; min-height: 40px; padding: 8px 4px; }
+.more-fields summary::-webkit-details-marker { display: none; }
+.more-fields summary::before { color: var(--muted); content: "+"; display: inline-block; text-align: center; width: 12px; }
+.more-fields[open] summary::before { content: "–"; }
+.more-fields summary .muted { font-weight: 500; }
+.more-fields summary:hover { background: var(--wash-strong); }
+
 .stage-picker { display: flex; flex-wrap: wrap; gap: 6px; }
 .stage-option {
   align-items: center;
@@ -514,6 +524,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   font-size: .82rem;
   font-weight: 650;
   gap: 7px;
+  min-height: 44px;
   padding: 6px 12px 6px 10px;
   transition: background .15s, border-color .15s, color .15s;
 }
@@ -565,7 +576,8 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .ring-label span { color: var(--muted); font-size: .72rem; font-weight: 600; }
 .goal-copy { color: var(--ink-2); font-size: .9rem; margin-bottom: 12px; }
 .goal-stepper { align-items: center; display: inline-flex; gap: 2px; }
-.goal-stepper button { background: var(--wash-strong); border: 0; border-radius: 8px; font-weight: 700; height: 28px; width: 28px; }
+.goal-stepper button { background: var(--wash-strong); border: 0; border-radius: 8px; font-weight: 700; height: 28px; position: relative; width: 28px; }
+.goal-stepper button::after { content: ""; inset: -8px; position: absolute; }
 .goal-stepper button:hover { background: var(--line); }
 .goal-stepper output { font-weight: 700; min-width: 28px; text-align: center; }
 .week-dots { display: grid; gap: 6px; grid-template-columns: repeat(7, 1fr); margin-top: 16px; }
@@ -691,7 +703,10 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .app-meta > span:not(.date-chip) { align-items: center; display: inline-flex; gap: 4px; }
 .app-meta .icon { height: 14px; width: 14px; }
 .app-card .chips { margin-top: 2px; }
-.card-mini-button { background: none; border: 0; border-radius: 7px; color: var(--faint); display: grid; height: 28px; margin: -4px -4px -4px 0; place-items: center; width: 28px; }
+/* Stays visually compact (28px) but the tappable area reaches ~44px via a transparent pseudo-
+   element, so it doesn't dominate a card corner or a column header while still being easy to hit. */
+.card-mini-button { background: none; border: 0; border-radius: 7px; color: var(--faint); display: grid; height: 28px; margin: -4px -4px -4px 0; place-items: center; position: relative; width: 28px; }
+.card-mini-button::after { content: ""; inset: -8px; position: absolute; }
 .card-mini-button:hover { background: var(--wash-strong); color: var(--ink); }
 .card-mini-button .icon { height: 16px; width: 16px; }
 .app-card input[type="checkbox"] { margin: -2px 0 -2px 0; }
@@ -735,6 +750,28 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .column-empty { border: 1.5px dashed var(--line-strong); border-radius: 12px; color: var(--faint); font-size: .82rem; padding: 18px 12px; text-align: center; }
 .drag-hint { color: var(--muted); font-size: .8rem; margin-left: auto; }
 
+/* Stage tabs replace the five-wide scroller on a narrow screen: one stage shown at a time. */
+.board-stage-tabs { display: none; }
+/* Rendered only when the app already decided this is a touch pointer (see showMove in appCard()
+   in app.js); this just lays the button out full-width and gives it a 44px target. */
+.move-button { justify-content: flex-start; margin-top: 2px; min-height: 44px; width: 100%; }
+@media (max-width: 759px) {
+  .drag-hint { display: none; }
+  .board-stage-tabs { display: flex; gap: 6px; margin: 0 -16px 14px; overflow-x: auto; padding: 0 16px 2px; scrollbar-width: none; }
+  .board-stage-tabs::-webkit-scrollbar { display: none; }
+  .board-stage-tab {
+    align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: 99px;
+    color: var(--ink-2); display: inline-flex; flex: none; font-size: .82rem; font-weight: 650;
+    gap: 6px; min-height: 44px; padding: 8px 14px;
+  }
+  .board-stage-tab b { font-weight: 700; opacity: .8; }
+  .board-stage-tab[aria-selected="true"] { background: var(--s); border-color: var(--s); color: #fff; }
+  .board-stage-tab.st-INTERVIEW[aria-selected="true"] { color: #2a1d00; }
+  .board { display: block; margin: 0; overflow: visible; padding: 0; }
+  .column { display: none; min-height: 0; }
+  .column.active-stage { display: flex; }
+}
+
 /* ---------- All pages (table of contents) ---------- */
 .filters { display: flex; gap: 6px; margin: 0 -16px 16px; overflow-x: auto; padding: 0 16px 2px; scrollbar-width: none; }
 .filters::-webkit-scrollbar { display: none; }
@@ -750,6 +787,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   font-size: .82rem;
   font-weight: 650;
   gap: 6px;
+  min-height: 44px;
   padding: 6px 12px;
   transition: background .15s, border-color .15s;
 }
@@ -792,7 +830,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 /* ---------- Entry page (one application) ---------- */
 .entry { margin: 0 auto; max-width: 940px; }
 .entry-nav { align-items: center; display: flex; gap: 6px; margin-bottom: 14px; }
-.entry-nav .back { align-items: center; background: none; border: 0; border-radius: 10px; color: var(--ink-2); display: inline-flex; font-weight: 650; gap: 4px; padding: 7px 10px 7px 6px; text-decoration: none; }
+.entry-nav .back { align-items: center; background: none; border: 0; border-radius: 10px; color: var(--ink-2); display: inline-flex; font-weight: 650; gap: 4px; min-height: 44px; padding: 7px 10px 7px 6px; text-decoration: none; }
 .entry-nav .back:hover { background: var(--wash-strong); }
 .save-state { align-items: center; color: var(--muted); display: inline-flex; font-size: .8rem; font-weight: 600; gap: 5px; margin-left: auto; transition: opacity .3s; }
 .save-state .icon { height: 15px; width: 15px; }
@@ -830,6 +868,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   }
 }
 .entry-head { display: grid; gap: 4px; margin-bottom: 18px; }
+.entry-company, .entry-role { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .entry-company {
   background: none;
   border: 0;
@@ -846,7 +885,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   background: none;
   border: 0;
   border-radius: 8px;
-  font: 600 clamp(1.6rem, 4vw, 2.3rem)/1.15 var(--serif);
+  font: 600 clamp(1.35rem, 6.5vw, 2.3rem)/1.15 var(--serif);
   letter-spacing: -.02em;
   margin-left: -6px;
   padding: 2px 6px;
@@ -866,7 +905,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   font-size: .84rem;
   font-weight: 700;
   gap: 6px;
-  height: 40px;
+  height: 44px;
   justify-content: center;
   margin-left: -6px;
   min-width: 0;
@@ -884,8 +923,13 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .reject-toggle[aria-pressed="true"] { background: var(--st-rejected-bg); border-color: var(--st-rejected); color: var(--ink); }
 @media (max-width: 560px) { .step { font-size: .74rem; padding: 0 6px 0 16px; } .step:first-child { padding-left: 8px; } .step .icon { display: none; } }
 
-.details { display: grid; gap: 4px 18px; grid-auto-flow: row dense; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); margin-bottom: 26px; }
-.details .wide { grid-column: span 2; }
+/* One column by default so a value never has to squeeze into half a 320px screen; two columns
+   once there is room for them, three columns on a laptop-width page. .wide only spans 2 columns
+   once the grid actually has 2+ explicit columns - left unscoped, "span 2" on a 1-column grid
+   makes grid-auto-flow: dense invent an implicit second column and pack everything else into it,
+   silently undoing the single-column layout this rule exists for. */
+.details { display: grid; gap: 4px 18px; grid-auto-flow: row dense; grid-template-columns: minmax(0, 1fr); margin-bottom: 26px; }
+@media (min-width: 560px) { .details { grid-template-columns: repeat(2, minmax(0, 1fr)); } .details .wide { grid-column: span 2; } }
 @media (min-width: 900px) { .details { gap: 4px 26px; grid-template-columns: repeat(3, minmax(0, 1fr)); } .details .wide-lg { grid-column: span 2; } }
 .line-field { border-bottom: 1px solid var(--rule); display: grid; gap: 0; padding: 6px 0 2px; position: relative; }
 .line-field:focus-within { border-bottom-color: var(--focus); }
@@ -900,7 +944,8 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .skills-editor { align-items: center; border: 1px dashed var(--line-strong); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 26px; padding: 8px; }
 .skills-editor:focus-within { border-color: var(--focus); border-style: solid; }
 .skill-chip { align-items: center; background: var(--wash-strong); border-radius: 7px; display: inline-flex; font-size: .84rem; font-weight: 600; gap: 2px; padding: 3px 3px 3px 9px; }
-.skill-chip button { background: none; border: 0; border-radius: 5px; color: var(--muted); display: grid; height: 22px; place-items: center; width: 22px; }
+.skill-chip button { background: none; border: 0; border-radius: 5px; color: var(--muted); display: grid; height: 22px; place-items: center; position: relative; width: 22px; }
+.skill-chip button::after { content: ""; inset: -6px; position: absolute; }
 .skill-chip button:hover { background: var(--line); color: var(--ink); }
 .skill-chip .icon { height: 13px; width: 13px; }
 .skills-editor input { background: none; border: 0; box-shadow: none; flex: 1 0 140px; padding: 5px 6px; width: auto; }
@@ -944,8 +989,10 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .funnel-bar { background: var(--series); border-radius: 0 4px 4px 0; height: 20px; min-width: 3px; transition: width .7s var(--ease); }
 .funnel-value { color: var(--ink); font-size: .84rem; font-variant-numeric: tabular-nums; font-weight: 700; white-space: nowrap; }
 .funnel-value small { color: var(--muted); font-weight: 600; }
-.chart { position: relative; }
-.chart svg { display: block; overflow: visible; }
+.chart { position: relative; min-width: 0; }
+/* The SVG's viewBox keeps its internal proportions; width:100% is what stops it from ever being
+   wider than its card and forcing the page to scroll sideways on a narrow phone. */
+.chart svg { display: block; height: auto; max-width: 100%; overflow: visible; width: 100%; }
 .chart .gridline { stroke: var(--rule); stroke-width: 1; }
 .chart .axis-label { fill: var(--muted); font: 600 12px var(--sans); }
 .chart .bar { fill: var(--series); transition: opacity .15s; }
@@ -1020,7 +1067,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 }
 .selection-bar p { font-size: .9rem; }
 .selection-bar-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; }
-.move-label select { font-size: .88rem; min-height: 34px; padding-bottom: 6px; padding-top: 6px; width: auto; }
+.move-label select { font-size: .88rem; min-height: 44px; padding-bottom: 6px; padding-top: 6px; width: auto; }
 @media (min-width: 1024px) { .selection-bar { bottom: 30px; left: 50%; right: auto; transform: translateX(-50%); min-width: 560px; } }
 @media (max-width: 520px) { .hide-sm { display: none; } }
 

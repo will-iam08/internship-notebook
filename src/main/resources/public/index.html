@@ -112,26 +112,31 @@
               <legend>Stage</legend>
               <div class="stage-picker" id="new-stage"></div>
             </fieldset>
-            <label class="field">Deadline
-              <input name="deadline" type="date" />
-            </label>
-            <label class="field">Location
-              <input maxlength="80" name="location" placeholder="Toronto or Remote" />
-            </label>
-            <label class="field">Where you found it
-              <input maxlength="60" name="source" list="source-options" placeholder="LinkedIn, WaterlooWorks…" />
-            </label>
-            <label class="field">Job posting link
-              <input maxlength="500" name="link" type="url" inputmode="url" placeholder="https://…" />
-            </label>
-            <label class="field span-2">Skills
-              <input maxlength="250" name="skills" placeholder="Java, React, SQL" />
-              <small>Separate skills with commas.</small>
-            </label>
-            <label class="field span-2">Notes
-              <textarea maxlength="10000" name="notes" rows="3" placeholder="Why this role? Anything to remember?"></textarea>
-            </label>
           </div>
+          <details class="more-fields">
+            <summary>More details <span class="muted">(optional)</span></summary>
+            <div class="field-grid" style="margin-top: 14px">
+              <label class="field">Deadline
+                <input name="deadline" type="date" />
+              </label>
+              <label class="field">Location
+                <input maxlength="80" name="location" placeholder="Toronto or Remote" />
+              </label>
+              <label class="field">Where you found it
+                <input maxlength="60" name="source" list="source-options" placeholder="LinkedIn, WaterlooWorks…" />
+              </label>
+              <label class="field">Job posting link
+                <input maxlength="500" name="link" type="url" inputmode="url" placeholder="https://…" />
+              </label>
+              <label class="field span-2">Skills
+                <input maxlength="250" name="skills" placeholder="Java, React, SQL" />
+                <small>Separate skills with commas.</small>
+              </label>
+              <label class="field span-2">Notes
+                <textarea maxlength="10000" name="notes" rows="3" placeholder="Why this role? Anything to remember?"></textarea>
+              </label>
+            </div>
+          </details>
           <p class="form-error" id="new-error" role="alert" hidden></p>
         </div>
         <footer class="sheet-foot">

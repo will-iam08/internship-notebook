@@ -74,6 +74,7 @@ const state = {
   selected: new Set(),
   visibleIds: [],
   boardQuery: "",
+  boardStage: "SAVED",
   filter: { query: "", stage: "ALL" },
   prefs: readPrefs(),
   installPrompt: null,
@@ -136,7 +137,7 @@ function dateChip(entry) {
   return "";
 }
 
-function appCard(entry, index = 0, { selectable = false, draggable = false, compact = false } = {}) {
+function appCard(entry, index = 0, { selectable = false, draggable = false, compact = false, showMove = false } = {}) {
   const selected = state.selected.has(entry.id);
   const skills = compact ? [] : entry.skills.slice(0, 3);
   const more = compact ? 0 : entry.skills.length - skills.length;
@@ -154,6 +155,7 @@ function appCard(entry, index = 0, { selectable = false, draggable = false, comp
       <h3 class="app-role">${esc(entry.role)}</h3>
       ${meta ? `<div class="app-meta">${meta}</div>` : ""}
       ${skills.length ? `<div class="chips">${skills.map(skill => `<span class="chip">${esc(skill)}</span>`).join("")}${more > 0 ? `<span class="chip">+${more}</span>` : ""}</div>` : ""}
+      ${showMove ? `<button class="button small move-button" type="button" data-action="move-menu" data-id="${entry.id}" aria-haspopup="menu">${icon("move")}<span>Move to…</span></button>` : ""}
     </article>`;
 }
 
@@ -311,14 +313,23 @@ function viewBoard() {
   state.visibleIds = visible.map(entry => entry.id);
   const selecting = state.selecting && state.selectScope === "board";
   const finePointer = window.matchMedia("(pointer: fine)").matches;
+  const counts = countBy(visible);
+  // On a narrow screen five side-by-side columns are cumbersome, so a tab strip picks one stage
+  // at a time instead (CSS shows only the .active-stage column below 760px). A mouse or trackpad
+  // still gets full drag-and-drop between all five; a touch screen gets an explicit "Move to..."
+  // button on every card instead of relying on a drag gesture or a small menu.
+  const stageTabs = `
+    <div class="board-stage-tabs" role="tablist" aria-label="Pipeline stage">
+      ${STAGES.map(stage => `<button type="button" role="tab" class="board-stage-tab st-${stage}" data-action="board-stage" data-stage="${stage}" aria-selected="${state.boardStage === stage}">${LABELS[stage]}<b>${counts[stage] || 0}</b></button>`).join("")}
+    </div>`;
   const columns = STAGES.map(stage => {
     const entries = visible.filter(entry => entry.status === stage).sort(compareBy(stage === "SAVED" ? "deadline" : "updated"));
     return `
-      <section class="column st-${stage}" data-stage="${stage}" aria-label="${LABELS[stage]}">
+      <section class="column st-${stage}${state.boardStage === stage ? " active-stage" : ""}" data-stage="${stage}" aria-label="${LABELS[stage]}">
         <header class="column-head"><span class="dot"></span><h2>${LABELS[stage]}</h2><span class="count">${entries.length}</span>
           <button class="card-mini-button" type="button" data-action="new" data-stage="${stage}" aria-label="Add to ${LABELS[stage]}">${icon("plus")}</button></header>
         <div class="column-cards">
-          ${entries.length ? entries.map((entry, index) => appCard(entry, index, { selectable: selecting, draggable: finePointer })).join("")
+          ${entries.length ? entries.map((entry, index) => appCard(entry, index, { selectable: selecting, draggable: finePointer, showMove: !finePointer && !selecting })).join("")
             : `<p class="column-empty">${query ? "No matches" : finePointer ? "Drop a card here" : "Nothing here yet"}</p>`}
         </div>
       </section>`;
@@ -329,6 +340,7 @@ function viewBoard() {
       <label class="search-box">${icon("search")}<span class="sr-only">Filter the board</span><input type="search" data-input="board-query" value="${esc(state.boardQuery)}" placeholder="Filter by company, role, or skill" /></label>
       ${finePointer ? `<p class="drag-hint">Drag cards between columns to change their stage.</p>` : ""}
     </div>
+    ${stageTabs}
     <div class="board" id="board">${columns}</div>`;
 }
 
@@ -1413,6 +1425,8 @@ const actions = {
     rerender();
   },
   "card-menu": target => { const entry = find(Number(target.dataset.id)); if (entry) cardMenu(target, entry); },
+  "move-menu": target => { const entry = find(Number(target.dataset.id)); if (entry) cardMenu(target, entry); },
+  "board-stage": target => { state.boardStage = target.dataset.stage; rerender(); },
   "entry-menu": target => {
     const entry = find(Number(target.dataset.id));
     if (!entry) return;
