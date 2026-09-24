@@ -205,7 +205,9 @@ function viewToday() {
         <div class="sticky-note" aria-hidden="true">Tip: press <b>N</b> anywhere to start a new page.</div>
         <p class="eyebrow">Welcome</p>
         <h2>Every internship application, one tidy notebook.</h2>
-        <p>Add a role you're interested in, move it along as you apply and interview, and keep notes for each one. Your entries ${BROWSER_MODE ? "stay private in this browser. Nothing is uploaded." : "are saved on this computer by the notebook server."}</p>
+        <p>Add a role you're interested in, move it along as you apply and interview, and keep notes for each one. Your entries ${BROWSER_MODE
+          ? state.cloud.enabled ? "are saved in this browser and synced to your private account notebook." : "stay private in this browser unless you explicitly turn on cloud sync in Settings."
+          : "are saved on this computer by the notebook server."}</p>
         <ol class="welcome-steps">
           <li><strong>Save roles</strong>Add companies and deadlines as you find them.</li>
           <li><strong>Track each stage</strong>Drag cards from Saved to Applied, Interview, and Offer.</li>
@@ -598,9 +600,11 @@ function viewSettings() {
 
       <section class="card">
         <h2 class="card-title" style="margin-bottom:10px">Your data</h2>
-        <div class="setting-row"><div><strong>${BROWSER_MODE ? "Private to this browser" : "Saved on this computer"}</strong>
+        <div class="setting-row"><div><strong>${BROWSER_MODE ? state.cloud.enabled ? "Local-first, with account sync" : "Private to this browser" : "Saved on this computer"}</strong>
           <p>${BROWSER_MODE
-            ? "Pages are stored in this browser profile on this device. Nothing is uploaded. Other browser profiles and devices cannot see them, but anyone using this same profile can. Use a separate profile on a shared device, and use a backup file to move your notebook."
+            ? state.cloud.enabled
+              ? "Pages are saved locally first and copied to your private account notebook while sync is on. Verified account access and Firestore rules restrict the cloud copy to your user ID. Anyone using this same unlocked browser profile can still see the local copy."
+              : "Pages are stored in this browser profile on this device. Nothing is uploaded. Other browser profiles and devices cannot see them, but anyone using this same profile can. Use a separate profile on a shared device, and use a backup file to move your notebook."
             : "The Java server saves pages to data/applications.tsv in the project folder."}</p></div></div>
         <div class="setting-row"><div><strong>Backup</strong><p>A single file with every page, including notes and history.</p></div>
           <div class="view-actions">
