@@ -1,4 +1,5 @@
 import { browserApi, setBrowserWriteListener } from "./api.js";
+import { sanitizeImportedEntry } from "./domain.js";
 
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0";
 const MAX_CLOUD_BYTES = 900_000;
@@ -168,14 +169,31 @@ export async function signOutCloud() {
   await authSdk.signOut(auth);
 }
 
+/**
+ * Anything read back from Firestore is treated exactly like an imported backup file, not as
+ * already-trusted data - it went through this same app's own writes originally, but it can also
+ * be edited directly via the Firestore console or REST API, by a future client version, or by a
+ * bug, and the security rules only check document-level shape (is applications a list?), not
+ * per-field safety (is this link actually http(s)?). Re-running it through sanitizeImportedEntry
+ * - the same function backup import uses - is what stops an unsafe link scheme from surviving a
+ * round trip through the cloud and landing on "Open job posting" on some other signed-in device.
+ * A malformed entry (no company/role) is dropped rather than crashing the app or storing garbage.
+ */
+function sanitizeCloudList(list) {
+  return (Array.isArray(list) ? list : [])
+    .map(sanitizeImportedEntry)
+    .map(result => result.entry)
+    .filter(Boolean);
+}
+
 export async function fetchCloudNotebook() {
   const snapshot = await storeSdk.getDoc(cloudRef());
   if (!snapshot.exists()) return null;
   const data = snapshot.data();
   return {
     nextId: data.nextId,
-    applications: data.applications,
-    recentlyDeleted: data.recentlyDeleted
+    applications: sanitizeCloudList(data.applications),
+    recentlyDeleted: sanitizeCloudList(data.recentlyDeleted)
   };
 }
 
