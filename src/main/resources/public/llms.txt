@@ -1,0 +1,20 @@
+# My Internship Notebook
+
+> A free, private, notebook-style web app for organizing internship applications, interviews,
+> deadlines, and offers. Installs like an app on a phone, laptop, or desktop and works offline.
+
+Each application gets its own page for notes, contacts, and next steps. A board view tracks
+the pipeline (Saved, Applied, Interview, Offer, Rejected), and an insights view summarizes
+response rate, interview rate, and weekly activity against a personal goal.
+
+Entries are stored only in the visitor's own browser. Nothing is uploaded to a server, and
+nothing about a visitor's applications is ever readable by anyone else, including the people
+who made this site. There is no account, no login, and no tracking of application content.
+A visitor's data does not currently sync between their own devices; a manual backup-file
+export/import is available for moving a notebook to another device.
+
+The source code is plain HTML, CSS, and JavaScript with no third-party runtime dependencies
+and no build step, plus an optional Java backend for a local-only, single-user version.
+
+- [Source code](https://github.com/will-iam08/coop-compass): the full, public source repository
+- [Live app](https://will-iam08.github.io/coop-compass/): the app itself, not a marketing page

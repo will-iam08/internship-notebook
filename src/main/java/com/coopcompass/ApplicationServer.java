@@ -268,6 +268,8 @@ public final class ApplicationServer {
             case "ico" -> "image/x-icon";
             case "json" -> "application/json; charset=utf-8";
             case "webmanifest" -> "application/manifest+json; charset=utf-8";
+            case "txt" -> "text/plain; charset=utf-8";
+            case "xml" -> "application/xml; charset=utf-8";
             default -> "text/html; charset=utf-8";
         };
     }

@@ -1,0 +1,7 @@
+# My Internship Notebook is a local-first tool: every visitor's applications live only in
+# their own browser, so there is nothing private for a crawler to reach here. This page (the
+# app shell) is fine to index; there is no separate content behind it worth crawling further.
+User-agent: *
+Allow: /
+
+Sitemap: https://will-iam08.github.io/coop-compass/sitemap.xml

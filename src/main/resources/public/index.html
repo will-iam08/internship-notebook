@@ -12,11 +12,48 @@
     <meta name="apple-mobile-web-app-title" content="Notebook" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>My Internship Notebook</title>
+    <!-- Canonical: this app is also mirrored on Render (see README); this points searches and
+         social previews at one address instead of splitting signal across both. Update this
+         (and og:url below) together if a custom domain is added, or if Render should be primary
+         instead. -->
+    <link rel="canonical" href="https://will-iam08.github.io/coop-compass/" />
     <link rel="icon" href="favicon-20260915-v4.ico" type="image/x-icon" sizes="32x32" />
     <link rel="icon" href="favicon-20260915-v4.png" type="image/png" sizes="32x32" />
     <link rel="shortcut icon" href="favicon-20260915-v4.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="manifest.webmanifest" />
+    <!-- Open Graph / social share previews (Slack, iMessage, Facebook, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="My Internship Notebook" />
+    <meta property="og:title" content="My Internship Notebook" />
+    <meta property="og:description" content="A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app." />
+    <meta property="og:url" content="https://will-iam08.github.io/coop-compass/" />
+    <meta property="og:image" content="https://will-iam08.github.io/coop-compass/icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="My Internship Notebook logo: a notebook with a bookmark, on a dark blue cover" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="My Internship Notebook" />
+    <meta name="twitter:description" content="A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app." />
+    <meta name="twitter:image" content="https://will-iam08.github.io/coop-compass/icon-512.png" />
+    <!-- Structured data: this is a free web app with no accounts, storefront, or physical
+         location, so WebApplication is the accurate schema.org type. It is deliberately not
+         marked up as a LocalBusiness (no address, hours, or phone number exist to be accurate
+         about) or an Organization (there is no company behind it) - a false business listing
+         would be misleading, not helpful, structured data. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "My Internship Notebook",
+        "url": "https://will-iam08.github.io/coop-compass/",
+        "description": "A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app.",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Any (runs in a web browser)",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "isAccessibleForFree": true
+      }
+    </script>
     <script>
       // Apply the saved theme before the first paint so dark mode never flashes white.
       (() => {

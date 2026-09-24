@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Only one URL: this is a single-page app, and its hash routes (#/board, #/entry/1, ...) are not
+  separately fetchable documents for a crawler to index - and even if they were, an application
+  page's content is that one visitor's private browser-local data, which is never something to
+  index. The one real, public, useful document here is this entry page.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://will-iam08.github.io/coop-compass/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
