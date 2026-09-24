@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isVerifiedOwner(userId) {
+      return request.auth != null
+        && request.auth.uid == userId
+        && request.auth.token.email_verified == true;
+    }
+
+    match /notebooks/{userId} {
+      allow read: if isVerifiedOwner(userId);
+      allow create, update: if isVerifiedOwner(userId)
+        && request.resource.data.keys().hasOnly([
+          'schemaVersion', 'nextId', 'applications', 'recentlyDeleted', 'updatedAt'
+        ])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.nextId is int
+        && request.resource.data.nextId > 0
+        && request.resource.data.applications is list
+        && request.resource.data.recentlyDeleted is list
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

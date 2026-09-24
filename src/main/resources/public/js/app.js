@@ -16,6 +16,11 @@ import {
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
 import { api, BROWSER_MODE, StorageCorruptedError } from "./api.js";
+import {
+  cloudSnapshot, createEmailAccount, disableCloud, enableCloudWithLocal, enableCloudWithRemote,
+  fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, sendPasswordReset,
+  signInEmail, signInGoogle, signOutCloud
+} from "./cloud.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -77,6 +82,7 @@ const state = {
   boardStage: "SAVED",
   filter: { query: "", stage: "ALL" },
   prefs: readPrefs(),
+  cloud: cloudSnapshot(),
   installPrompt: null,
   dragId: null
 };
@@ -586,6 +592,11 @@ function viewSettings() {
       </section>
 
       <section class="card">
+        <h2 class="card-title" style="margin-bottom:10px">Account &amp; cloud sync</h2>
+        ${cloudSettings()}
+      </section>
+
+      <section class="card">
         <h2 class="card-title" style="margin-bottom:10px">Your data</h2>
         <div class="setting-row"><div><strong>${BROWSER_MODE ? "Private to this browser" : "Saved on this computer"}</strong>
           <p>${BROWSER_MODE
@@ -612,6 +623,35 @@ function viewSettings() {
 
       <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="https://github.com/will-iam08/coop-compass" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
     </div>`;
+}
+
+function cloudSettings() {
+  if (!BROWSER_MODE) return `<div class="setting-row"><div><strong>Local server mode</strong><p>Cloud sync is available on the public web app. This development copy continues to use the Java server.</p></div></div>`;
+  const cloud = state.cloud;
+  if (!cloud.ready) return `<div class="setting-row"><div><strong>${cloud.status === "unavailable" ? "Cloud sync unavailable" : "Loading account options…"}</strong><p>${esc(cloud.error || "Your local notebook remains available while Firebase loads.")}</p></div></div>`;
+  if (!cloud.user) return `
+    <div class="setting-row"><div><strong>Optional cloud sync</strong><p>Sign in to use the same notebook on your devices. Your local notebook stays on this device until you explicitly choose to upload it.</p></div>
+      <button class="button primary" type="button" data-action="cloud-google">Sign in with Google</button></div>
+    <div class="cloud-email-form">
+      <label class="field"><span class="field-label">Email</span><input id="cloud-email" type="email" autocomplete="email" maxlength="254" /></label>
+      <label class="field"><span class="field-label">Password</span><input id="cloud-password" type="password" autocomplete="current-password" minlength="6" maxlength="128" /></label>
+      <div class="view-actions">
+        <button class="button" type="button" data-action="cloud-email-signin">Sign in</button>
+        <button class="button ghost" type="button" data-action="cloud-email-create">Create account</button>
+        <button class="text-button" type="button" data-action="cloud-reset">Forgot password?</button>
+      </div>
+    </div>
+    <p class="card-note">Password recovery uses an email reset link. Phone/SMS recovery is not enabled because it can create charges and abuse risk.</p>`;
+  if (!cloud.user.verified) return `
+    <div class="setting-row"><div><strong>Verify ${esc(cloud.user.email)}</strong><p>We sent a verification link. Cloud data stays locked until the address is verified.</p></div></div>
+    <div class="view-actions"><button class="button primary" type="button" data-action="cloud-check-email">I've verified it</button><button class="button ghost" type="button" data-action="cloud-resend">Resend email</button><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>`;
+  return `
+    <div class="setting-row"><div><strong>${cloud.enabled ? "Cloud sync is on" : "Signed in — sync is paused"}</strong><p>${esc(cloud.user.email)} · ${cloud.enabled ? (cloud.status === "syncing" ? "Syncing…" : cloud.status === "error" ? cloud.error : "Synced with your private account notebook.") : "This device is still local-only until you choose a copy to sync."}</p></div>
+      ${cloud.enabled
+        ? `<div class="view-actions">${cloud.status === "error" ? `<button class="button primary" type="button" data-action="cloud-retry">Retry sync</button>` : ""}<button class="button ghost" type="button" data-action="cloud-disable">Pause sync</button></div>`
+        : `<button class="button primary" type="button" data-action="cloud-enable">Choose notebook</button>`}</div>
+    <div class="view-actions"><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>
+    <p class="card-note">Firebase Authentication controls access and Firestore rules restrict each notebook to its verified owner. This is recoverable account security, not user-only end-to-end encryption.</p>`;
 }
 
 function viewEntry(id) {
@@ -1486,6 +1526,75 @@ viewRoot.addEventListener("focusout", event => {
    18. Click handling (one delegated listener for the whole app)
    ========================================================================== */
 const endSelectionIfEmpty = () => { if (state.selecting && !state.selected.size) endSelection(); };
+
+function notebookHasData(record) {
+  return Boolean(record?.applications?.length || record?.recentlyDeleted?.length);
+}
+
+function cloudCredentials() {
+  const email = $("#cloud-email")?.value.trim() || "";
+  const password = $("#cloud-password")?.value || "";
+  if (!email) throw new Error("Enter your email address.");
+  return { email, password };
+}
+
+async function chooseCloudNotebook() {
+  const remote = await fetchCloudNotebook();
+  const local = BROWSER_MODE ? api.read() : null;
+  if (!remote) {
+    const upload = await confirmDialog({
+      eyebrow: "First cloud sync",
+      title: notebookHasData(local) ? "Upload this device's notebook?" : "Create your cloud notebook?",
+      copy: notebookHasData(local)
+        ? "This copies the notebook currently in this browser into your private account. Nothing local is deleted."
+        : "This creates an empty private notebook for your account and turns on sync for future pages.",
+      yes: "Upload & sync",
+      no: "Not now",
+      iconName: "upload",
+      danger: false
+    });
+    if (!upload) return;
+    await enableCloudWithLocal();
+    toast("Cloud sync is on.");
+    rerender();
+    return;
+  }
+  if (!notebookHasData(local)) {
+    const download = await confirmDialog({
+      eyebrow: "Notebook found",
+      title: "Use your cloud notebook on this device?",
+      copy: "This downloads your account notebook into this browser and turns on sync.",
+      yes: "Use cloud notebook",
+      no: "Keep local-only",
+      iconName: "download",
+      danger: false
+    });
+    if (!download) return;
+    enableCloudWithRemote(remote);
+    await load();
+    toast("Cloud notebook restored.");
+    return;
+  }
+  const useCloud = await confirmDialog({
+    eyebrow: "Choose carefully",
+    title: "A notebook already exists in your account",
+    copy: "Use the cloud notebook on this device? Your current device copy will be replaced, so download a backup first if you need both. Choosing Keep local leaves sync paused and changes neither copy.",
+    yes: "Use cloud notebook",
+    no: "Keep local",
+    iconName: "download",
+    danger: false
+  });
+  if (!useCloud) return;
+  enableCloudWithRemote(remote);
+  await load();
+  toast("Cloud notebook restored.");
+}
+
+async function runCloud(action) {
+  try { await action(); }
+  catch (error) { fail(error); }
+}
+
 const actions = {
   new: target => openNew(target.dataset.stage),
   palette: () => openPalette(),
@@ -1495,6 +1604,34 @@ const actions = {
     toast(`Theme: ${themeLabel()}`);
   },
   "set-theme": target => setTheme(target.dataset.themeValue),
+  "cloud-google": () => runCloud(async () => { await signInGoogle(); await chooseCloudNotebook(); }),
+  "cloud-email-signin": () => runCloud(async () => {
+    const { email, password } = cloudCredentials();
+    if (!password) throw new Error("Enter your password.");
+    await signInEmail(email, password);
+    await chooseCloudNotebook();
+  }),
+  "cloud-email-create": () => runCloud(async () => {
+    const { email, password } = cloudCredentials();
+    if (password.length < 6) throw new Error("Use a password with at least 6 characters.");
+    await createEmailAccount(email, password);
+    toast("Verification email sent. Open it before enabling sync.");
+    rerender();
+  }),
+  "cloud-reset": () => runCloud(async () => {
+    const { email } = cloudCredentials();
+    await sendPasswordReset(email);
+    toast("If that address has an account, a reset email is on its way.");
+  }),
+  "cloud-resend": () => runCloud(async () => { await resendVerification(); toast("Verification email sent."); }),
+  "cloud-check-email": () => runCloud(async () => { await refreshAccount(); if (cloudSnapshot().user?.verified) await chooseCloudNotebook(); else toast("That email is not verified yet.", { error: true }); }),
+  "cloud-enable": () => runCloud(chooseCloudNotebook),
+  "cloud-retry": () => runCloud(async () => { await enableCloudWithLocal(); toast("Cloud notebook synced."); rerender(); }),
+  "cloud-disable": () => runCloud(async () => {
+    const pause = await confirmDialog({ eyebrow: "This device", title: "Pause cloud sync?", copy: "Changes will keep saving locally in this browser, but they will not reach your other devices until sync is turned on again.", yes: "Pause sync", no: "Keep syncing", iconName: "lock", danger: false });
+    if (pause) { disableCloud(); rerender(); }
+  }),
+  "cloud-signout": () => runCloud(async () => { await signOutCloud(); toast("Signed out. Your local notebook is still here."); rerender(); }),
   goal: target => {
     state.prefs.goal = clamp(state.prefs.goal + Number(target.dataset.delta), 1, 50);
     savePrefs();
@@ -1825,10 +1962,25 @@ async function load() {
 function hydrateStaticIcons() {
   $$("[data-icon]").forEach(element => { element.innerHTML = icon(element.dataset.icon); });
   $$(".cover-logo").forEach(element => { element.innerHTML = LOGO; });
-  $("[data-storage-label]").textContent = BROWSER_MODE ? "Private to this browser" : "Saved on this computer";
-  $("[data-storage-chip]").title = BROWSER_MODE ? "Your pages are stored only in this browser on this device." : "Your pages are saved by the local Java server.";
+  updateStorageChip();
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   $$(".shortcut-key").forEach(element => { element.textContent = isMac ? "⌘K" : "Ctrl K"; });
+}
+
+function updateStorageChip() {
+  const label = $("[data-storage-label]");
+  const chip = $("[data-storage-chip]");
+  if (!label || !chip) return;
+  if (!BROWSER_MODE) {
+    label.textContent = "Saved on this computer";
+    chip.title = "Your pages are saved by the local Java server.";
+  } else if (state.cloud.enabled) {
+    label.textContent = state.cloud.status === "syncing" ? "Syncing securely" : state.cloud.status === "error" ? "Cloud sync needs attention" : "Synced to your account";
+    chip.title = state.cloud.error || "Your local notebook is synced to your private Firebase account.";
+  } else {
+    label.textContent = "Private to this browser";
+    chip.title = "Your pages are stored only in this browser on this device.";
+  }
 }
 
 window.addEventListener("hashchange", navigate);
@@ -1846,4 +1998,12 @@ applyTheme();
 const openNewOnStart = window.location.hash === "#/new";
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
-load().then(() => { if (openNewOnStart && state.loaded) openNew(); });
+load().then(async () => {
+  if (openNewOnStart && state.loaded) openNew();
+  if (!BROWSER_MODE) return;
+  await initializeCloud(snapshot => {
+    state.cloud = snapshot;
+    updateStorageChip();
+    if (state.route.view === "settings") rerender();
+  });
+});

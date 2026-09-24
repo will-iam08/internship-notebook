@@ -1050,6 +1050,12 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 
 /* ---------- Settings ---------- */
 .settings { display: grid; gap: 16px; max-width: 760px; }
+.cloud-email-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; padding-top: 14px; }
+.cloud-email-form .view-actions { grid-column: 1 / -1; justify-content: flex-start; }
+
+@media (max-width: 620px) {
+  .cloud-email-form { grid-template-columns: 1fr; }
+}
 .setting-row { align-items: center; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: space-between; padding: 14px 0; }
 .setting-row:first-of-type { border-top: 0; padding-top: 4px; }
 .setting-row > div:first-child { flex: 1 1 260px; }

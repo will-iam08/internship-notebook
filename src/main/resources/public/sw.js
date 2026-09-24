@@ -3,7 +3,7 @@
  * Network first, so a new deploy shows up on the next visit; the cached copy is
  * only used when the device is offline. API requests (Java server mode) are never cached.
  */
-const CACHE = "internship-notebook-v9";
+const CACHE = "internship-notebook-v10";
 const SHELL = [
   "./",
   "index.html",
@@ -13,6 +13,7 @@ const SHELL = [
   "js/domain.js",
   "js/storage.js",
   "js/api.js",
+  "js/cloud.js",
   "js/ui/icons.js",
   "site-mode.js",
   "manifest.webmanifest",

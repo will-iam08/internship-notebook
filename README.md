@@ -15,11 +15,12 @@ A notebook-style app for organizing internship applications, interviews, and off
 - **Installable and offline:** a web app manifest and service worker let it install to the Dock, desktop, or phone home screen and keep working without a connection
 - **Light and dark themes** that follow the device setting or a manual choice, checked against WCAG 2.2 AA contrast
 - **Your data, portable:** CSV export for spreadsheets, plus a JSON backup you can import on another device. Every imported field is validated the same way a typed one is (limits, calendar dates, and links: only `http(s)://` is ever accepted), the import is previewed before anything is written, and it can be undone as a batch
+- **Optional account sync:** Google sign-in or a verified email/password account can copy the browser notebook to a private Firestore document and sync later edits. Email accounts have recovery links; phone/SMS recovery is deliberately off to avoid paid-SMS abuse
 - **Autosave that doesn't lose work:** every edit is captured to this browser the instant it happens. If a save can't be confirmed yet (offline, storage briefly unavailable), it stays queued and retries automatically, or press Retry - it is never silently dropped. The save indicator says exactly what's true: Saving, Saved locally, Synced (server mode only), or Couldn't save
 - Responsive layout (sidebar on laptops, bottom tab bar on phones, stage tabs and a "Move to..." control on the Board on a touch screen), 44px touch targets, and motion that respects reduced-motion settings
 - Keyboard-friendly throughout: a real radiogroup with arrow-key support for picking a stage, a skip link, and focus that returns to where you were after a dialog closes
 
-The app has **zero third-party dependencies** at runtime: the backend is a Java HTTP API and the frontend is plain HTML, CSS, and JavaScript, split into small modules (`js/domain.js`, `js/storage.js`, `js/api.js`, `js/app.js`). Development-only tooling (`node --test`, Playwright) lives in `package.json` and never ships to the browser. The API boundary and project structure are stepping stones toward a Spring Boot + React version later.
+The local app has **zero third-party runtime dependencies**: the backend is a Java HTTP API and the frontend is plain HTML, CSS, and JavaScript, split into small modules (`js/domain.js`, `js/storage.js`, `js/api.js`, `js/cloud.js`, `js/app.js`). The optional cloud feature loads the official Firebase web modules from Google's CDN only in the website edition. Development-only tooling (`node --test`, Playwright) lives in `package.json` and never ships to the browser.
 
 ## What it demonstrates
 
@@ -70,7 +71,9 @@ npm test                     # all three
 
 The same interface also runs as a browser-only website. The GitHub Pages workflow (and the Render static site) build `src/main/resources/public` with `scripts/build-site.mjs`, which sets `window.NOTEBOOK_STORAGE_MODE = "browser"` in `site-mode.js`.
 
-In that mode each person's entries stay in their own browser profile's storage. **Nothing is uploaded to a server, so one visitor cannot access another visitor's notebook.** The records do not sync between devices or browser profiles. Anyone who can use the same unlocked browser profile can see its notebook, and the browser's local storage is not encrypted by this app, so use a separate profile on a shared device. To move a notebook to another phone or laptop, use **Settings → Download backup**, then **Import backup** on the other device. Backup files contain the notebook in readable form, so keep them somewhere you trust.
+In that mode each person's entries start in their own browser profile's storage. Nothing is uploaded unless they open **Settings**, sign in, verify the email address when needed, and explicitly choose which notebook copy to use. While sync is on, Firebase Authentication controls account access and Firestore rules allow a verified user to access only `notebooks/{their uid}`. On a new session, sync starts paused so a remote copy can never silently overwrite newer local work; choose the notebook again in Settings. Anyone who can use the same unlocked browser profile can still see its local notebook, and local storage is not encrypted by this app, so use a separate profile on a shared device.
+
+Firebase encrypts stored data and network traffic using its managed infrastructure, but this is recoverable account security—not user-only end-to-end encryption. An app-layer encrypted design that also survives a forgotten password would need a trusted key-wrapping backend (for example Cloud Functions plus KMS) and is intentionally not claimed here. Backup files also contain the notebook in readable form, so keep them somewhere you trust.
 
 Browser storage is separated by origin, not URL path. GitHub Pages project sites under the same `will-iam08.github.io` origin can technically share browser storage. Do not publish untrusted scripts on another project site under that origin; use a dedicated custom domain if multiple Pages sites are added later and strong separation between them is required. See `docs/cross-device-sync-proposal.md` for how real account-based sync could work later.
 
@@ -90,8 +93,10 @@ The workflow's `actions/configure-pages@v5` step cannot change this setting itse
 
 ```text
 Browser UI (HTML/CSS/JavaScript, service worker for offline use)
-            |  fetch / JSON            (or browser storage on the website)
-Java HTTP server ── ApplicationRepository ── data/applications.tsv
+      | fetch / JSON                 | optional verified account sync
+Java HTTP server                     Firebase Auth + Firestore
+      |
+ApplicationRepository ── data/applications.tsv
 ```
 
 `ApplicationServer` owns HTTP concerns and `ApplicationRepository` owns validation, IDs, persistence, status history, and analytics. Keeping those responsibilities separate makes a later migration to Spring controllers and a database much simpler.
@@ -116,5 +121,5 @@ Java HTTP server ── ApplicationRepository ── data/applications.tsv
 1. Replace the TSV repository with PostgreSQL and Flyway migrations.
 2. Add a Spring Boot API, validation annotations, and JUnit tests.
 3. Rebuild the UI with React/TypeScript.
-4. Accounts and cross-device sync (see `docs/cross-device-sync-proposal.md`) - not the current Java server, which has no accounts, user isolation, or production security and should not be exposed publicly as a shared backend.
+4. Add conflict-aware background reconciliation so sync can resume automatically after an offline edit; the current safer behavior pauses at the start of a new session and asks which copy to use.
 5. Record a short product demo.

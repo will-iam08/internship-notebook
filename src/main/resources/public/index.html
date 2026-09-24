@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-48D3gRF3fp2g7CI15bz3WUDeNsrYv/Zo28KQ02ZrUXQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-48D3gRF3fp2g7CI15bz3WUDeNsrYv/Zo28KQ02ZrUXQ=' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.googleusercontent.com; connect-src 'self' https://*.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com https://accounts.google.com; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app." />
     <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
@@ -38,7 +38,7 @@
     <meta name="twitter:title" content="My Internship Notebook" />
     <meta name="twitter:description" content="A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app." />
     <meta name="twitter:image" content="https://will-iam08.github.io/coop-compass/icon-512.png" />
-    <!-- Structured data: this is a free web app with no accounts, storefront, or physical
+    <!-- Structured data: this is a free web app with no storefront or physical
          location, so WebApplication is the accurate schema.org type. It is deliberately not
          marked up as a LocalBusiness (no address, hours, or phone number exist to be accurate
          about) or an Organization (there is no company behind it) - a false business listing

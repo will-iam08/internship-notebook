@@ -6,6 +6,11 @@
 import { RETENTION_MS, cleanChanges, cleanStage, normalize, withStatus } from "./domain.js";
 import { KEYS, StorageCorruptedError, quarantine, readJsonRecord, storage } from "./storage.js";
 
+let browserWriteListener = null;
+export function setBrowserWriteListener(listener) {
+  browserWriteListener = typeof listener === "function" ? listener : null;
+}
+
 export const BROWSER_MODE = globalThis.NOTEBOOK_STORAGE_MODE === "browser"
   || Boolean(globalThis.location?.hostname.endsWith(".github.io"));
 
@@ -36,6 +41,7 @@ export const browserApi = {
     if (!storage.set(KEYS.data, JSON.stringify(data))) {
       throw new Error("This browser would not save your change. Storage may be full or blocked (for example in a private window).");
     }
+    browserWriteListener?.(structuredClone(data));
   },
   byIds(list, ids, message) {
     const found = ids.map(id => list.find(entry => entry.id === id));
