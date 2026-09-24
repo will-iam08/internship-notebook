@@ -28,10 +28,11 @@ jobs:
         with:
           distribution: temurin
           java-version: "21"
-      - name: Compile and run the repository tests
+      - name: Compile and run the repository and API security tests
         run: |
           javac --add-modules jdk.httpserver -d out $(find src/main/java src/test/java -name '*.java')
           java --add-modules jdk.httpserver -ea -cp out com.coopcompass.ApplicationRepositoryTest
+          java --add-modules jdk.httpserver -ea -cp out com.coopcompass.ApplicationServerSecurityTest
 
   frontend-checks:
     name: Frontend checks and unit tests

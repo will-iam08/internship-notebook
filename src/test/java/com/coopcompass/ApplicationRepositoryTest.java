@@ -130,11 +130,13 @@ public final class ApplicationRepositoryTest {
         ApplicationRepository repository = new ApplicationRepository(dataFile, Clock.fixed(now, ZoneOffset.UTC));
         Application created = repository.create(Map.of(
                 "company", "Northwind", "role", "Data Intern", "status", "SAVED",
-                "link", "careers.northwind.example/jobs/42", "starred", "true"));
+                "link", "careers.northwind.example/jobs/42", "starred", "true",
+                "skills", "a".repeat(80)));
         assert created.link().equals("https://careers.northwind.example/jobs/42");
         assert created.starred();
         assert created.history().size() == 1;
         assert created.history().getFirst().status() == Application.Status.SAVED;
+        assert created.skills().getFirst().length() == 40;
 
         Instant later = now.plusSeconds(3L * 24 * 60 * 60);
         ApplicationRepository laterRepository = new ApplicationRepository(dataFile, Clock.fixed(later, ZoneOffset.UTC));

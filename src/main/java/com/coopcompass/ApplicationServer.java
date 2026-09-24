@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -13,9 +14,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public final class ApplicationServer {
+    private static final int MAX_REQUEST_BYTES = 64 * 1024;
+    private static final String CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'sha256-48D3gRF3fp2g7CI15bz3WUDeNsrYv/Zo28KQ02ZrUXQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
     private final ApplicationRepository repository;
     private final Path publicDirectory;
 
@@ -26,19 +30,29 @@ public final class ApplicationServer {
 
     public static void main(String[] args) throws IOException {
         int port = args.length > 0 ? Integer.parseInt(args[0]) : 8080;
-        ApplicationRepository repository = new ApplicationRepository(Path.of("data", "applications.tsv"));
-        ApplicationServer app = new ApplicationServer(repository, Path.of("src", "main", "resources", "public").toAbsolutePath());
-        HttpServer server = HttpServer.create(new InetSocketAddress("localhost", port), 0);
-        server.createContext("/api/applications", app::applications);
-        server.createContext("/api/recently-deleted", app::recentlyDeleted);
-        server.createContext("/api/dashboard", app::dashboard);
-        server.createContext("/", app::staticFile);
-        server.setExecutor(Executors.newFixedThreadPool(8));
+        HttpServer server = createServer(
+                Path.of("data", "applications.tsv"),
+                Path.of("src", "main", "resources", "public"),
+                new InetSocketAddress(InetAddress.getLoopbackAddress(), port),
+                Executors.newFixedThreadPool(8));
         server.start();
         System.out.println("My Internship Notebook is running at http://localhost:" + port);
     }
 
+    static HttpServer createServer(Path dataFile, Path publicDirectory, InetSocketAddress address, Executor executor) throws IOException {
+        ApplicationRepository repository = new ApplicationRepository(dataFile);
+        ApplicationServer app = new ApplicationServer(repository, publicDirectory.toAbsolutePath().normalize());
+        HttpServer server = HttpServer.create(address, 0);
+        server.createContext("/api/applications", app::applications);
+        server.createContext("/api/recently-deleted", app::recentlyDeleted);
+        server.createContext("/api/dashboard", app::dashboard);
+        server.createContext("/", app::staticFile);
+        server.setExecutor(executor);
+        return server;
+    }
+
     private void applications(HttpExchange exchange) throws IOException {
+        if (!allowApiRequest(exchange)) return;
         try {
             String method = exchange.getRequestMethod();
             String path = exchange.getRequestURI().getPath();
@@ -77,11 +91,12 @@ public final class ApplicationServer {
             }
             if ("DELETE".equals(method) && id > 0) {
                 if (!repository.delete(id)) throw new NotFoundException("Application not found.");
-                exchange.sendResponseHeaders(204, -1);
-                exchange.close();
+                respondNoContent(exchange);
                 return;
             }
             respondJson(exchange, 405, error("Method or endpoint not supported."));
+        } catch (HttpException exception) {
+            respondJson(exchange, exception.status, error(exception.getMessage()));
         } catch (NotFoundException exception) {
             respondJson(exchange, 404, error(exception.getMessage()));
         } catch (IllegalArgumentException exception) {
@@ -93,6 +108,7 @@ public final class ApplicationServer {
     }
 
     private void dashboard(HttpExchange exchange) throws IOException {
+        if (!allowApiRequest(exchange)) return;
         if (!"GET".equals(exchange.getRequestMethod())) {
             respondJson(exchange, 405, error("Method not supported."));
             return;
@@ -105,6 +121,7 @@ public final class ApplicationServer {
     }
 
     private void recentlyDeleted(HttpExchange exchange) throws IOException {
+        if (!allowApiRequest(exchange)) return;
         try {
             String method = exchange.getRequestMethod();
             String path = exchange.getRequestURI().getPath();
@@ -146,11 +163,12 @@ public final class ApplicationServer {
             long id = idFrom(path, "/api/recently-deleted/");
             if ("DELETE".equals(method) && id > 0) {
                 if (!repository.permanentlyDelete(id)) throw new NotFoundException("Recently deleted application not found.");
-                exchange.sendResponseHeaders(204, -1);
-                exchange.close();
+                respondNoContent(exchange);
                 return;
             }
             respondJson(exchange, 405, error("Method or endpoint not supported."));
+        } catch (HttpException exception) {
+            respondJson(exchange, exception.status, error(exception.getMessage()));
         } catch (NotFoundException exception) {
             respondJson(exchange, 404, error(exception.getMessage()));
         } catch (IllegalArgumentException exception) {
@@ -162,6 +180,7 @@ public final class ApplicationServer {
     }
 
     private void staticFile(HttpExchange exchange) throws IOException {
+        securityHeaders(exchange);
         if (!"GET".equals(exchange.getRequestMethod())) {
             exchange.sendResponseHeaders(405, -1);
             exchange.close();
@@ -245,16 +264,71 @@ public final class ApplicationServer {
     }
 
     private static String readBody(HttpExchange exchange) throws IOException {
-        return new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+        byte[] content = exchange.getRequestBody().readNBytes(MAX_REQUEST_BYTES + 1);
+        if (content.length > MAX_REQUEST_BYTES) throw new HttpException(413, "Request body is too large.");
+        return new String(content, StandardCharsets.UTF_8);
     }
 
     private static void respondJson(HttpExchange exchange, int status, String json) throws IOException {
+        securityHeaders(exchange);
         byte[] content = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
         exchange.getResponseHeaders().set("Cache-Control", "no-store");
         exchange.sendResponseHeaders(status, content.length);
         exchange.getResponseBody().write(content);
         exchange.close();
+    }
+
+    private static void respondNoContent(HttpExchange exchange) throws IOException {
+        securityHeaders(exchange);
+        exchange.getResponseHeaders().set("Cache-Control", "no-store");
+        exchange.sendResponseHeaders(204, -1);
+        exchange.close();
+    }
+
+    private static void securityHeaders(HttpExchange exchange) {
+        exchange.getResponseHeaders().set("Content-Security-Policy", CONTENT_SECURITY_POLICY);
+        exchange.getResponseHeaders().set("Cross-Origin-Opener-Policy", "same-origin");
+        exchange.getResponseHeaders().set("Cross-Origin-Resource-Policy", "same-origin");
+        exchange.getResponseHeaders().set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()");
+        exchange.getResponseHeaders().set("Referrer-Policy", "no-referrer");
+        exchange.getResponseHeaders().set("X-Content-Type-Options", "nosniff");
+        exchange.getResponseHeaders().set("X-Frame-Options", "DENY");
+    }
+
+    private static boolean allowApiRequest(HttpExchange exchange) throws IOException {
+        String fetchSite = exchange.getRequestHeaders().getFirst("Sec-Fetch-Site");
+        String origin = exchange.getRequestHeaders().getFirst("Origin");
+        if ("cross-site".equalsIgnoreCase(fetchSite)
+                || (origin != null && !origin.isBlank() && !isLocalOrigin(origin, exchange.getLocalAddress().getPort()))) {
+            respondJson(exchange, 403, error("Cross-site API requests are not allowed."));
+            return false;
+        }
+
+        String method = exchange.getRequestMethod();
+        if (List.of("POST", "PATCH", "PUT").contains(method)) {
+            String contentType = exchange.getRequestHeaders().getFirst("Content-Type");
+            String mediaType = contentType == null ? "" : contentType.split(";", 2)[0].trim();
+            if (!mediaType.equalsIgnoreCase("application/json")) {
+                respondJson(exchange, 415, error("Content-Type must be application/json."));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isLocalOrigin(String value, int serverPort) {
+        try {
+            URI origin = URI.create(value);
+            String host = origin.getHost();
+            int port = origin.getPort() < 0 ? 80 : origin.getPort();
+            return "http".equalsIgnoreCase(origin.getScheme())
+                    && port == serverPort
+                    && host != null
+                    && (host.equalsIgnoreCase("localhost") || host.equals("127.0.0.1") || host.equals("::1"));
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 
     private static String error(String message) { return "{\"error\":\"" + Json.escape(message) + "\"}"; }
@@ -276,5 +350,14 @@ public final class ApplicationServer {
 
     private static final class NotFoundException extends RuntimeException {
         private NotFoundException(String message) { super(message); }
+    }
+
+    private static final class HttpException extends IllegalArgumentException {
+        private final int status;
+
+        private HttpException(int status, String message) {
+            super(message);
+            this.status = status;
+        }
     }
 }

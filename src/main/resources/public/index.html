@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-48D3gRF3fp2g7CI15bz3WUDeNsrYv/Zo28KQ02ZrUXQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="no-referrer" />
     <meta name="description" content="A private notebook for internship applications, interviews, deadlines, and offers. Works offline and installs like an app." />
     <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#111418" media="(prefers-color-scheme: dark)" />
@@ -54,15 +56,7 @@
         "isAccessibleForFree": true
       }
     </script>
-    <script>
-      // Apply the saved theme before the first paint so dark mode never flashes white.
-      (() => {
-        let theme = null;
-        try { theme = localStorage.getItem("my-internship-notebook-theme"); } catch { /* private windows */ }
-        if (theme !== "light" && theme !== "dark") theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-        document.documentElement.dataset.theme = theme;
-      })();
-    </script>
+    <script src="js/theme-init.js"></script>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>

@@ -474,6 +474,7 @@ public final class ApplicationRepository {
                 .map(String::trim)
                 .filter(skill -> !skill.isBlank())
                 .map(skill -> skill.substring(0, 1).toUpperCase(Locale.ROOT) + skill.substring(1))
+                .map(skill -> skill.substring(0, Math.min(40, skill.length())))
                 .distinct()
                 .limit(12)
                 .collect(Collectors.toCollection(ArrayList::new));

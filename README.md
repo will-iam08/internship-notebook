@@ -48,6 +48,7 @@ Run the Java tests with:
 ```bash
 javac --add-modules jdk.httpserver -d out $(find src/main/java src/test/java -name '*.java')
 java --add-modules jdk.httpserver -ea -cp out com.coopcompass.ApplicationRepositoryTest
+java --add-modules jdk.httpserver -ea -cp out com.coopcompass.ApplicationServerSecurityTest
 ```
 
 ## Testing
@@ -69,7 +70,11 @@ npm test                     # all three
 
 The same interface also runs as a browser-only website. The GitHub Pages workflow (and the Render static site) build `src/main/resources/public` with `scripts/build-site.mjs`, which sets `window.NOTEBOOK_STORAGE_MODE = "browser"` in `site-mode.js`.
 
-In that mode each person's entries stay in their own browser's storage. **Nothing is uploaded to a server, so entries are private to that browser but do not sync between devices or browsers on the same device.** This is a deliberate, current limitation, not a bug: the app has no accounts and no shared backend to sync through. To move a notebook to another phone or laptop, use **Settings → Download backup**, then **Import backup** on the other device. See `docs/cross-device-sync-proposal.md` for how real sync could work later.
+In that mode each person's entries stay in their own browser profile's storage. **Nothing is uploaded to a server, so one visitor cannot access another visitor's notebook.** The records do not sync between devices or browser profiles. Anyone who can use the same unlocked browser profile can see its notebook, and the browser's local storage is not encrypted by this app, so use a separate profile on a shared device. To move a notebook to another phone or laptop, use **Settings → Download backup**, then **Import backup** on the other device. Backup files contain the notebook in readable form, so keep them somewhere you trust.
+
+Browser storage is separated by origin, not URL path. GitHub Pages project sites under the same `will-iam08.github.io` origin can technically share browser storage. Do not publish untrusted scripts on another project site under that origin; use a dedicated custom domain if multiple Pages sites are added later and strong separation between them is required. See `docs/cross-device-sync-proposal.md` for how real account-based sync could work later.
+
+The Java API is a single-user development server. It binds only to the loopback interface, rejects cross-site browser requests and non-JSON writes, caps request bodies at 64 KiB, and sends restrictive browser security headers. It still has no accounts or per-user database rows, so it must not be exposed as a public shared backend.
 
 To install it: in Chrome or Edge use the install icon in the address bar; in Safari on a Mac choose **File → Add to Dock**; on iPhone or iPad tap **Share → Add to Home Screen**.
 

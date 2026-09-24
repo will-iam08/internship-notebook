@@ -589,7 +589,7 @@ function viewSettings() {
         <h2 class="card-title" style="margin-bottom:10px">Your data</h2>
         <div class="setting-row"><div><strong>${BROWSER_MODE ? "Private to this browser" : "Saved on this computer"}</strong>
           <p>${BROWSER_MODE
-            ? "Pages are stored in this browser on this device. Nothing is uploaded. They don't sync between devices, so use a backup file to move your notebook to another phone or laptop."
+            ? "Pages are stored in this browser profile on this device. Nothing is uploaded. Other browser profiles and devices cannot see them, but anyone using this same profile can. Use a separate profile on a shared device, and use a backup file to move your notebook."
             : "The Java server saves pages to data/applications.tsv in the project folder."}</p></div></div>
         <div class="setting-row"><div><strong>Backup</strong><p>A single file with every page, including notes and history.</p></div>
           <div class="view-actions">
@@ -610,7 +610,7 @@ function viewSettings() {
         </ul>
       </section>
 
-      <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="https://github.com/will-iam08/coop-compass" target="_blank" rel="noopener">Source on GitHub</a></p>
+      <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="https://github.com/will-iam08/coop-compass" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
     </div>`;
 }
 
@@ -924,7 +924,7 @@ function cardMenu(anchor, entry) {
     ...STAGES.map(stage => ({ label: LABELS[stage], stage, checked: entry.status === stage, run: () => entry.status !== stage && changeStatus([entry.id], stage) })),
     { separator: true },
     { label: entry.starred ? "Remove star" : "Star", icon: "star", run: () => toggleStar(entry.id) },
-    ...(entry.link ? [{ label: "Open job posting", icon: "external", run: () => window.open(entry.link, "_blank", "noopener") }] : []),
+    ...(entry.link ? [{ label: "Open job posting", icon: "external", run: () => window.open(entry.link, "_blank", "noopener,noreferrer") }] : []),
     { label: "Move to Recently Deleted", icon: "trash", danger: true, run: () => removeApplications([entry.id]) }
   ]);
 }
@@ -1507,7 +1507,7 @@ const actions = {
     const entry = find(Number(target.dataset.id));
     if (!entry) return;
     openMenu(target, [
-      ...(entry.link ? [{ label: "Open job posting", icon: "external", run: () => window.open(entry.link, "_blank", "noopener") }] : []),
+      ...(entry.link ? [{ label: "Open job posting", icon: "external", run: () => window.open(entry.link, "_blank", "noopener,noreferrer") }] : []),
       { label: "Duplicate page", icon: "copy", run: () => duplicate(entry) },
       { label: "Copy as text", icon: "file", run: () => copySummary(entry) },
       { separator: true },
