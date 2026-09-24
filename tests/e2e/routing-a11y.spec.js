@@ -14,10 +14,14 @@ test("hash routes render the right view and back/forward work", async ({ page })
   await expect(page.locator(".entry-company")).toHaveValue("Northwind Labs");
 });
 
-test("skip link moves focus into the content without resetting the route", async ({ page }) => {
+test("skip link moves focus into the content without resetting the route", async ({ page, browserName }) => {
   await seedNotebook(page);
   await openApp(page, "#/board");
-  await page.keyboard.press("Tab"); // the skip link is the first focusable element
+  if (browserName === "chromium") {
+    await page.keyboard.press("Tab"); // keyboard discovery on desktop
+  } else {
+    await page.locator(".skip-link").focus(); // iPhone WebKit does not Tab-focus links
+  }
   await expect(page.locator(".skip-link")).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#view")).toBeFocused();
