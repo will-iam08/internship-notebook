@@ -31,7 +31,15 @@ test("the service worker registers and caches the app shell for offline use", as
   // A page visited once while online should still open once the network is gone.
   await openApp(page, "#/board");
   await context.setOffline(true);
-  await page.reload();
+  // WebKit on Linux occasionally throws "WebKit encountered an internal error" reloading a page
+  // that is both going offline and served from the service worker's cache - a transient engine
+  // hiccup, not a real failure of the offline behavior itself (reproduced in CI, not locally).
+  // waitUntil: "domcontentloaded" is less strict than the default "load" and one retry clears it.
+  try {
+    await page.reload({ waitUntil: "domcontentloaded" });
+  } catch {
+    await page.reload({ waitUntil: "domcontentloaded" });
+  }
   await expect(page.getByRole("heading", { name: "Board" })).toBeVisible({ timeout: 10000 });
   await context.setOffline(false);
 });

@@ -47,7 +47,11 @@ test("Board shows stage tabs and one column at a time below 760px, with a Move t
 test("quick add shows only Company, Role, and Stage until More details is opened", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 860 });
   await openApp(page);
-  await page.locator('[data-action="new"]').first().click();
+  // Same trap as the touch-targets test above: [data-action="new"] also matches the desktop
+  // sidebar's button (.cover-new, hidden below 1024px), which `.first()` picks in DOM order.
+  // Clicking it at 320px waits for it to become visible and times out instead of failing fast.
+  // .bottom-new is the mobile FAB this test is actually about.
+  await page.locator(".bottom-new").click();
   await expect(page.locator('#new-form [name="deadline"]')).toBeHidden();
   await page.getByText("More details").click();
   await expect(page.locator('#new-form [name="deadline"]')).toBeVisible();
@@ -57,7 +61,11 @@ test("touch targets: icon buttons and the pipeline stepper are at least 44px tal
   await page.setViewportSize({ width: 390, height: 860 });
   await seedNotebook(page);
   await openApp(page, "#/entry/1");
-  const searchBox = await page.locator('[data-action="palette"]').first().boundingBox();
+  // There are two [data-action="palette"] buttons: the desktop sidebar's (hidden below 1024px)
+  // and the mobile top bar's. `.first()` picks DOM order, which is the hidden sidebar one - its
+  // boundingBox() is null (not "zero-size"), so asserting through it threw instead of failing on
+  // an actual measurement. Scope to the one this test is actually about: the visible mobile bar.
+  const searchBox = await page.locator('.mobile-bar [data-action="palette"]').boundingBox();
   expect(searchBox.height).toBeGreaterThanOrEqual(44);
   const step = await page.locator(".step").first().boundingBox();
   expect(step.height).toBeGreaterThanOrEqual(44);

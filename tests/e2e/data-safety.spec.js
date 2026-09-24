@@ -26,7 +26,11 @@ test.describe("autosave", () => {
     await notes.fill("Called the recruiter, waiting on a reply.");
 
     await expect(page.locator("#save-state")).toHaveClass(/error/, { timeout: 3000 });
-    await expect(page.locator("#save-state")).toContainText("Couldn't save");
+    // setSaveState("error", error.message) shows the real error text (browserApi.write's actual
+    // message), not the generic "Couldn't save" fallback that only appears when no message is
+    // given - asserting the literal fallback string here was wrong; the app's real behavior is
+    // more informative than that, not less.
+    await expect(page.locator("#save-state")).toContainText("Storage may be full or blocked");
 
     // The draft must already be on disk even though the save failed.
     const draftDuringFailure = await page.evaluate(key => JSON.parse(localStorage.getItem(key) || "{}"), DRAFTS_KEY);
