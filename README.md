@@ -6,9 +6,9 @@ A private, installable web app for organizing internship applications, interview
 
 ## Features
 
-- **Today:** a greeting, a weekly application goal with a progress ring and day-by-day dots, a "Coming up" agenda of deadlines and next steps, gentle nudges (roles closing soon, deadlines that passed, applications waiting 14+ days for a reply), and recently edited pages
+- **Today:** a greeting, a weekly application goal with a progress ring and day-by-day dots, a compact "Next up" look at your soonest deadline or next step, and recently edited pages
 - **Latest internship openings:** a worldwide feed of recently posted internship and co-op roles on the Today page, filterable by term (Summer 2027, Winter 2027, ...), experience level, co-op status, and location, each tagged Remote/Hybrid/In-person with a direct Apply link. Pulled from the public [Pitt CSC & Simplify internship tracker](https://github.com/SimplifyJobs/Summer2027-Internships) by a scheduled workflow, not fetched live in your browser
-- **Board:** a Kanban pipeline (Saved, Applied, Interview, Offer, Rejected) with drag and drop, a quick "Move to" menu on every card, and filtering
+- **Board:** a Kanban pipeline (Saved, Applied, Interview, Offer, Rejected) with drag and drop, a quick "Move to" menu on every card, filtering, the full "Coming up" agenda of deadlines and next steps, and gentle nudges (roles closing soon, deadlines that passed, applications waiting 14+ days for a reply)
 - **Notebook pages:** open any application to edit every field with autosave: company, role, location, source, deadline, job posting link, contact, next step and date, skill tags, and long notes on ruled paper. A timeline records each stage change
 - **All pages:** a table-of-contents view with stage filters, starred pages, search across notes and skills, and sorting
 - **Insights:** response rate, interview rate, a weekly rhythm chart against your goal, a pipeline funnel, which sources lead to interviews, and the most requested skills
