@@ -1,0 +1,40 @@
+name: Refresh internship listings
+
+# Keeps the "Latest internship openings" feed on the Today page current. Runs once a day
+# (and on demand from the Actions tab), pulls the newest open roles from the public
+# SimplifyJobs/Pitt CSC internship tracker, and commits the small trimmed file only if it
+# changed. That commit lands on main like any other push, so the existing test-and-deploy
+# workflow (deploy-pages.yml) picks it up, runs its checks, and republishes the site.
+
+on:
+  schedule:
+    - cron: "17 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    name: Fetch and commit the latest listings
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the project
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Fetch the latest internship listings
+        run: node scripts/fetch-internships.mjs
+      - name: Commit the refreshed listings if they changed
+        run: |
+          if git diff --quiet -- src/main/resources/public/internships.json; then
+            echo "No new listings since the last run."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main/resources/public/internships.json
+          git commit -m "Refresh internship listings"
+          git push

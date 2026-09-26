@@ -11,7 +11,7 @@ import {
   STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
-  cleanSkills, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  cleanSkills, cleanLink, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   previewImport
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
@@ -85,8 +85,26 @@ const state = {
   prefs: readPrefs(),
   cloud: cloudSnapshot(),
   installPrompt: null,
-  dragId: null
+  dragId: null,
+  internships: { listings: [], generatedAt: "", source: "" },
+  newsFilter: { term: "ALL", degree: "ALL", coopOnly: false, location: "" }
 };
+
+async function loadInternships() {
+  try {
+    const response = await fetch("internships.json", { cache: "no-store" });
+    if (!response.ok) return;
+    const data = await response.json();
+    state.internships = {
+      listings: Array.isArray(data.listings) ? data.listings : [],
+      generatedAt: typeof data.generatedAt === "string" ? data.generatedAt : "",
+      source: typeof data.source === "string" ? data.source : ""
+    };
+  } catch {
+    // Offline, or the feed hasn't been generated yet: Today just omits the section below.
+  }
+  if (state.route.view === "today") rerender();
+}
 
 function savePrefs() {
   const { goal, name, sort } = state.prefs;
@@ -218,7 +236,8 @@ function viewToday() {
           ${newButton("Add your first application")}
           <a class="button ghost" href="#/settings">${icon("install")}<span>Install as an app</span></a>
         </div>
-      </section>`;
+      </section>
+      ${newsCard()}`;
   }
 
   const stats = metrics(state.applications);
@@ -313,7 +332,71 @@ function viewToday() {
       <div class="recent-list">${recent.map((entry, index) => appCard(entry, index, { compact: true })).join("")}</div>
     </section>`;
 
-  return `${head}<div class="today-grid">${strip}${goalCard}${agendaCard}${attentionCard}${recentCard}</div>`;
+  return `${head}<div class="today-grid">${strip}${goalCard}${agendaCard}${attentionCard}${newsCard()}${recentCard}</div>`;
+}
+
+function newsCard() {
+  const feed = state.internships;
+  const filters = state.newsFilter;
+  const safeRows = feed.listings
+    .map(listing => {
+      let safeUrl = "";
+      try { safeUrl = listing.url ? cleanLink(listing.url) : ""; } catch { safeUrl = ""; }
+      return { ...listing, safeUrl };
+    })
+    .filter(listing => listing.company && listing.role && listing.safeUrl);
+
+  const terms = [...new Set(safeRows.flatMap(listing => listing.terms).filter(term => term && term !== "N/A"))];
+  const degrees = [...new Set(safeRows.flatMap(listing => listing.degrees))];
+  const location = filters.location.trim().toLowerCase();
+  const rows = safeRows.filter(listing =>
+    (filters.term === "ALL" || listing.terms.includes(filters.term))
+    && (filters.degree === "ALL" || listing.degrees.includes(filters.degree))
+    && (!filters.coopOnly || listing.isCoop)
+    && (!location || listing.location.toLowerCase().includes(location))
+  );
+
+  const modeClass = { Remote: "remote", Hybrid: "hybrid", "In-person": "onsite" };
+  const filterBar = safeRows.length ? `
+    <div class="news-filters">
+      <label class="sr-only" for="news-term">Term</label>
+      <select id="news-term" data-input="news-term">
+        <option value="ALL">All terms</option>
+        ${terms.map(term => `<option value="${esc(term)}" ${filters.term === term ? "selected" : ""}>${esc(term)}</option>`).join("")}
+      </select>
+      <label class="sr-only" for="news-degree">Experience needed</label>
+      <select id="news-degree" data-input="news-degree">
+        <option value="ALL">Any experience level</option>
+        ${degrees.map(degree => `<option value="${esc(degree)}" ${filters.degree === degree ? "selected" : ""}>${esc(degree)}</option>`).join("")}
+      </select>
+      <label class="sr-only" for="news-location">Location</label>
+      <input id="news-location" class="news-location" type="search" data-input="news-location" value="${esc(filters.location)}" placeholder="City, region, or country" />
+      <label class="news-check"><input type="checkbox" data-input="news-coop" ${filters.coopOnly ? "checked" : ""} /> Co-op only</label>
+    </div>` : "";
+
+  return `
+    <section class="card news-card" aria-labelledby="news-title">
+      <div class="card-head"><div><h2 class="card-title" id="news-title">${icon("sparkle")} Latest internship openings</h2>
+        <p class="card-note">${safeRows.length ? `${plural(rows.length, "role")} shown, worldwide${feed.generatedAt ? ` · updated ${esc(timeAgo(feed.generatedAt))}` : ""}` : "A feed of recently posted internship roles"}</p></div>
+      </div>
+      ${filterBar}
+      ${rows.length ? `<ul class="news-list">${rows.map(listing => `
+        <li class="news-item">
+          <div class="news-copy">
+            <strong>${esc(listing.role)}</strong>
+            <span>
+              <span class="news-mode news-mode-${modeClass[listing.workMode] || "onsite"}">${esc(listing.workMode)}</span>
+              ${listing.isCoop ? `<span class="news-tag">Co-op</span>` : ""}
+              <span class="news-meta-text">${esc(listing.company)}${listing.location ? ` · ${esc(listing.location)}` : ""} · ${esc(timeAgo(listing.postedAt))}</span>
+            </span>
+          </div>
+          <div class="news-actions">
+            <a class="button ghost small" href="${esc(listing.safeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Apply to ${esc(listing.role)} at ${esc(listing.company)} (opens in a new tab)">Apply${icon("external")}</a>
+          </div>
+        </li>`).join("")}</ul>`
+        : `<p class="empty-note">${safeRows.length ? "No roles match these filters." : "No fresh listings right now. Check back soon."}</p>`}
+      ${feed.source ? `<p class="card-note" style="margin-top:10px">Source: <a href="${esc(feed.source)}" target="_blank" rel="noopener noreferrer">Pitt CSC &amp; Simplify on GitHub</a></p>` : ""}
+    </section>`;
 }
 
 function viewBoard() {
@@ -1477,6 +1560,7 @@ viewRoot.addEventListener("input", event => {
   const input = target.dataset.input;
   if (input === "board-query") { state.boardQuery = target.value; refreshList(target); }
   if (input === "notebook-query") { state.filter.query = target.value; refreshList(target); }
+  if (input === "news-location") { state.newsFilter.location = target.value; refreshList(target); }
   if (input === "name") { state.prefs.name = target.value.slice(0, 40); savePrefs(); }
 });
 
@@ -1503,6 +1587,9 @@ viewRoot.addEventListener("change", event => {
   }
   if (target.dataset.select) { toggleSelected(Number(target.dataset.select), target.checked); return; }
   if (target.dataset.input === "sort") { state.prefs.sort = target.value; savePrefs(); rerender(); }
+  if (target.dataset.input === "news-term") { state.newsFilter.term = target.value; rerender(); }
+  if (target.dataset.input === "news-degree") { state.newsFilter.degree = target.value; rerender(); }
+  if (target.dataset.input === "news-coop") { state.newsFilter.coopOnly = target.checked; rerender(); }
 });
 
 viewRoot.addEventListener("keydown", event => {
@@ -2033,6 +2120,7 @@ window.setInterval(() => {
 
 hydrateStaticIcons();
 applyTheme();
+loadInternships();
 // The installed app's "New application" shortcut opens #/new.
 const shared = new URLSearchParams(window.location.search);
 const sharedOnStart = shared.has("share-target") || shared.has("title") || shared.has("text") || shared.has("url");
