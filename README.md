@@ -1,6 +1,8 @@
 # My Internship Notebook
 
-A notebook-style app for organizing internship applications, interviews, and offers. Each application gets its own lined page for notes, contacts, and next steps, and the board, agenda, and insights views keep the whole search in one place. It runs as a full-stack local project (Java API) or as a private website that installs like an app on a laptop or phone.
+A private, installable web app for organizing internship applications, interviews, and offers. Each application gets its own lined page for notes, contacts, and next steps, while the board, agenda, and insights views keep the whole search in one place.
+
+**Live app:** [internshipnotebook.app](https://internshipnotebook.app/) · [Privacy](https://internshipnotebook.app/privacy.html) · [Delete account or cloud data](https://internshipnotebook.app/delete-account.html)
 
 ## Features
 
@@ -35,9 +37,9 @@ The local app has **zero third-party runtime dependencies**: the backend is a Ja
 - Accessible form labels, live status messages, a real ARIA radiogroup and menu semantics, focus handling in dialogs, and keyboard shortcuts
 - Automated tests: Java repository tests, frontend unit tests (`node --test`) for the validation and storage logic, and Playwright end-to-end tests, all run in CI before every deploy
 
-## Run it
+## Run locally
 
-From this folder, compile and start the app:
+The hosted app above is ready to use. To run the Java API edition for local development, compile and start it from this folder:
 
 ```bash
 javac --add-modules jdk.httpserver -d out $(find src/main/java -name '*.java')
