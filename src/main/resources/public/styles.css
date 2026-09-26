@@ -547,8 +547,9 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 /* ---------- Today ---------- */
 .today-grid { display: grid; gap: 16px; grid-template-columns: repeat(12, minmax(0, 1fr)); }
 .today-grid > * { grid-column: span 12; }
+.board-lists { margin-bottom: 24px; }
 @media (min-width: 900px) {
-  .today-grid .goal-card { grid-column: span 5; }
+  .today-grid .goal-card, .today-grid .upcoming-card { grid-column: span 6; }
   .today-grid .agenda-card { grid-column: span 7; }
   .today-grid .attention-card, .today-grid .recent-card { grid-column: span 6; }
 }

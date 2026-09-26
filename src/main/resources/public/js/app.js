@@ -284,6 +284,35 @@ function viewToday() {
       </div>
     </section>`;
 
+  const upcoming = agendaItems(state.applications).slice(0, 3);
+  const upcomingCard = `
+    <section class="card upcoming-card" aria-labelledby="upcoming-title">
+      <div class="card-head"><div><h2 class="card-title" id="upcoming-title">Next up</h2><p class="card-note">Your soonest deadlines and next steps</p></div></div>
+      ${upcoming.length ? `<div class="agenda-items">${upcoming.map(item => {
+          const days = daysUntil(item.date);
+          const dayLabel = days < 0 ? "Overdue" : days === 0 ? "Today" : days === 1 ? "Tomorrow" : formatDay(item.date, { weekday: "short" });
+          return `
+          <button class="agenda-item" type="button" data-open="${item.entry.id}">
+            <span class="agenda-kind st-${item.kind === "deadline" ? "SAVED" : item.entry.status}">${icon(item.kind === "deadline" ? "clock" : "flag")}</span>
+            <span class="agenda-text"><strong>${esc(item.kind === "deadline" ? `Apply to ${item.entry.company}` : item.entry.nextStep || `Next step with ${item.entry.company}`)}</strong>
+            <span>${esc(dayLabel)} · ${esc(item.entry.role)}</span></span>
+          </button>`;
+        }).join("")}</div>`
+      : `<p class="empty-note">Nothing dated yet. Add a deadline or a next step (like an interview date) to a page.</p>`}
+      <p class="card-note" style="margin-top:10px">Full agenda and nudges moved to <a href="#/board">Board</a>.</p>
+    </section>`;
+
+  const recent = [...state.applications].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)).slice(0, 4);
+  const recentCard = `
+    <section class="card recent-card" aria-labelledby="recent-title">
+      <div class="card-head"><div><h2 class="card-title" id="recent-title">Recently edited</h2><p class="card-note">Jump back into a page</p></div><a class="text-button" href="#/notebook">All pages</a></div>
+      <div class="recent-list">${recent.map((entry, index) => appCard(entry, index, { compact: true })).join("")}</div>
+    </section>`;
+
+  return `${head}<div class="today-grid">${strip}${goalCard}${upcomingCard}${newsCard()}${recentCard}</div>`;
+}
+
+function agendaCard() {
   const agenda = agendaItems(state.applications);
   const groups = [];
   for (const item of agenda.slice(0, 9)) {
@@ -296,7 +325,7 @@ function viewToday() {
     }
     group.items.push(item);
   }
-  const agendaCard = `
+  return `
     <section class="card agenda-card" aria-labelledby="agenda-title">
       <div class="card-head"><div><h2 class="card-title" id="agenda-title">Coming up</h2><p class="card-note">Deadlines and next steps for the next three weeks</p></div></div>
       ${groups.length ? `<ul class="agenda">${groups.map(group => `
@@ -311,9 +340,11 @@ function viewToday() {
         </li>`).join("")}</ul>${agenda.length > 9 ? `<p class="card-note" style="margin-top:10px">${plural(agenda.length - 9, "more item")} in <a href="#/notebook" data-action="sort-deadline">All pages</a>.</p>` : ""}`
       : `<p class="empty-note">Nothing dated yet. Add a deadline or a next step (like an interview date) to a page and it shows up here.</p>`}
     </section>`;
+}
 
+function attentionCard() {
   const attention = attentionItems(state.applications);
-  const attentionCard = `
+  return `
     <section class="card attention-card" aria-labelledby="attention-title">
       <div class="card-head"><div><h2 class="card-title" id="attention-title">Worth a look</h2><p class="card-note">Small nudges based on your dates and stages</p></div></div>
       ${attention.length ? `<ul class="attention-list">${attention.map(item => `
@@ -324,15 +355,6 @@ function viewToday() {
         </button></li>`).join("")}</ul>`
       : `<p class="empty-note">${icon("check", "inline")} You're all caught up. Nothing needs attention right now.</p>`}
     </section>`;
-
-  const recent = [...state.applications].sort((left, right) => right.updatedAt.localeCompare(left.updatedAt)).slice(0, 4);
-  const recentCard = `
-    <section class="card recent-card" aria-labelledby="recent-title">
-      <div class="card-head"><div><h2 class="card-title" id="recent-title">Recently edited</h2><p class="card-note">Jump back into a page</p></div><a class="text-button" href="#/notebook">All pages</a></div>
-      <div class="recent-list">${recent.map((entry, index) => appCard(entry, index, { compact: true })).join("")}</div>
-    </section>`;
-
-  return `${head}<div class="today-grid">${strip}${goalCard}${agendaCard}${attentionCard}${newsCard()}${recentCard}</div>`;
 }
 
 const TERM_SEASON_ORDER = { Winter: 0, Spring: 1, Summer: 2, Fall: 3 };
@@ -438,6 +460,7 @@ function viewBoard() {
   }).join("");
   return `
     ${viewHead({ eyebrow: "Your pipeline", title: "Board", sub: `${plural(state.applications.length, "application")} across five stages.`, actions: `${selectButton("board")}${newButton()}` })}
+    <div class="today-grid board-lists">${agendaCard()}${attentionCard()}</div>
     <div class="toolbar">
       <label class="search-box">${icon("search")}<span class="sr-only">Filter the board</span><input type="search" data-input="board-query" value="${esc(state.boardQuery)}" placeholder="Filter by company, role, or skill" /></label>
       ${finePointer ? `<p class="drag-hint">Drag cards between columns to change their stage.</p>` : ""}
