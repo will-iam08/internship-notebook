@@ -16,5 +16,5 @@ export/import is available for moving a notebook to another device.
 The source code is plain HTML, CSS, and JavaScript with no third-party runtime dependencies
 and no build step, plus an optional Java backend for a local-only, single-user version.
 
-- [Source code](https://github.com/will-iam08/coop-compass): the full, public source repository
+- [Source code](https://github.com/will-iam08/internship-notebook): the full, public source repository
 - [Live app](https://internshipnotebook.app/): the app itself, not a marketing page
