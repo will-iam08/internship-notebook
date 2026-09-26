@@ -626,7 +626,7 @@ function viewSettings() {
         </ul>
       </section>
 
-      <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="privacy.html">Privacy</a> · <a href="delete-account.html">Account deletion</a> · <a href="https://github.com/will-iam08/coop-compass" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
+      <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="privacy.html">Privacy</a> · <a href="delete-account.html">Account deletion</a> · <a href="https://github.com/will-iam08/internship-notebook" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
     </div>`;
 }
 
