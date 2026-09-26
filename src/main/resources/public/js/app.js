@@ -335,6 +335,24 @@ function viewToday() {
   return `${head}<div class="today-grid">${strip}${goalCard}${agendaCard}${attentionCard}${newsCard()}${recentCard}</div>`;
 }
 
+const TERM_SEASON_ORDER = { Winter: 0, Spring: 1, Summer: 2, Fall: 3 };
+function sortTerms(terms) {
+  return [...terms].sort((left, right) => {
+    const [seasonLeft, yearLeft] = left.split(" ");
+    const [seasonRight, yearRight] = right.split(" ");
+    if (yearLeft !== yearRight) return Number(yearLeft) - Number(yearRight);
+    return (TERM_SEASON_ORDER[seasonLeft] ?? 9) - (TERM_SEASON_ORDER[seasonRight] ?? 9);
+  });
+}
+const EXPERIENCE_LEVELS = [
+  ["Junior", "Junior (Bachelor's)"],
+  ["Intermediate", "Intermediate (Bachelor's or Master's)"],
+  ["Senior", "Senior (Master's)"]
+];
+function newsTerms() {
+  return sortTerms([...new Set(state.internships.listings.flatMap(listing => listing.terms || []).filter(term => term && term !== "N/A"))]);
+}
+
 function newsCard() {
   const feed = state.internships;
   const filters = state.newsFilter;
@@ -346,29 +364,21 @@ function newsCard() {
     })
     .filter(listing => listing.company && listing.role && listing.safeUrl);
 
-  const terms = [...new Set(safeRows.flatMap(listing => listing.terms).filter(term => term && term !== "N/A"))];
-  const degrees = [...new Set(safeRows.flatMap(listing => listing.degrees))];
   const location = filters.location.trim().toLowerCase();
   const rows = safeRows.filter(listing =>
     (filters.term === "ALL" || listing.terms.includes(filters.term))
-    && (filters.degree === "ALL" || listing.degrees.includes(filters.degree))
+    && (filters.degree === "ALL" || listing.experienceLevel === filters.degree)
     && (!filters.coopOnly || listing.isCoop)
     && (!location || listing.location.toLowerCase().includes(location))
   );
 
   const modeClass = { Remote: "remote", Hybrid: "hybrid", "In-person": "onsite" };
+  const termLabel = filters.term === "ALL" ? "All terms" : filters.term;
+  const degreeLabel = filters.degree === "ALL" ? "Any experience level" : EXPERIENCE_LEVELS.find(([value]) => value === filters.degree)?.[1] || "Any experience level";
   const filterBar = safeRows.length ? `
     <div class="news-filters">
-      <label class="sr-only" for="news-term">Term</label>
-      <select id="news-term" data-input="news-term">
-        <option value="ALL">All terms</option>
-        ${terms.map(term => `<option value="${esc(term)}" ${filters.term === term ? "selected" : ""}>${esc(term)}</option>`).join("")}
-      </select>
-      <label class="sr-only" for="news-degree">Experience needed</label>
-      <select id="news-degree" data-input="news-degree">
-        <option value="ALL">Any experience level</option>
-        ${degrees.map(degree => `<option value="${esc(degree)}" ${filters.degree === degree ? "selected" : ""}>${esc(degree)}</option>`).join("")}
-      </select>
+      <button class="filter-select" type="button" data-action="news-term-menu" aria-haspopup="menu">${esc(termLabel)}</button>
+      <button class="filter-select" type="button" data-action="news-degree-menu" aria-haspopup="menu">${esc(degreeLabel)}</button>
       <label class="sr-only" for="news-location">Location</label>
       <input id="news-location" class="news-location" type="search" data-input="news-location" value="${esc(filters.location)}" placeholder="City, region, or country" />
       <label class="news-check"><input type="checkbox" data-input="news-coop" ${filters.coopOnly ? "checked" : ""} /> Co-op only</label>
@@ -1004,12 +1014,16 @@ function openMenu(anchor, items) {
   menu.innerHTML = items.map((item, index) => {
     if (item.separator) return '<hr role="separator" />';
     if (item.header) return `<p class="menu-label" role="presentation">${esc(item.header)}</p>`;
-    // A stage choice is one of a mutually exclusive set (only one stage is ever "checked"), so it
-    // gets menuitemradio with aria-checked; a plain action is menuitem and has neither.
-    const role = item.stage ? "menuitemradio" : "menuitem";
-    const checkedAttr = item.stage ? ` aria-checked="${Boolean(item.checked)}"` : "";
+    // A stage choice or a generic radio choice (item.radio) is one of a mutually exclusive set
+    // (only one is ever "checked"), so it gets menuitemradio with aria-checked; a plain action is
+    // menuitem and has neither. Only a stage choice gets the coloured dot - a plain radio choice
+    // relies on the ::after checkmark CSS already keys off aria-checked.
+    const isRadio = Boolean(item.stage || item.radio);
+    const role = isRadio ? "menuitemradio" : "menuitem";
+    const checkedAttr = isRadio ? ` aria-checked="${Boolean(item.checked)}"` : "";
+    const mark = item.stage ? '<i class="menu-dot"></i>' : item.radio ? "" : icon(item.icon || "forward");
     return `<button type="button" role="${role}" data-menu-index="${index}" class="${item.danger ? "danger" : ""} ${item.stage ? `st-${item.stage}` : ""}"${checkedAttr}>
-      ${item.stage ? '<i class="menu-dot"></i>' : icon(item.icon || "forward")}<span>${esc(item.label)}</span></button>`;
+      ${mark}<span>${esc(item.label)}</span></button>`;
   }).join("");
   menu.hidden = false;
   const rect = anchor.getBoundingClientRect();
@@ -1587,8 +1601,6 @@ viewRoot.addEventListener("change", event => {
   }
   if (target.dataset.select) { toggleSelected(Number(target.dataset.select), target.checked); return; }
   if (target.dataset.input === "sort") { state.prefs.sort = target.value; savePrefs(); rerender(); }
-  if (target.dataset.input === "news-term") { state.newsFilter.term = target.value; rerender(); }
-  if (target.dataset.input === "news-degree") { state.newsFilter.degree = target.value; rerender(); }
   if (target.dataset.input === "news-coop") { state.newsFilter.coopOnly = target.checked; rerender(); }
 });
 
@@ -1757,6 +1769,20 @@ const actions = {
   "card-menu": target => { const entry = find(Number(target.dataset.id)); if (entry) cardMenu(target, entry); },
   "move-menu": target => { const entry = find(Number(target.dataset.id)); if (entry) cardMenu(target, entry); },
   "board-stage": target => { state.boardStage = target.dataset.stage; rerender(); },
+  "news-term-menu": target => {
+    const current = state.newsFilter.term;
+    openMenu(target, [
+      { label: "All terms", radio: true, checked: current === "ALL", run: () => { state.newsFilter.term = "ALL"; rerender(); } },
+      ...newsTerms().map(term => ({ label: term, radio: true, checked: current === term, run: () => { state.newsFilter.term = term; rerender(); } }))
+    ]);
+  },
+  "news-degree-menu": target => {
+    const current = state.newsFilter.degree;
+    openMenu(target, [
+      { label: "Any experience level", radio: true, checked: current === "ALL", run: () => { state.newsFilter.degree = "ALL"; rerender(); } },
+      ...EXPERIENCE_LEVELS.map(([value, label]) => ({ label, radio: true, checked: current === value, run: () => { state.newsFilter.degree = value; rerender(); } }))
+    ]);
+  },
   "entry-menu": target => {
     const entry = find(Number(target.dataset.id));
     if (!entry) return;

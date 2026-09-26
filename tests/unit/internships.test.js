@@ -77,3 +77,17 @@ test("selectListings defaults terms and degrees to an empty list when missing", 
   assert.deepEqual(listing.terms, []);
   assert.deepEqual(listing.degrees, []);
 });
+
+test("selectListings maps degrees to a student-relevant experience tier", () => {
+  const level = degrees => selectListings([role({ degrees })])[0].experienceLevel;
+  assert.equal(level([]), "Junior", "unspecified defaults to the most permissive tier");
+  assert.equal(level(["Bachelor's"]), "Junior");
+  assert.equal(level(["Associate's"]), "Junior");
+  assert.equal(level(["Certificate"]), "Junior");
+  assert.equal(level(["Bootcamp"]), "Junior");
+  assert.equal(level(["Bachelor's", "Master's"]), "Intermediate");
+  assert.equal(level(["Master's"]), "Senior");
+  assert.equal(level(["Master's", "MBA"]), "Senior");
+  assert.equal(level(["PhD"]), "Advanced", "not offered as a Junior/Intermediate/Senior choice");
+  assert.equal(level(["JD"]), "Advanced");
+});
