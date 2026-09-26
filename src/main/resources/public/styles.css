@@ -679,7 +679,25 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .news-copy > span > .news-meta-text { min-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .news-actions { align-items: center; display: flex; flex-shrink: 0; gap: 6px; }
 .news-filters { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
-.news-filters select { flex: 1 1 140px; font-size: .82rem; max-width: 200px; padding: 7px 28px 7px 10px; width: auto; }
+.filter-select {
+  background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238a939b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E") no-repeat right 10px center;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  color: var(--ink);
+  cursor: pointer;
+  flex: 1 1 150px;
+  font-size: .82rem;
+  font-weight: 650;
+  max-width: 230px;
+  overflow: hidden;
+  padding: 7px 30px 7px 12px;
+  text-align: left;
+  text-overflow: ellipsis;
+  transition: border-color .15s, box-shadow .15s;
+  white-space: nowrap;
+}
+.filter-select:hover { border-color: var(--focus); }
+.filter-select:focus-visible { border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent); outline: none; }
 .news-location { flex: 1 1 160px; font-size: .82rem; max-width: 240px; padding: 7px 10px; width: auto; }
 .news-check { align-items: center; color: var(--ink-2); display: flex; flex: 0 0 auto; font-size: .82rem; font-weight: 650; gap: 6px; }
 .news-mode { border-radius: 6px; flex-shrink: 0; font-size: .68rem; font-weight: 700; letter-spacing: .02em; padding: 1px 6px; text-transform: uppercase; }

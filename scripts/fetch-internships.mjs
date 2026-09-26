@@ -30,6 +30,27 @@ function workMode(locationText) {
   return "In-person";
 }
 
+/**
+ * The source data's "degrees" field lists which degree levels a role accepts (e.g. Bachelor's,
+ * Master's, PhD, MBA), which is about how advanced a degree is required, not "years of
+ * experience" - there is no such field. This app is aimed at college students, so it collapses
+ * that into three student-relevant tiers instead of showing raw degree names most applicants
+ * here don't need: Junior (no grad degree needed - Bachelor's/Associate's/Certificate/Bootcamp
+ * or nothing specified), Intermediate (open to Bachelor's or Master's), Senior (Master's/MBA,
+ * without Bachelor's). A PhD or JD requirement is its own thing entirely and not a fit for this
+ * audience, so those roles simply aren't offered under any of the three tiers here (they still
+ * appear under "Any experience level").
+ */
+function experienceLevel(degrees) {
+  const set = new Set(degrees);
+  if (set.has("PhD") || set.has("JD")) return "Advanced";
+  const undergradFriendly = set.size === 0 || set.has("Bachelor's") || set.has("Associate's") || set.has("Certificate") || set.has("Bootcamp");
+  const gradLevel = set.has("Master's") || set.has("MBA");
+  if (gradLevel && undergradFriendly) return "Intermediate";
+  if (gradLevel) return "Senior";
+  return "Junior";
+}
+
 /** Pure transform, unit-tested separately from the network call and file write. */
 export function selectListings(rawListings, { limit = LIMIT } = {}) {
   const list = Array.isArray(rawListings) ? rawListings : [];
@@ -48,6 +69,7 @@ export function selectListings(rawListings, { limit = LIMIT } = {}) {
         isCoop: /co-?op/i.test(title),
         terms: Array.isArray(role.terms) ? role.terms.filter(term => typeof term === "string") : [],
         degrees: Array.isArray(role.degrees) ? role.degrees.filter(degree => typeof degree === "string") : [],
+        experienceLevel: experienceLevel(Array.isArray(role.degrees) ? role.degrees : []),
         url: /^https:\/\//i.test(role.url ?? "") ? role.url : "",
         postedAt: new Date(role.date_posted * 1000).toISOString()
       };
