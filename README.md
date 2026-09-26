@@ -77,7 +77,7 @@ In that mode each person's entries start in their own browser profile's storage.
 
 Firebase encrypts stored data and network traffic using its managed infrastructure, but this is recoverable account security—not user-only end-to-end encryption. An app-layer encrypted design that also survives a forgotten password would need a trusted key-wrapping backend (for example Cloud Functions plus KMS) and is intentionally not claimed here. Backup files also contain the notebook in readable form, so keep them somewhere you trust.
 
-Browser storage is separated by origin, not URL path. GitHub Pages project sites under the same `will-iam08.github.io` origin can technically share browser storage. Do not publish untrusted scripts on another project site under that origin; use a dedicated custom domain if multiple Pages sites are added later and strong separation between them is required. See `docs/cross-device-sync-proposal.md` for how real account-based sync could work later.
+Browser storage is separated by origin, not URL path. The production app uses the dedicated `internshipnotebook.app` origin, so its browser-local notebook is isolated from other GitHub Pages projects. Anyone who can use the same unlocked browser profile can still see that profile's local notebook. See `docs/cross-device-sync-proposal.md` for the sync design.
 
 The Java API is a single-user development server. It binds only to the loopback interface, rejects cross-site browser requests and non-JSON writes, caps request bodies at 64 KiB, and sends restrictive browser security headers. It still has no accounts or per-user database rows, so it must not be exposed as a public shared backend.
 
@@ -89,7 +89,7 @@ To install it: in Chrome or Edge use the install icon in the address bar; in Saf
 
 **Settings → Pages → Build and deployment → Source → GitHub Actions**
 
-The workflow's `actions/configure-pages@v5` step cannot change this setting itself; it only reads it. Once it is set, the next push to `main` (or a manual run from the Actions tab) will publish to `https://will-iam08.github.io/coop-compass/`.
+The workflow's `actions/configure-pages@v5` step cannot change this setting itself; it only reads it. Once it is set, the next push to `main` (or a manual run from the Actions tab) publishes to [https://internshipnotebook.app/](https://internshipnotebook.app/).
 
 ## Architecture
 

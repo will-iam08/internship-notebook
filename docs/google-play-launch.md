@@ -4,11 +4,11 @@ The website is already an installable PWA. The smallest honest Android release i
 
 ## Complete before packaging
 
-1. Choose and connect a dedicated custom domain. The TWA's Digital Asset Links file is tied to that domain, so packaging against the temporary GitHub Pages URL would create avoidable rework.
+1. Connect the purchased `internshipnotebook.app` domain and confirm HTTPS. The TWA's Digital Asset Links file is tied to that domain.
 2. Keep the privacy policy and account-deletion page publicly reachable at stable URLs.
 3. Test Google sign-in, email verification, password reset, sync, conflict handling, and account deletion on the production domain.
 4. Create the Play Console developer account. Store registration, identity verification, legal acceptance, and any fee must be completed by the owner.
-5. Choose the final Android application ID (suggested: `app.coopcompass.notebook`) and store listing name.
+5. Use the Android application ID `app.internshipnotebook.mobile` and the store listing name **My Internship Notebook**.
 
 ## Package after the domain is final
 

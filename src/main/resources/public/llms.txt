@@ -17,4 +17,4 @@ The source code is plain HTML, CSS, and JavaScript with no third-party runtime d
 and no build step, plus an optional Java backend for a local-only, single-user version.
 
 - [Source code](https://github.com/will-iam08/coop-compass): the full, public source repository
-- [Live app](https://will-iam08.github.io/coop-compass/): the app itself, not a marketing page
+- [Live app](https://internshipnotebook.app/): the app itself, not a marketing page
