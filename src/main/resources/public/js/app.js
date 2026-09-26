@@ -648,7 +648,9 @@ function cloudSettings() {
     </div>`;
   if (!cloud.user.verified) return `
     <div class="setting-row"><div><strong>Verify ${esc(cloud.user.email)}</strong><p>We sent a verification link. Cloud data stays locked until the address is verified.</p></div></div>
-    <div class="view-actions"><button class="button primary" type="button" data-action="cloud-check-email">I've verified it</button><button class="button ghost" type="button" data-action="cloud-resend">Resend email</button><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>`;
+    <div class="view-actions"><button class="button primary" type="button" data-action="cloud-check-email">I've verified it</button><button class="button ghost" type="button" data-action="cloud-resend">Resend email</button><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>
+    <div class="setting-row"><div><strong>Delete unverified account</strong><p>Permanently removes this sign-in. No cloud notebook can be created before verification.</p></div>
+      <div class="view-actions"><input id="cloud-delete-password" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password" aria-label="Current password for account deletion" /><button class="button danger-soft" type="button" data-action="cloud-delete-account">Delete account</button></div></div>`;
   return `
     <div class="setting-row"><div><strong>${cloud.enabled ? "Cloud sync is on" : "Signed in — sync is paused"}</strong><p>${esc(cloud.user.email)} · ${cloud.enabled ? (cloud.status === "syncing" ? "Syncing…" : cloud.status === "error" ? cloud.error : "Synced with your private account notebook.") : "This device is still local-only until you choose a copy to sync."}</p></div>
       ${cloud.enabled

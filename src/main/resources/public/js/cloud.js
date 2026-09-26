@@ -194,7 +194,9 @@ export async function deleteCloudAccount(password = "") {
     } else if (providers.includes("google.com")) {
       await authSdk.reauthenticateWithPopup(currentUser, new authSdk.GoogleAuthProvider());
     }
-    await storeSdk.deleteDoc(cloudRef());
+    // Unverified email accounts never gain Firestore access or create a cloud notebook, but they
+    // still need to be able to delete the Authentication account they just created.
+    if (currentUser.emailVerified) await storeSdk.deleteDoc(cloudRef());
     await authSdk.deleteUser(currentUser);
     localStorage.removeItem(ENABLED_KEY);
     localStorage.removeItem(baseKey(uid));
