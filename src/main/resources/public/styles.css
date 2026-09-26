@@ -660,6 +660,34 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .attention-go { color: var(--faint); }
 .recent-list { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
 
+.news-list { display: grid; gap: 8px; list-style: none; margin: 0; padding: 0; }
+.news-item {
+  align-items: center;
+  background: var(--paper-2);
+  border: 1px solid transparent;
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 10px 12px;
+  transition: border-color .15s;
+}
+.news-item:hover { border-color: var(--line-strong); }
+.news-copy { min-width: 0; }
+.news-copy > strong { display: block; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.news-copy > span { align-items: center; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .8rem; gap: 4px; row-gap: 2px; }
+.news-copy > span > .news-meta-text { min-width: 40px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.news-actions { align-items: center; display: flex; flex-shrink: 0; gap: 6px; }
+.news-filters { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
+.news-filters select { flex: 1 1 140px; font-size: .82rem; max-width: 200px; padding: 7px 28px 7px 10px; width: auto; }
+.news-location { flex: 1 1 160px; font-size: .82rem; max-width: 240px; padding: 7px 10px; width: auto; }
+.news-check { align-items: center; color: var(--ink-2); display: flex; flex: 0 0 auto; font-size: .82rem; font-weight: 650; gap: 6px; }
+.news-mode { border-radius: 6px; flex-shrink: 0; font-size: .68rem; font-weight: 700; letter-spacing: .02em; padding: 1px 6px; text-transform: uppercase; }
+.news-mode-remote { background: var(--st-applied-bg); color: var(--ink-2); }
+.news-mode-hybrid { background: var(--warn-soft); color: var(--warn-ink); }
+.news-mode-onsite { background: var(--wash-strong); color: var(--muted); }
+.news-tag { background: var(--wash-strong); border-radius: 6px; color: var(--muted); flex-shrink: 0; font-size: .72rem; font-weight: 700; padding: 1px 6px; }
+
 .welcome { overflow: hidden; padding: 28px; position: relative; }
 .welcome h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 10px; max-width: 22ch; }
 .welcome p { color: var(--ink-2); max-width: 58ch; }
