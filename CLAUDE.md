@@ -4,10 +4,10 @@ Handoff notes for Claude Code. This file carries over the context from the web d
 
 ## What this project is
 
-My Internship Notebook is a notebook-style app for tracking internship applications, interviews, deadlines, notes, and offers. The repo is still named `coop-compass` and the Java package is `com.coopcompass`; the user-facing name is **My Internship Notebook**.
+My Internship Notebook is a notebook-style app for tracking internship applications, interviews, deadlines, notes, and offers. The repository is named `internship-notebook`; the existing Java package remains `com.coopcompass` for compatibility.
 
-- GitHub: `will-iam08/coop-compass`, branch `main` (a `notebook-app-redesign` branch also exists and currently points at the same commit)
-- Live site: will-internship-notebook.onrender.com (browser-only edition, auto-deploys from `main`)
+- GitHub: `will-iam08/internship-notebook`, branch `main`
+- Live site: `https://internshipnotebook.app/`
 - A GitHub Pages workflow (`.github/workflows/deploy-pages.yml`) also builds the browser-only edition on every push to `main`
 
 ## Product decisions already made
@@ -94,7 +94,6 @@ A `Dockerfile` (Temurin 24 JDK) builds and runs the same server.
 ## Open threads
 
 - **Storage refactor patch (not applied):** `~/projects/Claude outputs/0001-Extract-ApplicationStore-interface-from-ApplicationR.patch` (2026-09-20) moves TSV persistence behind an `ApplicationStore` interface with a `TsvStore` implementation. Written before the redesign and **still doesn't apply cleanly** to the current `ApplicationRepository.java`.
-- **Owner still needs to, in order:** (1) `git push` this branch, (2) turn on Settings -> Pages -> Build and deployment -> Source -> GitHub Actions (a repo owner has to do this; Actions can't), (3) confirm the workflow run passes and `https://will-iam08.github.io/coop-compass/` loads, (4) run `npx playwright install && npm test` at least once somewhere the E2E suite can actually execute, since this session couldn't.
 - **Planned upgrades:** PostgreSQL with Flyway migrations in place of TSV; Spring Boot API with validation annotations and JUnit; React/TypeScript UI; accounts and cross-device sync (see `docs/cross-device-sync-proposal.md` - proposal only, not started); deploy the full API plus database; record a product demo.
 
 ## Working with the owner
