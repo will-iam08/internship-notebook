@@ -17,10 +17,11 @@ import {
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
 import { api, BROWSER_MODE, StorageCorruptedError } from "./api.js";
 import {
-  cloudSnapshot, createEmailAccount, disableCloud, enableCloudWithLocal, enableCloudWithRemote,
-  fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, sendPasswordReset,
+  cloudSnapshot, createEmailAccount, deleteCloudAccount, disableCloud, enableCloudWithLocal, enableCloudWithRemote,
+  fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, resumeCloud, sendPasswordReset,
   signInEmail, signInGoogle, signOutCloud
 } from "./cloud.js";
+import { entryCalendar } from "./calendar.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -625,7 +626,7 @@ function viewSettings() {
         </ul>
       </section>
 
-      <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="https://github.com/will-iam08/coop-compass" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
+      <p class="muted" style="font-size:.82rem">My Internship Notebook · <a href="privacy.html">Privacy</a> · <a href="delete-account.html">Account deletion</a> · <a href="https://github.com/will-iam08/coop-compass" target="_blank" rel="noopener noreferrer">Source on GitHub</a></p>
     </div>`;
 }
 
@@ -644,8 +645,7 @@ function cloudSettings() {
         <button class="button ghost" type="button" data-action="cloud-email-create">Create account</button>
         <button class="text-button" type="button" data-action="cloud-reset">Forgot password?</button>
       </div>
-    </div>
-    <p class="card-note">Password recovery uses an email reset link. Phone/SMS recovery is not enabled because it can create charges and abuse risk.</p>`;
+    </div>`;
   if (!cloud.user.verified) return `
     <div class="setting-row"><div><strong>Verify ${esc(cloud.user.email)}</strong><p>We sent a verification link. Cloud data stays locked until the address is verified.</p></div></div>
     <div class="view-actions"><button class="button primary" type="button" data-action="cloud-check-email">I've verified it</button><button class="button ghost" type="button" data-action="cloud-resend">Resend email</button><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>`;
@@ -654,6 +654,11 @@ function cloudSettings() {
       ${cloud.enabled
         ? `<div class="view-actions">${cloud.status === "error" ? `<button class="button primary" type="button" data-action="cloud-retry">Retry sync</button>` : ""}<button class="button ghost" type="button" data-action="cloud-disable">Pause sync</button></div>`
         : `<button class="button primary" type="button" data-action="cloud-enable">Choose notebook</button>`}</div>
+    <div class="setting-row"><div><strong>Delete cloud account</strong><p>Permanently removes your sign-in and cloud notebook. The notebook saved in this browser is kept unless you clear it separately.</p></div>
+      <div class="view-actions">
+        ${cloud.user.providers?.includes("password") ? `<input id="cloud-delete-password" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password" aria-label="Current password for account deletion" />` : ""}
+        <button class="button danger-soft" type="button" data-action="cloud-delete-account">Delete account</button>
+      </div></div>
     <div class="view-actions"><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>
     <p class="card-note">Firebase Authentication controls access and Firestore rules restrict each notebook to its verified owner. This is recoverable account security, not user-only end-to-end encryption.</p>`;
 }
@@ -1149,11 +1154,14 @@ function updateSourceOptions() {
   const options = [...used, ...SOURCE_SUGGESTIONS.filter(source => !used.some(item => item.toLowerCase() === source.toLowerCase()))];
   $("#source-options").innerHTML = options.map(source => `<option value="${esc(source)}"></option>`).join("");
 }
-function openNew(stage = "SAVED") {
+function openNew(stage = "SAVED", initial = {}) {
   dialogOpener = document.activeElement;
   closeMenu();
   if ($("#palette").open) $("#palette").close();
   newForm.reset();
+  for (const [name, value] of Object.entries(initial)) {
+    if (newForm.elements[name] && typeof value === "string") newForm.elements[name].value = value;
+  }
   newStage = STAGES.includes(stage) ? stage : "SAVED";
   renderStagePicker();
   updateSourceOptions();
@@ -1574,7 +1582,7 @@ async function chooseCloudNotebook() {
       danger: false
     });
     if (!download) return;
-    enableCloudWithRemote(remote);
+    await enableCloudWithRemote(remote);
     await load();
     toast("Cloud notebook restored.");
     return;
@@ -1589,7 +1597,7 @@ async function chooseCloudNotebook() {
     danger: false
   });
   if (!useCloud) return;
-  enableCloudWithRemote(remote);
+  await enableCloudWithRemote(remote);
   await load();
   toast("Cloud notebook restored.");
 }
@@ -1636,6 +1644,22 @@ const actions = {
     if (pause) { disableCloud(); rerender(); }
   }),
   "cloud-signout": () => runCloud(async () => { await signOutCloud(); toast("Signed out. Your local notebook is still here."); rerender(); }),
+  "cloud-delete-account": () => runCloud(async () => {
+    const password = $("#cloud-delete-password")?.value || "";
+    const confirmed = await confirmDialog({
+      eyebrow: "Permanent account deletion",
+      title: "Delete your cloud account and notebook?",
+      copy: "This permanently deletes your Firebase sign-in and the notebook stored in your account. Your copy in this browser remains on this device.",
+      yes: "Delete account",
+      no: "Keep account",
+      iconName: "trash",
+      danger: true
+    });
+    if (!confirmed) return;
+    await deleteCloudAccount(password);
+    toast("Cloud account deleted. Your local notebook is still here.");
+    rerender();
+  }),
   goal: target => {
     state.prefs.goal = clamp(state.prefs.goal + Number(target.dataset.delta), 1, 50);
     savePrefs();
@@ -1651,6 +1675,7 @@ const actions = {
       ...(entry.link ? [{ label: "Open job posting", icon: "external", run: () => window.open(entry.link, "_blank", "noopener,noreferrer") }] : []),
       { label: "Duplicate page", icon: "copy", run: () => duplicate(entry) },
       { label: "Copy as text", icon: "file", run: () => copySummary(entry) },
+      ...((entry.deadline || entry.nextStepDate) ? [{ label: "Add dates to calendar", icon: "calendar", run: () => exportCalendar(entry) }] : []),
       { separator: true },
       { label: "Move to Recently Deleted", icon: "trash", danger: true, run: () => removeApplications([entry.id]) }
     ]);
@@ -1847,6 +1872,14 @@ function exportJson() {
   toast("Backup downloaded. Keep it somewhere safe.");
 }
 
+function exportCalendar(entry) {
+  const calendar = entryCalendar(entry);
+  if (!calendar) { toast("Add a deadline or next-step date first."); return; }
+  const safeCompany = entry.company.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "application";
+  download(`${safeCompany}-dates.ics`, calendar, "text/calendar;charset=utf-8");
+  toast("Calendar file downloaded");
+}
+
 $("#import-file").addEventListener("change", async event => {
   const file = event.target.files?.[0];
   event.target.value = "";
@@ -1999,15 +2032,28 @@ window.setInterval(() => {
 hydrateStaticIcons();
 applyTheme();
 // The installed app's "New application" shortcut opens #/new.
-const openNewOnStart = window.location.hash === "#/new";
+const shared = new URLSearchParams(window.location.search);
+const sharedOnStart = shared.has("share-target") || shared.has("title") || shared.has("text") || shared.has("url");
+const openNewOnStart = window.location.hash === "#/new" || sharedOnStart;
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
 load().then(async () => {
-  if (openNewOnStart && state.loaded) openNew();
+  if (openNewOnStart && state.loaded) openNew("SAVED", sharedOnStart ? {
+    role: (shared.get("title") || "").slice(0, LIMITS.role),
+    link: (shared.get("url") || "").slice(0, LIMITS.link),
+    notes: (shared.get("text") || "").slice(0, LIMITS.notes)
+  } : {});
   if (!BROWSER_MODE) return;
+  let resumeStarted = false;
   await initializeCloud(snapshot => {
     state.cloud = snapshot;
     updateStorageChip();
     if (state.route.view === "settings") rerender();
+    if (!resumeStarted && snapshot.user?.verified) {
+      resumeStarted = true;
+      resumeCloud(api.read()).then(async result => {
+        if (result.action === "use-remote") await load();
+      }).catch(error => fail(error));
+    }
   });
 });

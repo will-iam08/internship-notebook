@@ -1,5 +1,6 @@
 import { browserApi, setBrowserWriteListener } from "./api.js";
 import { sanitizeImportedEntry } from "./domain.js";
+import { decideSync, notebookHash } from "./sync.js";
 
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0";
 const MAX_CLOUD_BYTES = 900_000;
@@ -23,11 +24,18 @@ let pendingRecord = null;
 let enabledUid = "";
 let status = "local";
 let error = "";
+const ENABLED_KEY = "my-internship-notebook-cloud-enabled-v1";
+const baseKey = uid => `my-internship-notebook-cloud-base-v1:${uid}`;
 
 export function cloudSnapshot() {
   return {
     ready: Boolean(auth && db),
-    user: currentUser ? { uid: currentUser.uid, email: currentUser.email || "", verified: currentUser.emailVerified } : null,
+    user: currentUser ? {
+      uid: currentUser.uid,
+      email: currentUser.email || "",
+      verified: currentUser.emailVerified,
+      providers: currentUser.providerData.map(provider => provider.providerId)
+    } : null,
     enabled: Boolean(currentUser?.emailVerified && enabledUid === currentUser.uid),
     status,
     error
@@ -48,6 +56,7 @@ function friendly(errorValue) {
   if (code.includes("popup-closed")) return "Google sign-in was closed before it finished.";
   if (code.includes("network-request-failed")) return "Cloud sign-in could not reach Firebase. Check your connection.";
   if (code.includes("too-many-requests")) return "Too many attempts. Please wait a little and try again.";
+  if (code.includes("requires-recent-login")) return "For security, sign out, sign back in, and try deleting the account again.";
   return errorValue?.message || "Cloud sync could not complete.";
 }
 
@@ -73,7 +82,10 @@ async function upload(record) {
   if (!cloudSnapshot().enabled) return;
   update({ status: "syncing", error: "" });
   try {
-    await storeSdk.setDoc(cloudRef(), { ...cloudPayload(record), updatedAt: storeSdk.serverTimestamp() });
+    const payload = cloudPayload(record);
+    const contentHash = await notebookHash(payload);
+    await storeSdk.setDoc(cloudRef(), { ...payload, contentHash, updatedAt: storeSdk.serverTimestamp() });
+    localStorage.setItem(baseKey(currentUser.uid), contentHash);
     update({ status: "synced", error: "" });
   } catch (uploadError) {
     update({ status: "error", error: friendly(uploadError) });
@@ -165,8 +177,31 @@ export async function refreshAccount() {
 }
 
 export async function signOutCloud() {
+  localStorage.removeItem(ENABLED_KEY);
   enabledUid = "";
   await authSdk.signOut(auth);
+}
+
+export async function deleteCloudAccount(password = "") {
+  if (!currentUser) throw new Error("Sign in before deleting your account.");
+  const uid = currentUser.uid;
+  const providers = currentUser.providerData.map(provider => provider.providerId);
+  try {
+    if (providers.includes("password")) {
+      if (!password) throw new Error("Enter your current password to delete this account.");
+      const credential = authSdk.EmailAuthProvider.credential(currentUser.email, password);
+      await authSdk.reauthenticateWithCredential(currentUser, credential);
+    } else if (providers.includes("google.com")) {
+      await authSdk.reauthenticateWithPopup(currentUser, new authSdk.GoogleAuthProvider());
+    }
+    await storeSdk.deleteDoc(cloudRef());
+    await authSdk.deleteUser(currentUser);
+    localStorage.removeItem(ENABLED_KEY);
+    localStorage.removeItem(baseKey(uid));
+    enabledUid = "";
+  } catch (deleteError) {
+    throw new Error(friendly(deleteError));
+  }
 }
 
 /**
@@ -200,18 +235,41 @@ export async function fetchCloudNotebook() {
 export async function enableCloudWithLocal() {
   if (!currentUser?.emailVerified) throw new Error("Verify your email before turning on cloud sync.");
   enabledUid = currentUser.uid;
+  localStorage.setItem(ENABLED_KEY, currentUser.uid);
   await upload(browserApi.read());
 }
 
-export function enableCloudWithRemote(record) {
+export async function enableCloudWithRemote(record) {
   if (!currentUser?.emailVerified) throw new Error("Verify your email before turning on cloud sync.");
   setBrowserWriteListener(null);
   try { browserApi.write(cloudPayload(record)); } finally { setBrowserWriteListener(scheduleUpload); }
   enabledUid = currentUser.uid;
+  localStorage.setItem(ENABLED_KEY, currentUser.uid);
+  localStorage.setItem(baseKey(currentUser.uid), await notebookHash(record));
   update({ status: "synced", error: "" });
 }
 
 export function disableCloud() {
+  localStorage.removeItem(ENABLED_KEY);
   enabledUid = "";
   update({ status: currentUser ? "paused" : "local", error: "" });
+}
+
+export async function resumeCloud(record) {
+  if (!currentUser?.emailVerified || localStorage.getItem(ENABLED_KEY) !== currentUser.uid) return { action: "paused" };
+  const remote = await fetchCloudNotebook();
+  const localHash = await notebookHash(record);
+  const remoteHash = remote ? await notebookHash(remote) : "";
+  const decision = decideSync(localHash, remoteHash, localStorage.getItem(baseKey(currentUser.uid)) || "");
+  if (decision === "use-remote") await enableCloudWithRemote(remote);
+  else if (decision === "upload-local") await enableCloudWithLocal();
+  else if (decision === "synced") {
+    enabledUid = currentUser.uid;
+    localStorage.setItem(baseKey(currentUser.uid), localHash);
+    update({ status: "synced", error: "" });
+  } else {
+    localStorage.removeItem(ENABLED_KEY);
+    update({ status: "paused", error: "Both the device and cloud notebooks changed. Choose which copy to keep in Settings." });
+  }
+  return { action: decision, remote };
 }

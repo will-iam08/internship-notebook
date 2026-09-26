@@ -16,6 +16,8 @@ A notebook-style app for organizing internship applications, interviews, and off
 - **Light and dark themes** that follow the device setting or a manual choice, checked against WCAG 2.2 AA contrast
 - **Your data, portable:** CSV export for spreadsheets, plus a JSON backup you can import on another device. Every imported field is validated the same way a typed one is (limits, calendar dates, and links: only `http(s)://` is ever accepted), the import is previewed before anything is written, and it can be undone as a batch
 - **Optional account sync:** Google sign-in or a verified email/password account can copy the browser notebook to a private Firestore document and sync later edits. Email accounts have recovery links; phone/SMS recovery is deliberately off to avoid paid-SMS abuse
+- **Account privacy controls:** a public privacy policy and deletion guide, plus in-app deletion of both the Firebase account and its cloud notebook
+- **Google/Android-friendly PWA:** job links can be shared into the installed app, and application deadlines or next steps can be downloaded as standard calendar events
 - **Autosave that doesn't lose work:** every edit is captured to this browser the instant it happens. If a save can't be confirmed yet (offline, storage briefly unavailable), it stays queued and retries automatically, or press Retry - it is never silently dropped. The save indicator says exactly what's true: Saving, Saved locally, Synced (server mode only), or Couldn't save
 - Responsive layout (sidebar on laptops, bottom tab bar on phones, stage tabs and a "Move to..." control on the Board on a touch screen), 44px touch targets, and motion that respects reduced-motion settings
 - Keyboard-friendly throughout: a real radiogroup with arrow-key support for picking a stage, a skip link, and focus that returns to where you were after a dialog closes
@@ -71,7 +73,7 @@ npm test                     # all three
 
 The same interface also runs as a browser-only website. The GitHub Pages workflow (and the Render static site) build `src/main/resources/public` with `scripts/build-site.mjs`, which sets `window.NOTEBOOK_STORAGE_MODE = "browser"` in `site-mode.js`.
 
-In that mode each person's entries start in their own browser profile's storage. Nothing is uploaded unless they open **Settings**, sign in, verify the email address when needed, and explicitly choose which notebook copy to use. While sync is on, Firebase Authentication controls account access and Firestore rules allow a verified user to access only `notebooks/{their uid}`. On a new session, sync starts paused so a remote copy can never silently overwrite newer local work; choose the notebook again in Settings. Anyone who can use the same unlocked browser profile can still see its local notebook, and local storage is not encrypted by this app, so use a separate profile on a shared device.
+In that mode each person's entries start in their own browser profile's storage. Nothing is uploaded unless they open **Settings**, sign in, verify the email address when needed, and explicitly choose which notebook copy to use. While sync is on, Firebase Authentication controls account access and Firestore rules allow a verified user to access only `notebooks/{their uid}`. After that first choice, sync can resume on the same browser: a last-synced fingerprint selects the only changed copy, while diverged local and cloud copies pause for the user to choose. Anyone who can use the same unlocked browser profile can still see its local notebook, and local storage is not encrypted by this app, so use a separate profile on a shared device.
 
 Firebase encrypts stored data and network traffic using its managed infrastructure, but this is recoverable account security—not user-only end-to-end encryption. An app-layer encrypted design that also survives a forgotten password would need a trusted key-wrapping backend (for example Cloud Functions plus KMS) and is intentionally not claimed here. Backup files also contain the notebook in readable form, so keep them somewhere you trust.
 
@@ -121,5 +123,5 @@ ApplicationRepository ── data/applications.tsv
 1. Replace the TSV repository with PostgreSQL and Flyway migrations.
 2. Add a Spring Boot API, validation annotations, and JUnit tests.
 3. Rebuild the UI with React/TypeScript.
-4. Add conflict-aware background reconciliation so sync can resume automatically after an offline edit; the current safer behavior pauses at the start of a new session and asks which copy to use.
+4. Add live multi-device conflict detection while two signed-in copies are open at the same time.
 5. Record a short product demo.

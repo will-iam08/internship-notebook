@@ -12,15 +12,18 @@ service cloud.firestore {
       allow read: if isVerifiedOwner(userId);
       allow create, update: if isVerifiedOwner(userId)
         && request.resource.data.keys().hasOnly([
-          'schemaVersion', 'nextId', 'applications', 'recentlyDeleted', 'updatedAt'
+          'schemaVersion', 'nextId', 'applications', 'recentlyDeleted', 'contentHash', 'updatedAt'
         ])
         && request.resource.data.schemaVersion == 1
         && request.resource.data.nextId is int
         && request.resource.data.nextId > 0
         && request.resource.data.applications is list
         && request.resource.data.recentlyDeleted is list
+        && (!('contentHash' in request.resource.data)
+          || (request.resource.data.contentHash is string
+            && request.resource.data.contentHash.size() == 64))
         && request.resource.data.updatedAt == request.time;
-      allow delete: if false;
+      allow delete: if isVerifiedOwner(userId);
     }
 
     match /{document=**} {
