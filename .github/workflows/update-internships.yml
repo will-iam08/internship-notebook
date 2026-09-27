@@ -13,6 +13,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
   refresh:
@@ -38,3 +39,6 @@ jobs:
           git add src/main/resources/public/internships.json
           git commit -m "Refresh internship listings"
           git push
+          gh workflow run deploy-pages.yml --ref main
+        env:
+          GH_TOKEN: ${{ github.token }}

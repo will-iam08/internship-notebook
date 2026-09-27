@@ -39,6 +39,16 @@ test("selectListings drops a role missing company or title", () => {
   assert.equal(listings.length, 0);
 });
 
+test("invalid newest roles do not consume the listing limit", () => {
+  const listings = selectListings([
+    role({ company_name: "", date_posted: 300 }),
+    role({ url: "javascript:alert(1)", date_posted: 200 }),
+    role({ company_name: "Valid", date_posted: 100 })
+  ], { limit: 1 });
+  assert.equal(listings.length, 1);
+  assert.equal(listings[0].company, "Valid");
+});
+
 test("selectListings joins multiple locations and converts the posted date to ISO", () => {
   const [listing] = selectListings([role({ locations: ["SF", "NYC"], date_posted: 1_700_000_000 })]);
   assert.equal(listing.location, "SF, NYC");
