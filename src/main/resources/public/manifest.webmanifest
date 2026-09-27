@@ -1,7 +1,7 @@
 {
   "name": "My Internship Notebook",
   "short_name": "Notebook",
-  "description": "A private notebook for internship applications, interviews, deadlines, and offers.",
+  "description": "Track internship applications and browse fresh openings in a private, offline-ready app.",
   "id": "./",
   "start_url": "./#/today",
   "scope": "./",

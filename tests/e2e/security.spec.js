@@ -14,7 +14,7 @@ test("separate browser profiles cannot read each other's notebook", async ({ bro
 
     await openApp(first);
     await first.locator('[data-action="new"]:visible').first().click();
-    await first.getByLabel("Company").fill("Private Profile Company");
+    await first.locator('#new-form [name="company"]').fill("Private Profile Company");
     await first.getByLabel("Role").fill("Security Intern");
     await first.getByRole("button", { name: "Add to notebook" }).click();
     await expect(first.locator("#toasts")).toContainText("Private Profile Company added");

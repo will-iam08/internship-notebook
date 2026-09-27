@@ -23,6 +23,8 @@ Keep these unless the owner says otherwise.
 
 ## Current state
 
+**This section is behind and describes the state as of 2026-09-22.** Since then, pushed and live: the repo was renamed to `internship-notebook` with a purchased domain (`internshipnotebook.app`, see `CNAME`); Google/email cloud sync shipped for real (`js/cloud.js`, `firestore.rules`, `js/sync.js` for last-synced-hash conflict resolution); account self-deletion, `privacy.html`, `delete-account.html`, and Google Play/Android launch prep (`docs/google-play-launch.md`) were added; and this session (2026-09-26) added the Today-page internship feed (`scripts/fetch-internships.mjs`, `.github/workflows/update-internships.yml`, filters for term/experience/co-op/location in `js/app.js`). None of that history is written up below yet - read recent `git log`, not just this file, for what actually shipped.
+
 Commit `e41ee5b` "Update README for the module split, testing, and deploy setup; add the sync proposal" (2026-09-22) is the tip of a data-safety/mobile/accessibility/testing improvement pass, all **local commits not yet pushed** (this session could not authenticate to GitHub - the owner needs to `git push`). Eight commits on top of the `e6fec6f` redesign, each independently reviewable:
 
 1. `820f892` CI now runs Java + frontend checks before every Pages deploy; documents the one-time repo setting (Settings -> Pages -> Build and deployment -> Source -> GitHub Actions) that was blocking every deploy.
@@ -73,11 +75,12 @@ A `Dockerfile` (Temurin 24 JDK) builds and runs the same server.
   - `js/ui/icons.js`: inline SVG icons + the notebook logo
   - `js/app.js`: state and prefs, theme, view functions (`viewToday`, `viewBoard`, `viewNotebook`, `viewInsights`, `viewDeleted`, `viewSettings`, `viewEntry`, `viewRecovery`), hash router, autosave/retry (section 17), toasts, dialogs, menus, actions
   - `site-mode.js`: `"server"` locally; `scripts/build-site.mjs` overwrites it with `"browser"` for the website edition
-  - `sw.js`: cache name `internship-notebook-v7` - bump this on every shell (`index.html`/`styles.css`/any `js/*`/icon) change
-- `scripts/`: `build-site.mjs` (writes `_site/`), `serve.mjs` (static server for local preview and E2E tests), `check-syntax.mjs`
-- `tests/unit/`: `node --test`, pure logic (`domain.test.js`, `storage.test.js`, `import.test.js`)
+  - `sw.js`: cache name `internship-notebook-vN` - bump N on every shell (`index.html`/`styles.css`/any `js/*`/icon/precached-file) change. Check the current value in the file; don't hardcode it here, it drifts.
+  - `internships.json`: generated file, not hand-edited - see `scripts/fetch-internships.mjs` below
+- `scripts/`: `build-site.mjs` (writes `_site/`), `serve.mjs` (static server for local preview and E2E tests), `check-syntax.mjs`, `fetch-internships.mjs` (pulls the Today-page internship feed from `SimplifyJobs/Summer2027-Internships` on GitHub, keeps the newest ~150 active/visible roles with a safe http(s) link, writes `src/main/resources/public/internships.json`; run by `.github/workflows/update-internships.yml` on a daily cron, and safe to run by hand to test - the pure transform is `selectListings`, exported and unit-tested separately from the network call)
+- `tests/unit/`: `node --test`, pure logic (`domain.test.js`, `storage.test.js`, `import.test.js`, `internships.test.js`, `calendar.test.js`, `sync.test.js`)
 - `tests/e2e/`: Playwright against the built `_site/`; `fixtures.js` has a `PW_ROUTE_FILES=1` fallback for a shell that can't open a local port
-- `docs/cross-device-sync-proposal.md`: not implemented, a design doc only
+- `docs/cross-device-sync-proposal.md`: an early design doc; a lighter version (last-synced-hash based, see `js/sync.js`) shipped instead of the full accounts/versioning design in that doc
 
 ## Conventions
 

@@ -55,7 +55,13 @@ function experienceLevel(degrees) {
 export function selectListings(rawListings, { limit = LIMIT } = {}) {
   const list = Array.isArray(rawListings) ? rawListings : [];
   return list
-    .filter(role => role && role.active && role.is_visible && Number.isFinite(role.date_posted))
+    .filter(role => role
+      && role.active
+      && role.is_visible
+      && Number.isFinite(role.date_posted)
+      && String(role.company_name ?? "").trim()
+      && String(role.title ?? "").trim()
+      && /^https:\/\//i.test(role.url ?? ""))
     .sort((left, right) => right.date_posted - left.date_posted)
     .slice(0, limit)
     .map(role => {
@@ -73,8 +79,7 @@ export function selectListings(rawListings, { limit = LIMIT } = {}) {
         url: /^https:\/\//i.test(role.url ?? "") ? role.url : "",
         postedAt: new Date(role.date_posted * 1000).toISOString()
       };
-    })
-    .filter(role => role.company && role.role && role.url);
+    });
 }
 
 async function main() {

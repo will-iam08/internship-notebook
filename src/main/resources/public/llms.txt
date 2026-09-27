@@ -1,17 +1,17 @@
 # My Internship Notebook
 
-> A free, private, notebook-style web app for organizing internship applications, interviews,
-> deadlines, and offers. Installs like an app on a phone, laptop, or desktop and works offline.
+> A free, private, notebook-style web app for organizing internship applications and browsing
+> fresh internship openings. Installs on phones and computers and works offline.
 
 Each application gets its own page for notes, contacts, and next steps. A board view tracks
 the pipeline (Saved, Applied, Interview, Offer, Rejected), and an insights view summarizes
-response rate, interview rate, and weekly activity against a personal goal.
+response rate, interview rate, and weekly activity against a personal goal. The Today page also
+shows a filterable worldwide feed of public internship and co-op listings, refreshed daily from
+the Pitt CSC and Simplify internship tracker.
 
-Entries are stored only in the visitor's own browser. Nothing is uploaded to a server, and
-nothing about a visitor's applications is ever readable by anyone else, including the people
-who made this site. There is no account, no login, and no tracking of application content.
-A visitor's data does not currently sync between their own devices; a manual backup-file
-export/import is available for moving a notebook to another device.
+Entries start in the visitor's own browser. Optional Google or verified-email sign-in can sync
+the notebook to a private Firebase document restricted to that user's ID. The app has no ads and
+does not use notebook content for marketing. JSON backup export/import remains available.
 
 The source code is plain HTML, CSS, and JavaScript with no third-party runtime dependencies
 and no build step, plus an optional Java backend for a local-only, single-user version.

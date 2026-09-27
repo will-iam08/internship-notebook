@@ -72,7 +72,7 @@ npm test                     # all three
 
 `npm run build` writes the website edition to `_site/`; `npm run serve` serves it locally at `http://127.0.0.1:4173` for a quick look without the Java server.
 
-`node scripts/fetch-internships.mjs` refreshes `src/main/resources/public/internships.json`, the small file behind the Today page's internship feed. `.github/workflows/update-internships.yml` runs it daily and commits the result if it changed; run it by hand when testing that feature locally.
+`node scripts/fetch-internships.mjs` refreshes `src/main/resources/public/internships.json`, the small file behind the Today page's internship feed. `.github/workflows/update-internships.yml` runs it daily, commits the result if it changed, and dispatches the tested Pages deployment; run it by hand when testing that feature locally.
 
 ## Website edition
 
