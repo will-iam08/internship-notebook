@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-26T19:40:11.406Z",
+  "generatedAt": "2026-09-28T13:33:15.441Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
     {
@@ -34,20 +34,6 @@
       "experienceLevel": "Intermediate",
       "url": "https://job-boards.greenhouse.io/momentenergy/jobs/4421775009",
       "postedAt": "2026-09-26T01:21:19.000Z"
-    },
-    {
-      "company": "GovSignals",
-      "role": "Engineering Intern",
-      "location": "Remote in USA",
-      "workMode": "Remote",
-      "isCoop": false,
-      "terms": [
-        "Fall 2026"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ashbyhq.com/GovSignals/e894290c-3263-424e-b7a4-8dcc32ca8ca9/application?embed=true",
-      "postedAt": "2026-09-26T01:17:18.000Z"
     },
     {
       "company": "Waymo",
@@ -905,39 +891,6 @@
       "postedAt": "2026-09-25T14:13:52.000Z"
     },
     {
-      "company": "First Citizens BancShares",
-      "role": "IT Intern - Software Developer",
-      "location": "Raleigh, NC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://firstcitizens.jibeapply.com/jobs/35709?icims=1",
-      "postedAt": "2026-09-25T14:08:48.000Z"
-    },
-    {
-      "company": "Bluestaq",
-      "role": "Software Engineering Resident - Multiple Teams",
-      "location": "Colorado Springs, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://job-boards.greenhouse.io/bluestaq/jobs/4420189009",
-      "postedAt": "2026-09-25T14:08:04.000Z"
-    },
-    {
       "company": "Envoy",
       "role": "Solutions Engineer Intern",
       "location": "SF",
@@ -1090,20 +1043,6 @@
       "postedAt": "2026-09-25T00:00:00.000Z"
     },
     {
-      "company": "Exclusive Networks",
-      "role": "Data Quality & Business Data Analyst Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://exclusivenetworks.wd103.myworkdayjobs.com/Exclusive-Networks-Career/job/London/Data-Quality---Business-Data-Analyst-Intern-6-month-FTC_JR2560-1",
-      "postedAt": "2026-09-25T00:00:00.000Z"
-    },
-    {
       "company": "Haleon",
       "role": "Data & Governance Industrial Placement",
       "location": "London, UK",
@@ -1150,22 +1089,6 @@
       ],
       "experienceLevel": "Junior",
       "url": "https://leidos.wd5.myworkdayjobs.com/External/job/Gaithersburg-MD/Software-Development-Intern_R-00193103",
-      "postedAt": "2026-09-25T00:00:00.000Z"
-    },
-    {
-      "company": "Royal Bank of Canada",
-      "role": "Capital Markets Analyst Intern",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://rbc.wd3.myworkdayjobs.com/ExternalPrivatePostingStudents/job/TORONTO-Ontario-Canada/XMLNAME-2027-Capital-Markets--AidenEdge-Program-Winter-Analyst--4-Months-_R-0000187318-2",
       "postedAt": "2026-09-25T00:00:00.000Z"
     },
     {
@@ -1268,22 +1191,6 @@
       ],
       "experienceLevel": "Advanced",
       "url": "https://amfam.wd1.myworkdayjobs.com/en-US/Careers/job/WI-Madison/GenAI-Intern_R39561",
-      "postedAt": "2026-09-25T00:00:00.000Z"
-    },
-    {
-      "company": "Epiq Systems",
-      "role": "Software Engineer Intern",
-      "location": "NYC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://epiqsystems.wd503.myworkdayjobs.com/Epiq_Careers/job/USA-New-York-NY-1166-Avenue-of-Americas/Software-Engineer-Intern_R0035230",
       "postedAt": "2026-09-25T00:00:00.000Z"
     },
     {
@@ -2104,23 +2011,6 @@
       "postedAt": "2026-09-24T22:18:02.000Z"
     },
     {
-      "company": "Boston Scientific",
-      "role": "Software Engineer Intern - R&D",
-      "location": "Arden Hills, MN",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://bostonscientific.eightfold.ai/careers/job/563602813542900",
-      "postedAt": "2026-09-24T22:18:02.000Z"
-    },
-    {
       "company": "GM financial",
       "role": "Data Engineer Intern",
       "location": "Arlington, TX",
@@ -2465,6 +2355,128 @@
       "experienceLevel": "Junior",
       "url": "https://jobs.jobvite.com/metropolitantransportationauthority/job/oUuPAfwx?nl=1&nl=1&fr=false",
       "postedAt": "2026-09-24T14:22:02.000Z"
+    },
+    {
+      "company": "Kitware",
+      "role": "Computer Vision Co-op",
+      "location": "Clifton Park, NY",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Winter 2026"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.lever.co/kitware/e76197d1-4dc3-4f7c-a30a-597713283bb3/apply",
+      "postedAt": "2026-09-24T14:17:18.000Z"
+    },
+    {
+      "company": "Arconic",
+      "role": "Software Developer Intern",
+      "location": "Davenport, IA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027",
+        "Spring 2028",
+        "Summer 2028",
+        "Spring 2029",
+        "Summer 2029"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://hdnn.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/114233",
+      "postedAt": "2026-09-24T14:16:31.000Z"
+    },
+    {
+      "company": "Wurl",
+      "role": "Data Science Intern",
+      "location": "Remote in USA",
+      "workMode": "Remote",
+      "isCoop": false,
+      "terms": [
+        "Winter 2026"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://job-boards.greenhouse.io/wurljobs/jobs/4716249006",
+      "postedAt": "2026-09-24T14:14:54.000Z"
+    },
+    {
+      "company": "Graphcore",
+      "role": "Systems Engineering Intern",
+      "location": "Austin, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2026"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://job-boards.greenhouse.io/graphcore/jobs/8841978002",
+      "postedAt": "2026-09-24T01:38:04.000Z"
+    },
+    {
+      "company": "Graphcore",
+      "role": "Hardware Platform Development Intern",
+      "location": "Austin, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2026"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://job-boards.greenhouse.io/graphcore/jobs/8841941002",
+      "postedAt": "2026-09-24T01:38:02.000Z"
+    },
+    {
+      "company": "Graphcore",
+      "role": "Firmware Engineer Intern",
+      "location": "Austin, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2026"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/graphcore/jobs/8841894002",
+      "postedAt": "2026-09-24T01:38:01.000Z"
+    },
+    {
+      "company": "Tesla",
+      "role": "Software Engineer Industrial Firmware Intern - Energy Engineering",
+      "location": "Palo Alto, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2027",
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://www.tesla.com/careers/search/job/284448",
+      "postedAt": "2026-09-24T01:31:52.000Z"
     }
   ]
 }
