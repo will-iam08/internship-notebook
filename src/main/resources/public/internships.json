@@ -1,7 +1,112 @@
 {
-  "generatedAt": "2026-10-03T18:22:36.479Z",
+  "generatedAt": "2026-10-04T18:22:28.732Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "Diversified Energy",
+      "role": "Information Technology Intern",
+      "location": "Birmingham, AL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://careers.div.energy/jobs/2734?icims=1",
+      "postedAt": "2026-10-04T14:12:19.000Z"
+    },
+    {
+      "company": "Keysight Technologies",
+      "role": "Data Scientist Intern",
+      "location": "Santa Rosa, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://jobs.keysight.com/jobs/54570?icims=1",
+      "postedAt": "2026-10-04T14:11:58.000Z"
+    },
+    {
+      "company": "DreamWorks Animation",
+      "role": "Audience Insights & Analytics Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.smartrecruiters.com/NBCUniversal3/744000153373639",
+      "postedAt": "2026-10-04T14:09:00.000Z"
+    },
+    {
+      "company": "NBCUniversal",
+      "role": "Data Analytics Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.smartrecruiters.com/NBCUniversal3/744000153371465",
+      "postedAt": "2026-10-04T14:07:30.000Z"
+    },
+    {
+      "company": "NBCUniversal",
+      "role": "Media Product Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.smartrecruiters.com/NBCUniversal3/744000153373389",
+      "postedAt": "2026-10-04T14:07:28.000Z"
+    },
+    {
+      "company": "NBCUniversal",
+      "role": "Product Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.smartrecruiters.com/NBCUniversal3/744000153372229",
+      "postedAt": "2026-10-04T14:07:20.000Z"
+    },
+    {
+      "company": "DocuSign",
+      "role": "Software Engineer Intern - Self-Service Directory Diagnostics",
+      "location": "Seattle, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://careers.docusign.com/jobs/30464?icims=1",
+      "postedAt": "2026-10-04T06:10:40.000Z"
+    },
     {
       "company": "CesiumAstro",
       "role": "Electrical Engineering Intern - FPGA",
@@ -153,6 +258,39 @@
       "postedAt": "2026-10-03T01:07:58.000Z"
     },
     {
+      "company": "Northern Trust",
+      "role": "Data & Analytics Office Intern",
+      "location": "Chicago, IL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://ntrs.wd1.myworkdayjobs.com/northerntrust/job/Chicago-IL/Data---Analytics-Office-Intern_R160769-1",
+      "postedAt": "2026-10-03T00:00:00.000Z"
+    },
+    {
+      "company": "RTX",
+      "role": "AI DSP Applied Research Co-op",
+      "location": "Cedar Rapids, IA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-108--400-Collins-Rd-NE--BLDG-108/Co-Op---AI-DSP-Applied-Research_01873016",
+      "postedAt": "2026-10-03T00:00:00.000Z"
+    },
+    {
       "company": "Natera",
       "role": "Software Engineer Intern",
       "location": "Remote in USA",
@@ -232,20 +370,6 @@
       ],
       "experienceLevel": "Junior",
       "url": "https://www.mastercontrol.com/careers/job-listings/role/?role=4738478005&gh_jid=4738478005",
-      "postedAt": "2026-10-02T22:29:43.000Z"
-    },
-    {
-      "company": "MasterControl",
-      "role": "Context Engineering Intern",
-      "location": "United States",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://www.mastercontrol.com/careers/job-listings/role/?role=4738475005&gh_jid=4738475005",
       "postedAt": "2026-10-02T22:29:43.000Z"
     },
     {
@@ -1886,23 +2010,6 @@
       "postedAt": "2026-10-02T00:00:00.000Z"
     },
     {
-      "company": "Cadence Design Systems",
-      "role": "AI / Agentic AI / GenAI Intern - IT",
-      "location": "California",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Fall 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://cadence.wd1.myworkdayjobs.com/University_Talent_NCG/job/HOME-CA/AI---Agentic-AI---GenAI-Intern---IT--Fall-2026-_R56657",
-      "postedAt": "2026-10-02T00:00:00.000Z"
-    },
-    {
       "company": "Gas South",
       "role": "Software Engineer Intern",
       "location": "Atlanta, GA",
@@ -2322,121 +2429,6 @@
       "experienceLevel": "Advanced",
       "url": "https://www.pinterestcareers.com/jobs/?gh_jid=8140169",
       "postedAt": "2026-10-01T22:19:18.000Z"
-    },
-    {
-      "company": "Pinterest",
-      "role": "Software Engineer Intern",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://www.pinterestcareers.com/jobs/?gh_jid=8138039",
-      "postedAt": "2026-10-01T22:19:18.000Z"
-    },
-    {
-      "company": "Pinterest",
-      "role": "Machine Learning Intern",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://www.pinterestcareers.com/jobs/?gh_jid=8138080",
-      "postedAt": "2026-10-01T22:19:18.000Z"
-    },
-    {
-      "company": "Pinterest",
-      "role": "Software Engineer Intern",
-      "location": "SF, Remote in USA",
-      "workMode": "Remote",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://www.pinterestcareers.com/jobs/?gh_jid=7838577",
-      "postedAt": "2026-10-01T22:19:18.000Z"
-    },
-    {
-      "company": "Stand Together",
-      "role": "Analytics Intern",
-      "location": "Chicago, IL",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.lever.co/standtogether/2d8f9d0f-9218-4936-8f39-dfb729db830b/apply",
-      "postedAt": "2026-10-01T22:18:53.000Z"
-    },
-    {
-      "company": "Novelis",
-      "role": "Analytics & Data Consumption Co-op",
-      "location": "Kennesaw, GA",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://careers-novelis.icims.com/jobs/54350/job?mobile=true&needsRedirect=false",
-      "postedAt": "2026-10-01T22:17:21.000Z"
-    },
-    {
-      "company": "Nokia",
-      "role": "AI R&D Engineer Co-op",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/40689",
-      "postedAt": "2026-10-01T22:16:42.000Z"
-    },
-    {
-      "company": "Nokia",
-      "role": "AI R&D Engineer Co-op",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/40701",
-      "postedAt": "2026-10-01T22:16:42.000Z"
     }
   ]
 }
