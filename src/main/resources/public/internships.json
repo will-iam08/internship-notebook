@@ -1,7 +1,25 @@
 {
-  "generatedAt": "2026-10-10T17:52:54.431Z",
+  "generatedAt": "2026-10-11T18:07:17.188Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "Johns Hopkins Applied Physics Laboratory",
+      "role": "Data Science & Autonomous Systems Intern - Data Science & Autonomous Systems - Critical Infrastructure Protection",
+      "location": "Laurel, MD",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.jhuapl.edu/jobs/60432?icims=1",
+      "postedAt": "2026-10-10T22:07:37.000Z"
+    },
     {
       "company": "Meter",
       "role": "Hardware Engineer Intern",
@@ -1482,40 +1500,6 @@
       "postedAt": "2026-10-09T00:00:00.000Z"
     },
     {
-      "company": "General Motors",
-      "role": "Summer Intern - Onboard Autonomy - Embodied AI",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://generalmotors.wd5.myworkdayjobs.com/en-CA/Careers_GM/job/Sunnyvale-California-United-States-of-America/XMLNAME-2027-Summer-Intern--Onboard-Autonomy--Embodied-AI_JR-202622135",
-      "postedAt": "2026-10-09T00:00:00.000Z"
-    },
-    {
-      "company": "General Motors",
-      "role": "Data Scaling Intern - Data Scaling - Embodied AI",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://generalmotors.wd5.myworkdayjobs.com/en-CA/Careers_GM/job/Sunnyvale-California-United-States-of-America/XMLNAME-2027-Summer-Intern---Data-Scaling--Embodied-AI_JR-202622132",
-      "postedAt": "2026-10-09T00:00:00.000Z"
-    },
-    {
       "company": "Nissan Global",
       "role": "EA & Cloud Intern",
       "location": "Franklin, TN",
@@ -2321,23 +2305,6 @@
       "postedAt": "2026-10-08T22:08:01.000Z"
     },
     {
-      "company": "Renesas Electronics",
-      "role": "Memory Server System Testing Intern",
-      "location": "San Jose, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jobs.smartrecruiters.com/RenesasElectronics/744000154490303",
-      "postedAt": "2026-10-08T22:06:52.000Z"
-    },
-    {
       "company": "Koch Industries",
       "role": "Data Science Intern",
       "location": "Atlanta, GA",
@@ -2433,6 +2400,40 @@
       "experienceLevel": "Junior",
       "url": "https://careers.msasafety.com/jobs/10162?icims=1",
       "postedAt": "2026-10-08T14:10:43.000Z"
+    },
+    {
+      "company": "Cirrus Logic",
+      "role": "Software Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://jobs.eu.lever.co/cirrus/8a27643f-35d8-44f2-b8f3-2318a3d26d4d/apply",
+      "postedAt": "2026-10-08T14:10:26.000Z"
+    },
+    {
+      "company": "DoorDash",
+      "role": "Software Engineer Intern",
+      "location": "SF, Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://job-boards.greenhouse.io/doordashusa/jobs/8263774",
+      "postedAt": "2026-10-08T10:03:47.000Z"
     }
   ]
 }
