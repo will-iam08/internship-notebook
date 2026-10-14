@@ -1,7 +1,1413 @@
 {
-  "generatedAt": "2026-10-13T19:53:02.460Z",
+  "generatedAt": "2026-10-14T18:02:59.397Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "Apple",
+      "role": "Formal Verification Framework for Hardware IPs Validation Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://jobs.apple.com/en-us/details/200688723",
+      "postedAt": "2026-10-14T14:30:52.000Z"
+    },
+    {
+      "company": "BNY",
+      "role": "Product Management Intern",
+      "location": "Greater Manchester, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://eofe.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/83098",
+      "postedAt": "2026-10-14T14:29:15.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Optical Engineer Intern - Camera, Depth & Cover Window Optics",
+      "location": "Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/2271558583687956",
+      "postedAt": "2026-10-14T14:26:42.000Z"
+    },
+    {
+      "company": "Point72",
+      "role": "Data Scientist Intern",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://boards.greenhouse.io/point72/jobs/8885299002",
+      "postedAt": "2026-10-14T14:21:00.000Z"
+    },
+    {
+      "company": "Point72",
+      "role": "Software Engineer Intern",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://boards.greenhouse.io/point72/jobs/8885733002",
+      "postedAt": "2026-10-14T14:20:59.000Z"
+    },
+    {
+      "company": "Faculte",
+      "role": "Data Science Fellow",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jobs.ashbyhq.com/faculty-fellowship/bedcedbc-334a-4e61-a864-cc3fc1ab544d/application?embed=true",
+      "postedAt": "2026-10-14T14:05:34.000Z"
+    },
+    {
+      "company": "Tenstorrent",
+      "role": "Systems Intern - Multiple Teams",
+      "location": "Toronto, ON, Canada, Vancouver, BC, Canada",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://job-boards.greenhouse.io/tenstorrentuniversity/jobs/5264407007",
+      "postedAt": "2026-10-14T09:02:18.000Z"
+    },
+    {
+      "company": "Profound Medical",
+      "role": "Software Development Co-op",
+      "location": "Mississauga, ON, Canada",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://profoundmedical.bamboohr.com/careers/353/",
+      "postedAt": "2026-10-14T06:07:08.000Z"
+    },
+    {
+      "company": "TikTok",
+      "role": "Machine Learning Engineer Intern - E-Commerce User Growth",
+      "location": "Seattle, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://lifeattiktok.com/search/7694357619162532149",
+      "postedAt": "2026-10-14T01:48:35.000Z"
+    },
+    {
+      "company": "Brain Co.",
+      "role": "Machine Learning Engineer – Applied AI Co-op Intern",
+      "location": "SF",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Winter 2027",
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ashbyhq.com/brainco/b6adda4c-490c-4e9e-8354-e55c05d3c6ac/application?embed=true",
+      "postedAt": "2026-10-14T01:41:05.000Z"
+    },
+    {
+      "company": "Brain Co.",
+      "role": "AI Product Engineer Co-op Intern",
+      "location": "SF",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ashbyhq.com/brainco/7ce0af56-d15e-4fc8-91a5-9e56cdb9cf42/application?embed=true",
+      "postedAt": "2026-10-14T01:41:04.000Z"
+    },
+    {
+      "company": "L3Harris Technologies",
+      "role": "Associate Software Engineering Intern",
+      "location": "Chantilly, VA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.l3harris.com/job/Chantilly-Associate,-Software-Engineering-VA-20151/1439514100/?ats=successfactors",
+      "postedAt": "2026-10-14T01:36:58.000Z"
+    },
+    {
+      "company": "Electronic Arts",
+      "role": "Software Engineer Intern",
+      "location": "Vancouver, BC, Canada",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ea.com/en_US/careers/JobDetail/Software-Engineer-Intern/216287",
+      "postedAt": "2026-10-14T01:27:00.000Z"
+    },
+    {
+      "company": "Microsoft",
+      "role": "Research Intern - Machine Learning and Statistics",
+      "location": "Cambridge, MA, Redmond, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557040502",
+      "postedAt": "2026-10-14T01:25:24.000Z"
+    },
+    {
+      "company": "Phillips 66",
+      "role": "University Intern - ERI Analytical Solutions",
+      "location": "Bartlesville, OK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://careers.phillips66.com/job/Bartlesville-West-2027-University-Intern-ERI-Analytical-Solutions-OK-74004/1439555700/?ats=successfactors",
+      "postedAt": "2026-10-14T01:24:27.000Z"
+    },
+    {
+      "company": "Anduril",
+      "role": "Firmware Engineer Intern",
+      "location": "Costa Mesa, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://boards.greenhouse.io/andurilindustries/jobs/5265158007",
+      "postedAt": "2026-10-14T01:21:19.000Z"
+    },
+    {
+      "company": "Astera Labs",
+      "role": "Firmware Engineer Co-op Intern",
+      "location": "San Jose, CA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Summer 2026"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/asteraearlycareer2027/jobs/4739957005",
+      "postedAt": "2026-10-14T01:13:57.000Z"
+    },
+    {
+      "company": "Astera Labs",
+      "role": "Firmware Engineer Co-op Intern",
+      "location": "Vancouver, BC, Canada",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/asteraearlycareer2027/jobs/4739544005",
+      "postedAt": "2026-10-14T01:13:57.000Z"
+    },
+    {
+      "company": "Astera Labs",
+      "role": "Firmware Engineer Intern Co-op",
+      "location": "San Jose, CA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Fall 2026"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/asteraearlycareer2027/jobs/4739956005",
+      "postedAt": "2026-10-14T01:13:56.000Z"
+    },
+    {
+      "company": "Groma",
+      "role": "Finance Systems Co-op",
+      "location": "Boston, MA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/groma/jobs/4743496005",
+      "postedAt": "2026-10-14T01:11:35.000Z"
+    },
+    {
+      "company": "Nokia",
+      "role": "Photonic Test Co-op",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/41182",
+      "postedAt": "2026-10-14T01:09:33.000Z"
+    },
+    {
+      "company": "Nokia",
+      "role": "Optoelectronics Test Development Co-op",
+      "location": "Allentown, PA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/41124",
+      "postedAt": "2026-10-14T01:09:32.000Z"
+    },
+    {
+      "company": "Amazon",
+      "role": "Hardware Development Engineer Intern",
+      "location": "North Reading, MA, Hawthorne, CA, Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2027",
+        "Summer 2027",
+        "Fall 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://amazon.jobs/en/jobs/10578090/hardware-development-engineer-intern-summer-2027",
+      "postedAt": "2026-10-14T01:04:53.000Z"
+    },
+    {
+      "company": "Field AI",
+      "role": "Research Scientist Intern - Robot Learning & Manipulation",
+      "location": "Irvine, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027",
+        "Summer 2027",
+        "Fall 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jobs.lever.co/field-ai/b37569c3-d07f-4968-82dc-44020f34e54e/apply",
+      "postedAt": "2026-10-14T01:04:29.000Z"
+    },
+    {
+      "company": "Field AI",
+      "role": "Robotics Research Intern - Embodied AI",
+      "location": "Irvine, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027",
+        "Summer 2027"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jobs.lever.co/field-ai/ef35c537-b864-479f-9dbe-b30429ac7704/apply",
+      "postedAt": "2026-10-14T01:04:24.000Z"
+    },
+    {
+      "company": "Assurant",
+      "role": "Data Support Analyst Intern",
+      "location": "Chicago, IL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://assurant.wd1.myworkdayjobs.com/en-US/Assurant_Careers/job/Illinois-Virtual/Summer-2027-Intern--Data-Support-Analyst_R-115717",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Northrop Grumman",
+      "role": "Software Embedded Engineer Intern",
+      "location": "Annapolis, MD",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://ngc.wd1.myworkdayjobs.com/Northrop_Grumman_External_Site/job/United-States-Maryland-Annapolis/XMLNAME-2027-S-W-Embedded-Engineering-Intern---Annapolis-MD_R10254697",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Northrop Grumman",
+      "role": "Electronics Engineering Intern",
+      "location": "Annapolis, MD",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://ngc.wd1.myworkdayjobs.com/Northrop_Grumman_External_Site/job/United-States-Maryland-Annapolis/XMLNAME-2027-H-W-Electronics-Engineering-Intern---Annapolis-MD_R10254689-1",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Chanel",
+      "role": "Finance and ESG Performance Management Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://cc.wd3.myworkdayjobs.com/ChanelCareers/job/London/Intern---Finance-and-ESG-Performance-Management_JOBREQ00117987",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Tencent",
+      "role": "LLM Agent Research Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://tencent.wd1.myworkdayjobs.com/OA_Huoshui_Platform/job/United-Kingdom-London/LLM-Agent-Research-Intern_R108250",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Tencent",
+      "role": "LLM Agent Research Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://tencent.wd1.myworkdayjobs.com/Tencent_Careers/job/United-Kingdom-London/LLM-Agent-Research-Intern_R108250-1",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "SPS Commerce",
+      "role": "Software Engineer Intern",
+      "location": "Brampton, ON, Canada",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://spscommerce.wd108.myworkdayjobs.com/SPS/job/CA-ON-Brampton-Office/Software-Engineer-Intern_R-001352",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "GE Vernova",
+      "role": "Grid Foundational Models Intern - AGI",
+      "location": "Bellevue, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://gevernova.wd5.myworkdayjobs.com/vernova_externalsite/job/Bellevue/GE-Vernova---AGI---Grid-Foundational-Models-Intern---Summer-2027_R5054820-3",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "GE Vernova",
+      "role": "AI Post-Training and Model Alignment Intern",
+      "location": "Bellevue, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://gevernova.wd5.myworkdayjobs.com/only_confidential_executive_recruiting/job/Bellevue/GE-Vernova---AGI---AI-Post-Training-and-Model-Alignment-Intern---Summer-2027_R5054822-1",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "GE Vernova",
+      "role": "Power System Intern",
+      "location": "Bellevue, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://gevernova.wd5.myworkdayjobs.com/only_confidential_executive_recruiting/job/Bellevue/GE-Vernova---AGI---Grid-Foundational-Models-Intern---Summer-2027_R5054820-2",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Parsons",
+      "role": "Software Engineer Intern",
+      "location": "Huntsville, AL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://parsons.wd5.myworkdayjobs.com/en-US/search/job/US---AL-Huntsville/Software-Engineering-Intern--Summer-2027-_R187299",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "GE Vernova",
+      "role": "AI Evaluation & Benchmarking Intern - AGI",
+      "location": "Bellevue, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://gevernova.wd5.myworkdayjobs.com/only_confidential_executive_recruiting/job/Bellevue/GE-Vernova---AGI---AI-Evaluation---Benchmarking-Intern---Summer-2027_R5054821-1",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "GE Vernova",
+      "role": "AI Post-Training and Model Alignment Intern",
+      "location": "Bellevue, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://gevernova.wd5.myworkdayjobs.com/vernova_externalsite/job/Bellevue/GE-Vernova---AGI---AI-Post-Training-and-Model-Alignment-Intern---Summer-2027_R5054822-2",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "GE Vernova",
+      "role": "AI Evaluation & Benchmarking Intern",
+      "location": "Bellevue, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://gevernova.wd5.myworkdayjobs.com/vernova_externalsite/job/Bellevue/GE-Vernova---AGI---AI-Evaluation---Benchmarking-Intern---Summer-2027_R5054821-2",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "KION Group",
+      "role": "Software Engineer Intern",
+      "location": "Grand Rapids, MI, Wauwatosa, WI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://kiongroup.wd3.myworkdayjobs.com/en-US/KION_SCS/job/Grand-Rapids-MI-United-States/Software-Engineering-Intern_JR-0097732",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "J.M. Smucker",
+      "role": "Net Revenue Optimization Intern",
+      "location": "Orrville, OH",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://smucker.wd5.myworkdayjobs.com/US_External_Careers/job/Orrville-OH/Net-Revenue-Optimization-Intern--Summer-2027_116006",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "NVIDIA",
+      "role": "Data Processing Developer Technology Intern",
+      "location": "Bristol, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/UK-Bristol/Data-Processing-Developer-Technology-Intern---2027_JR2027948",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Johnson & Johnson",
+      "role": "AI/ML/Data Science Intern",
+      "location": "Boston, MA, Barcelona, Spain, Spring House, PA, New Brunswick, NJ, Madrid, Spain, NYC, High Wycombe, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jj.wd5.myworkdayjobs.com/JJ/job/Zug-Switzerland/AI-ML-Data-Science-Intern_R-104697",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "KION Group",
+      "role": "Software Engineer Intern",
+      "location": "Grand Rapids, MI, Wauwatosa, WI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://kiongroup.wd3.myworkdayjobs.com/kiongroup/job/Grand-Rapids-MI-United-States/Software-Engineering-Intern_JR-0097732-1",
+      "postedAt": "2026-10-14T00:00:00.000Z"
+    },
+    {
+      "company": "Metropolitan Transportation Authority",
+      "role": "Data Analyst Intern - Power Control Center",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.jobvite.com/metropolitantransportationauthority/job/omtWAfw5?nl=1&nl=1&fr=false",
+      "postedAt": "2026-10-13T22:20:29.000Z"
+    },
+    {
+      "company": "Metropolitan Transportation Authority",
+      "role": "Data Analyst Emerging Talent Intern - Supplier Relations",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.jobvite.com/metropolitantransportationauthority/job/oOvWAfwz?nl=1&nl=1&fr=false",
+      "postedAt": "2026-10-13T22:20:20.000Z"
+    },
+    {
+      "company": "Pebl",
+      "role": "Software Engineering Intern",
+      "location": "Toronto, ON, Canada",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://jobs.ashbyhq.com/pebl/49d8b355-620b-4dde-be4b-5489abf4c9cf/application?embed=true",
+      "postedAt": "2026-10-13T22:18:27.000Z"
+    },
+    {
+      "company": "Amazon",
+      "role": "Hardware Development Engineer Intern Co-op - Robotics",
+      "location": "North Reading, MA, Westborough, MA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Winter 2027",
+        "Spring 2027",
+        "Summer 2027",
+        "Fall 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://amazon.jobs/en/jobs/10535282/hardware-development-engineer-intern-co-op-robotics-2027",
+      "postedAt": "2026-10-13T22:18:27.000Z"
+    },
+    {
+      "company": "Walgreens",
+      "role": "Data Science Intern",
+      "location": "Deerfield, IL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://sjobs.brassring.com/TGnewUI/Search/home/HomeWithPreLoad?partnerid=26336&siteid=5014&PageType=JobDetails&jobid=1946191",
+      "postedAt": "2026-10-13T22:18:26.000Z"
+    },
+    {
+      "company": "Rivian",
+      "role": "Electronics Design Engineering Intern - Low Voltage Electronics",
+      "location": "Champaign, IL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.rivian.com/jobs/34370?icims=1",
+      "postedAt": "2026-10-13T22:18:17.000Z"
+    },
+    {
+      "company": "Eurostar International",
+      "role": "Software Developer Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://apply.workable.com/eurostar/j/D69651A000/apply",
+      "postedAt": "2026-10-13T22:18:11.000Z"
+    },
+    {
+      "company": "Armadin",
+      "role": "Frontend Engineer Intern - Member of Technical Staff",
+      "location": "Palo Alto, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ashbyhq.com/armadin/571d7673-ce4b-414c-b736-38297d1d2b8b/application?embed=true",
+      "postedAt": "2026-10-13T22:17:32.000Z"
+    },
+    {
+      "company": "Boston Consulting Group",
+      "role": "Forward Deployed AI Scientist Intern",
+      "location": "Boston, MA, LA, Chicago, IL, NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.bcg.com/global/en/job/59703",
+      "postedAt": "2026-10-13T22:17:30.000Z"
+    },
+    {
+      "company": "NJ Department of Environmental Protection",
+      "role": "Watershed & Land Management Intern",
+      "location": "Trenton, NJ",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://njdepartmentofenvironmentalprotection.applytojob.com/apply/vPwbyhmsxt/Watershed-Land-Management-Intern-WLM20265i",
+      "postedAt": "2026-10-13T22:17:29.000Z"
+    },
+    {
+      "company": "Boston Consulting Group",
+      "role": "Forward Deployed AI Engineer Intern",
+      "location": "Boston, MA, LA, Chicago, IL, NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.bcg.com/global/en/job/59702",
+      "postedAt": "2026-10-13T22:17:28.000Z"
+    },
+    {
+      "company": "Skydio",
+      "role": "Embedded Software Engineer Intern",
+      "location": "San Mateo, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ashbyhq.com/skydio/8994767e-fd53-4ca2-b0ef-fe0923c1e260/application?embed=true",
+      "postedAt": "2026-10-13T22:16:55.000Z"
+    },
+    {
+      "company": "Carbon Robotics",
+      "role": "Engineering Intern - Hardware & Software",
+      "location": "Seattle, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://carbonrobotics.com/job-openings?gh_jid=4721558006",
+      "postedAt": "2026-10-13T22:16:28.000Z"
+    },
+    {
+      "company": "Figma",
+      "role": "PhD Intern - Software Engineer - Graphics",
+      "location": "SF, NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://boards.greenhouse.io/figma/jobs/6219995004",
+      "postedAt": "2026-10-13T22:16:17.000Z"
+    },
+    {
+      "company": "Electronic Arts",
+      "role": "Technical Artist Co-op",
+      "location": "Vancouver, BC, Canada",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ea.com/en_US/careers/JobDetail/Technical-Artist-Co-op/216406",
+      "postedAt": "2026-10-13T22:15:20.000Z"
+    },
+    {
+      "company": "Netflix",
+      "role": "Software Engineer Intern",
+      "location": "LA, Los Gatos, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://explore.jobs.netflix.net/careers/job/790318904468",
+      "postedAt": "2026-10-13T22:15:15.000Z"
+    },
+    {
+      "company": "Medpace",
+      "role": "Python Developer Intern",
+      "location": "Cincinnati, OH",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://careers.medpace.com/jobs/13059?icims=1",
+      "postedAt": "2026-10-13T22:14:58.000Z"
+    },
+    {
+      "company": "Waymo",
+      "role": "Intern - Multiple Teams",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.withwaymo.com/jobs?gh_jid=8265868",
+      "postedAt": "2026-10-13T22:12:12.000Z"
+    },
+    {
+      "company": "Keysight Technologies",
+      "role": "R&D Hardware Design Engineer Intern",
+      "location": "Santa Rosa, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://jobs.keysight.com/jobs/54389?icims=1",
+      "postedAt": "2026-10-13T22:11:57.000Z"
+    },
+    {
+      "company": "Keysight Technologies",
+      "role": "R&D Hardware Engineer Intern",
+      "location": "Santa Rosa, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jobs.keysight.com/jobs/54670?icims=1",
+      "postedAt": "2026-10-13T22:11:53.000Z"
+    },
+    {
+      "company": "D2L",
+      "role": "Software Developer Co-op",
+      "location": "Vancouver, BC, Canada",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://www.d2l.com/careers/jobs/?job_id=8279317&gh_jid=8279317",
+      "postedAt": "2026-10-13T22:11:11.000Z"
+    },
+    {
+      "company": "Rhombus",
+      "role": "Software Engineer Intern",
+      "location": "Sacramento, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.lever.co/rhombus-systems/59e7a5f3-b457-491d-af08-b629ad35e380/apply",
+      "postedAt": "2026-10-13T22:11:06.000Z"
+    },
+    {
+      "company": "Microsoft",
+      "role": "Research Intern - Agentic Data Memory",
+      "location": "Redmond, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557040344",
+      "postedAt": "2026-10-13T22:11:01.000Z"
+    },
+    {
+      "company": "Microsoft",
+      "role": "Research Intern - Machine Learning for Biology and Healthcare",
+      "location": "Cambridge, MA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557040333",
+      "postedAt": "2026-10-13T22:10:57.000Z"
+    },
+    {
+      "company": "Waymo",
+      "role": "Machine Learning Intern - Planning/Prediction",
+      "location": "Mountain View, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.withwaymo.com/jobs?gh_jid=8279620",
+      "postedAt": "2026-10-13T22:10:42.000Z"
+    },
+    {
+      "company": "Bose",
+      "role": "Embedded Audio Machine Learning Engineer Co-op",
+      "location": "Framingham, MA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://boseallaboutme.wd503.myworkdayjobs.com/Bose_Careers/job/US-MA---Framingham/Audio-Machine-Learning-Engineer-Co-op_R28719",
+      "postedAt": "2026-10-13T22:07:50.000Z"
+    },
+    {
+      "company": "Astera Labs",
+      "role": "Design Verification Engineer Intern",
+      "location": "San Jose, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://job-boards.greenhouse.io/asteraearlycareer2027/jobs/4743360005",
+      "postedAt": "2026-10-13T22:07:49.000Z"
+    },
+    {
+      "company": "Astera Labs",
+      "role": "Digital RTL Design Engineer Intern",
+      "location": "San Jose, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://job-boards.greenhouse.io/asteraearlycareer2027/jobs/4739915005",
+      "postedAt": "2026-10-13T22:07:48.000Z"
+    },
+    {
+      "company": "ServiceNow",
+      "role": "AI Engineering Associate Software Engineer Intern",
+      "location": "Santa Clara, CA, West Palm Beach, FL, Kirkland, WA, San Diego, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.smartrecruiters.com/ServiceNow/744000155345889",
+      "postedAt": "2026-10-13T22:07:18.000Z"
+    },
+    {
+      "company": "ServiceNow",
+      "role": "Software Engineer Intern",
+      "location": "Santa Clara, CA, West Palm Beach, FL, Kirkland, WA, San Diego, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's"
+      ],
+      "experienceLevel": "Senior",
+      "url": "https://jobs.smartrecruiters.com/ServiceNow/744000155345689",
+      "postedAt": "2026-10-13T22:07:15.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Production Systems Engineer Intern",
+      "location": "Menlo Park, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/1423159169992675",
+      "postedAt": "2026-10-13T22:07:02.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - 3D World Modeling - Robotics and Generative AI",
+      "location": "Burlingame, CA, Redmond, WA, Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/1839680137188723",
+      "postedAt": "2026-10-13T22:06:57.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - VLM and Omni Model Post-Training",
+      "location": "Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/2988199118196184",
+      "postedAt": "2026-10-13T22:06:56.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Signal Integrity Intern",
+      "location": "Menlo Park, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/2262379047961521",
+      "postedAt": "2026-10-13T22:06:56.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - Egocentric Vision-Language Models",
+      "location": "Redmond, WA, Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/2067000203934229",
+      "postedAt": "2026-10-13T22:06:56.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - Multimodal Generative AI and Robotics",
+      "location": "Redmond, WA, Sunnyvale, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/1139865145249047",
+      "postedAt": "2026-10-13T22:06:55.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern",
+      "location": "Redmond, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/3364701000388712",
+      "postedAt": "2026-10-13T22:06:55.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - AI & System Co-Design",
+      "location": "Menlo Park, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/1062032900196411",
+      "postedAt": "2026-10-13T22:06:55.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - Multiple Teams",
+      "location": "Menlo Park, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/2192664358300823",
+      "postedAt": "2026-10-13T22:06:55.000Z"
+    },
+    {
+      "company": "Meta",
+      "role": "Research Scientist Intern - AI & Compute Foundation",
+      "location": "Menlo Park, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://www.metacareers.com/jobs/1866761794487684",
+      "postedAt": "2026-10-13T22:06:53.000Z"
+    },
+    {
+      "company": "TRC Companies",
+      "role": "Safety Intern",
+      "location": "Exton, PA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD",
+        "Associate's"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://careers.trccompanies.com/jobs/27074?icims=1",
+      "postedAt": "2026-10-13T22:05:36.000Z"
+    },
+    {
+      "company": "Acadian Asset Management",
+      "role": "Quantitative Investment Intern",
+      "location": "Boston, MA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://www.acadian-asset.com/careers/open-positions?gh_jid=4720681006",
+      "postedAt": "2026-10-13T22:05:19.000Z"
+    },
+    {
+      "company": "Gallup",
+      "role": "Data Engineer Intern",
+      "location": "SF",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "Associate's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://job-boards.greenhouse.io/gallup/jobs/4449991009",
+      "postedAt": "2026-10-13T22:04:26.000Z"
+    },
     {
       "company": "Boston Scientific",
       "role": "R&D Firmware Engineer Intern",
@@ -66,6 +1472,22 @@
       "experienceLevel": "Junior",
       "url": "https://job-boards.greenhouse.io/vestmark/jobs/8204509",
       "postedAt": "2026-10-13T14:05:01.000Z"
+    },
+    {
+      "company": "Goodlord",
+      "role": "Engineering Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.ashbyhq.com/goodlord/7b103308-98c7-4505-b8c6-b98383e51b61/application?embed=true",
+      "postedAt": "2026-10-13T09:16:07.000Z"
     },
     {
       "company": "Meta",
@@ -183,23 +1605,6 @@
       "postedAt": "2026-10-13T00:00:00.000Z"
     },
     {
-      "company": "RTX",
-      "role": "Software Engineer Intern",
-      "location": "Annapolis Junction, MD",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://globalhr.wd5.myworkdayjobs.com/fr-CA/Private_Posting_No_TMP/job/US-MD-ANNAPOLIS-JUNCTION-339--306-Sentinel-Dr--339-BLDG/Software-Engineering-Intern--Summer-2027-_01880895-1",
-      "postedAt": "2026-10-13T00:00:00.000Z"
-    },
-    {
       "company": "SOTI",
       "role": "Software Developer Intern",
       "location": "Mississauga, ON, Canada",
@@ -261,6 +1666,734 @@
       "postedAt": "2026-10-13T00:00:00.000Z"
     },
     {
+      "company": "Northrop Grumman",
+      "role": "Computer Engineer Intern",
+      "location": "Manhattan Beach, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://ngc.wd1.myworkdayjobs.com/Northrop_Grumman_External_Site/job/United-States-California-Manhattan-Beach/XMLNAME-2027-Computer-Engineer-Intern---Manhattan-Beach-CA_R10255835",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "CoStar Group",
+      "role": "Product Intern",
+      "location": "Richmond, VA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://costar.wd1.myworkdayjobs.com/Costar_Campus/job/US-VA-Richmond---CoStar-Tower/Product-Intern---Richmond--VA--Summer-2027-_R39900",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Product Development Intern - Electron Beam Instrumentation",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Ann-Arbor-MI/Product-Development-Intern---Electron-Beam-Instrumentation_2642032",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Hewlett Packard Enterprise",
+      "role": "HPC AI Networking Intern - Network Transport",
+      "location": "Chippewa Falls, WI, Fort Collins, CO",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Fort-Collins-Colorado/HPC---AI-Networking-Intern---Network-Transport_1213416",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Product Development Intern - Electron Beam Instrumentation",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Ann-Arbor-MI/Product-Development-Intern---Electron-Beam-Instrumentation_2642030-2",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Machine Learning Engineer Intern",
+      "location": "Milpitas, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Milpitas-CA/ML-Engineer-Intern_2641872",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Software Engineer Intern - AI",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Ann-Arbor-MI/Software-Engineer-Intern---AI_2641817",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Product Development Intern - Electron Beam Instrumentation",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/annarbor/job/Ann-Arbor-MI/Product-Development-Intern---Electron-Beam-Instrumentation_2642030-3",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Draper",
+      "role": "Acoustic and Vibration Technologies Intern - Summer 2027",
+      "location": "Cambridge, MA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://draper.wd5.myworkdayjobs.com/Draper_Careers/job/Cambridge-MA/Acoustic-and-Vibration-Technologies-Intern--Summer-2027-_JR003003-1",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Hewlett Packard Enterprise",
+      "role": "VLSI Design Verification Masters Level Intern",
+      "location": "Fort Collins, CO",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's"
+      ],
+      "experienceLevel": "Senior",
+      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Ft-Collins-Colorado-United-States-of-America/VLSI-Design-Verification-Masters-Level-Intern_1213425",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Software Engineer Intern - AI",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Ann-Arbor-MI/Software-Engineer-Intern---AI_2641817-2",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Product Development Intern - Electron Beam Instrumentation",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/annarbor/job/Ann-Arbor-MI/Product-Development-Intern---Electron-Beam-Instrumentation_2642032-3",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Product Development Intern - Electron Beam Instrumentation",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Ann-Arbor-MI/Product-Development-Intern---Electron-Beam-Instrumentation_2642030",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Product Development Intern - Electron Beam Instrumentation",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Ann-Arbor-MI/Product-Development-Intern---Electron-Beam-Instrumentation_2642032-2",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "AI Engineer Intern",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Ann-Arbor-MI/Software-Engineering-Intern_2641821",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "AI Engineer Intern",
+      "location": "Ann Arbor, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Ann-Arbor-MI/Software-Engineering-Intern_2641821-2",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Prologis",
+      "role": "AI Product Management Intern",
+      "location": "Denver, CO",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2026"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://prologis.wd5.myworkdayjobs.com/Prologis_External_Careers/job/Denver-Colorado/AI-Product-Management-Intern_R6840",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Ann & Robert H. Lurie Children’s Hospital of Chicago",
+      "role": "Research Student Assistant-Behavioral Health Intern",
+      "location": "Chicago, IL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://luriechildrens.wd1.myworkdayjobs.com/externalportal/job/Streeterville-Chicago-IL/Research-Student-Assistant-Behavioral-Health_JR2026-2801",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Rolls-Royce",
+      "role": "Integrated Control Systems Engineer Intern - Software",
+      "location": "Indianapolis, IN",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://rollsroyce.wd3.myworkdayjobs.com/Intern_Graduate/job/Indianapolis/Integrated-Control-Systems-Engineer-Intern--Software-_JR6161452",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "General Dynamics Information Technology",
+      "role": "AI and Data Analytics Intern",
+      "location": "Sterling, VA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "Associate's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://gdit.wd5.myworkdayjobs.com/gdit_earlytalent/job/USA-VA-Sterling/AI-and-Data-Analytics-Intern_RQ230269",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Jain Global",
+      "role": "Quant Research Intern",
+      "location": "London, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jainglobal.wd5.myworkdayjobs.com/ExternalSite/job/London-United-Kingdom/Quant-Research-Intern--Summer-2027---London-_JR100620-2",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "7-Eleven",
+      "role": "Fuel Pricing Data Scientist Intern",
+      "location": "Irving, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2026"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://my7elevenhr.wd12.myworkdayjobs.com/Careers/job/SSC-Irving-TX/Fuel-Pricing-Data-Scientist-Intern_R26_6022",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Unity",
+      "role": "Machine Learning Engineer Intern",
+      "location": "Washington, Mountain View, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://unitytech.wd1.myworkdayjobs.com/Unity/job/Mountain-View-CA-USA/XMLNAME--Req-6087--Software-Developer_JOBREQ-2615965",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "7-Eleven",
+      "role": "AI Analyst / AI Automation Specialist Intern",
+      "location": "Irving, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://my7elevenhr.wd12.myworkdayjobs.com/Careers/job/SSC-Irving-TX/ServiceNow-Intern_R26_6017",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "CAI",
+      "role": "Programmer Intern",
+      "location": "Allentown, PA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://cai.wd5.myworkdayjobs.com/computer_aid/job/PA-CLIENT-STATE/Programmer-Intern_R8523",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Motorola",
+      "role": "Electrical Engineer / PCB Designer Intern",
+      "location": "Plantation, FL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://motorolasolutions.wd5.myworkdayjobs.com/Careers/job/Plantation-FL/Electrical-Engineer---PCB-Designer-Intern---Summer-2027_R69679",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "NVIDIA",
+      "role": "Sparse Linear Algebra Libraries Intern",
+      "location": "Santa Clara, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Sparse-Linear-Algebra-Libraries-Intern---Summer-2027_JR2027429",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "RTX",
+      "role": "Engineering Intern",
+      "location": "Cedar Rapids, IA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-131--5450-C-Ave-NE--BLDG-131/Summer-Engineering-Intern--Summer-2027-_01882181",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Canadian Tire",
+      "role": "Product Strategy Student Intern",
+      "location": "Oakville, ON, Canada",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://canadiantirecorporation.wd3.myworkdayjobs.com/Enterprise_External_Careers_Site/job/Oakville-ON/Product-Strategy-Student--4-months----Winter-2027_JR164980",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "American Century Investments",
+      "role": "Systematic Credit Intern",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2026"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://americancentury.wd5.myworkdayjobs.com/AmericanCenturyInvestments/job/New-York-New-York/Systematic-Credit-Intern_R0005759",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Jain Global",
+      "role": "Quantitative Developer Intern",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://jainglobal.wd5.myworkdayjobs.com/ExternalSite/job/New-York-New-York/Quantitative-Developer-Intern--Summer-2027---New-York-_JR100608",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Sun Life",
+      "role": "AI Developer Student Intern",
+      "location": "Toronto, ON, Canada, Waterloo, ON, Canada",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://sunlife.wd3.myworkdayjobs.com/en-US/Campus/job/Toronto-Ontario/AI-Developer-Co-op_JR00128581-1",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Genentech",
+      "role": "Prescient Frontier Research Intern",
+      "location": "South SF",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://roche.wd3.myworkdayjobs.com/ROG-A2O-GENE/job/South-San-Francisco/XMLNAME-2027-Spring-Intern---Prescient-Frontier-Research_202610-124986",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Bose",
+      "role": "Audio Machine Learning Co-op",
+      "location": "Framingham, MA",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Winter 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://boseallaboutme.wd503.myworkdayjobs.com/Bose_Careers/job/US-MA---Framingham/Audio-Machine-Learning-Co-op_R29274",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "GlobalFoundries",
+      "role": "Silicon Photonics Advanced Packaging Intern",
+      "location": "Malta, NY",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://globalfoundries.wd1.myworkdayjobs.com/External/job/USA---New-York---Malta/Silicon-Photonics-Advanced-Packaging-Intern--Summer-2027-_JR-2604269",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Constellation Brands",
+      "role": "Finance Analytics Intern",
+      "location": "Rochester, NY",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://cbrands.wd5.myworkdayjobs.com/en-US/CBI_External_Careers/job/Rochester-New-York/Intern--Finance-Analytics_R-41494",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "STV",
+      "role": "Data Engineer Intern",
+      "location": "Chicago, IL",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://stvinc.wd5.myworkdayjobs.com/stv/job/Chicago-Illinois/Data-Engineering-Intern---Spring-2027_JR6379",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Schweitzer Engineering Laboratories",
+      "role": "Software Engineer Intern",
+      "location": "Spokane Valley, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://selinc.wd1.myworkdayjobs.com/SEL/job/Washington---Spokane-Valley/Software-Engineer-Intern_2026-21231",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "DriveTime",
+      "role": "Data Analytics Intern",
+      "location": "Dallas, TX, Tempe, AZ",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://drivetime.wd1.myworkdayjobs.com/DriveTime/job/1720-W-Rio-Salado-Pkwy-Tempe-AZ-85281/Analyst-Intern--Summer-2027-_R16502",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Avis Budget Group",
+      "role": "Product Innovation Intern",
+      "location": "Parsippany-Troy Hills, NJ",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://avisbudget.wd1.myworkdayjobs.com/abg_careers/job/379-Interpace-Pkwy-Parsippany-07054/Accelerate---Product-Innovation-Intern---Summer-2027_R0191163",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Pennsylvania State University",
+      "role": "Teaching Assistant Intern",
+      "location": "Pennsylvania",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Fall 2026"
+      ],
+      "degrees": [
+        "Master's"
+      ],
+      "experienceLevel": "Senior",
+      "url": "https://psu.wd1.myworkdayjobs.com/PSU_Staff/job/Penn-State-University-Park/Part-Time-Teaching-Assistant---BA-840_REQ_0000083427-1",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Computer Vision/Machine Learning Intern",
+      "location": "Milpitas, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Milpitas-CA/Computer-Vision-Machine-Learning-Intern_2641921",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "Aptiv",
+      "role": "ADAS Engineer Intern - Camera Perception",
+      "location": "Troy, MI",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/Troy-MI---USA/ADAS-Engineering-Intern---Camera-Perception_J000705551",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
+      "company": "KLA",
+      "role": "Computer Vision/Machine Learning Intern",
+      "location": "Milpitas, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Milpitas-CA/Computer-Vision-Machine-Learning-Intern_2641921-1",
+      "postedAt": "2026-10-13T00:00:00.000Z"
+    },
+    {
       "company": "Siemens",
       "role": "Sales and Service Web Development Intern - Gscs",
       "location": "Mason, OH",
@@ -307,2128 +2440,6 @@
       "experienceLevel": "Junior",
       "url": "https://apply.workable.com/scout-clean-energy/j/56C8F2E503/apply",
       "postedAt": "2026-10-12T22:23:03.000Z"
-    },
-    {
-      "company": "Koch Industries",
-      "role": "Digital Technology & Data Intern",
-      "location": "Auburn Hills, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://koch.avature.net/en_US/careers/JobDetail/195465",
-      "postedAt": "2026-10-12T22:20:48.000Z"
-    },
-    {
-      "company": "Bedrock Robotics",
-      "role": "Hardware Engineer Intern",
-      "location": "SF",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ashbyhq.com/bedrock-robotics/f9b20a47-d4b7-48a2-96d6-4e65941fd873/application?embed=true",
-      "postedAt": "2026-10-12T22:18:27.000Z"
-    },
-    {
-      "company": "1Password",
-      "role": "Data Intern - Product Analytics",
-      "location": "Remote in USA, Remote in Canada",
-      "workMode": "Remote",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ashbyhq.com/1password/412c1aac-13ce-4cc9-9c81-90a9a7a2ee48/application?embed=true",
-      "postedAt": "2026-10-12T22:18:22.000Z"
-    },
-    {
-      "company": "ExxonMobil",
-      "role": "Global Trading Intern - Quantitative Analyst",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://jobs.exxonmobil.com/job/London-Placement-Global-Trading-Quantitative-Analyst-London-2027-LND/1439091600/?ats=successfactors",
-      "postedAt": "2026-10-12T22:18:19.000Z"
-    },
-    {
-      "company": "Ascension",
-      "role": "Master Data Management Intern",
-      "location": "St. Louis, MO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ascension.org/us/en/job/2026-465180",
-      "postedAt": "2026-10-12T22:17:58.000Z"
-    },
-    {
-      "company": "Ascension",
-      "role": "Data Science Intern",
-      "location": "St. Louis, MO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ascension.org/us/en/job/2026-465186",
-      "postedAt": "2026-10-12T22:17:57.000Z"
-    },
-    {
-      "company": "Databricks",
-      "role": "Software Engineer Intern",
-      "location": "SF, Bellevue, WA, Mountain View, CA, Vancouver, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://boards.greenhouse.io/embed/job_app?token=6865687002",
-      "postedAt": "2026-10-12T22:16:37.000Z"
-    },
-    {
-      "company": "Electronic Arts",
-      "role": "Data and AI Engineer Intern",
-      "location": "Austin, TX",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's"
-      ],
-      "experienceLevel": "Senior",
-      "url": "https://jobs.ea.com/en_US/careers/JobDetail/Data-AI-Engineering-Intern-Summer-2027/216238",
-      "postedAt": "2026-10-12T22:16:19.000Z"
-    },
-    {
-      "company": "Arcesium",
-      "role": "Product Management Intern",
-      "location": "NYC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://job-boards.greenhouse.io/arcesiumllc/jobs/5257266007",
-      "postedAt": "2026-10-12T22:15:13.000Z"
-    },
-    {
-      "company": "MEMX",
-      "role": "Data Engineer Intern",
-      "location": "NYC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://job-boards.greenhouse.io/memx/jobs/5450442008",
-      "postedAt": "2026-10-12T22:15:10.000Z"
-    },
-    {
-      "company": "Keysight Technologies",
-      "role": "Tech 2 Intern",
-      "location": "Roseville, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.keysight.com/jobs/54715?icims=1",
-      "postedAt": "2026-10-12T22:12:42.000Z"
-    },
-    {
-      "company": "Keysight Technologies",
-      "role": "Research and Development Hardware Engineer Intern",
-      "location": "Austin, TX",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jobs.keysight.com/jobs/54345?icims=1",
-      "postedAt": "2026-10-12T22:12:35.000Z"
-    },
-    {
-      "company": "Keysight Technologies",
-      "role": "Test Engineering Intern Tech 3",
-      "location": "Santa Clara, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jobs.keysight.com/jobs/54786?icims=1",
-      "postedAt": "2026-10-12T22:12:31.000Z"
-    },
-    {
-      "company": "Meta",
-      "role": "Signal Integrity Intern",
-      "location": "Menlo Park, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://www.metacareers.com/jobs/1134883748976209",
-      "postedAt": "2026-10-12T22:10:36.000Z"
-    },
-    {
-      "company": "Meta",
-      "role": "Research Scientist Intern - Robotics",
-      "location": "Redmond, WA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://www.metacareers.com/jobs/2586686598441521",
-      "postedAt": "2026-10-12T22:10:33.000Z"
-    },
-    {
-      "company": "Waymo",
-      "role": "Intern - Multiple Teams",
-      "location": "Mountain View, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://careers.withwaymo.com/jobs?gh_jid=8248411",
-      "postedAt": "2026-10-12T22:10:07.000Z"
-    },
-    {
-      "company": "Nokia",
-      "role": "Hardware Development Co-op",
-      "location": "New Providence, NJ",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027",
-        "Spring 2027",
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://fa-evmr-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/40268",
-      "postedAt": "2026-10-12T22:09:40.000Z"
-    },
-    {
-      "company": "Acron Aviation",
-      "role": "Software Engineer Intern",
-      "location": "Phoenix, AZ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jobs.lever.co/acronaviation/17b5f12d-f590-432d-a421-d6f90274ae9a/apply",
-      "postedAt": "2026-10-12T22:09:12.000Z"
-    },
-    {
-      "company": "ADT",
-      "role": "Product Management & Product Operations Intern",
-      "location": "Boca Raton, FL",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://fa-erqb-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/3022393",
-      "postedAt": "2026-10-12T22:07:25.000Z"
-    },
-    {
-      "company": "Aon",
-      "role": "Health Analytics Intern",
-      "location": "Atlanta, GA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.aon.com/jobs/107879?icims=1",
-      "postedAt": "2026-10-12T22:06:14.000Z"
-    },
-    {
-      "company": "CHS",
-      "role": "Data Analyst Intern",
-      "location": "Inver Grove Heights, MN",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://careers.chsinc.com/job/Inver-Grove-Heights-Data-Analyst-Intern-MN-55077-1721/1439313500/?ats=successfactors",
-      "postedAt": "2026-10-12T22:04:45.000Z"
-    },
-    {
-      "company": "Google",
-      "role": "Forward Deployed Engineer Intern",
-      "location": "NYC, Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://www.google.com/about/careers/applications/jobs/results/75665705386549958",
-      "postedAt": "2026-10-12T14:18:41.000Z"
-    },
-    {
-      "company": "Capula",
-      "role": "Technology Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://apply.workable.com/capula-investment-management-ltd/j/96EBCF5617/apply",
-      "postedAt": "2026-10-12T14:18:00.000Z"
-    },
-    {
-      "company": "Tower Research Capital",
-      "role": "Venture Capital Intern",
-      "location": "NYC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Fall 2026",
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://www.tower-research.com/open-positions/?gh_jid=7368106",
-      "postedAt": "2026-10-12T14:10:29.000Z"
-    },
-    {
-      "company": "Bosch Home Comfort",
-      "role": "AI Business Solutions Intern",
-      "location": "Coventry, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154992819",
-      "postedAt": "2026-10-12T14:08:02.000Z"
-    },
-    {
-      "company": "CapTech Consulting",
-      "role": "Consulting Software Engineer Intern",
-      "location": "Richmond, VA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.smartrecruiters.com/CapTechConsulting/744000155019115",
-      "postedAt": "2026-10-12T14:06:16.000Z"
-    },
-    {
-      "company": "CapTech Consulting",
-      "role": "Data Analysis/Data Engineering Intern",
-      "location": "Richmond, VA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.smartrecruiters.com/CapTechConsulting/744000155023169",
-      "postedAt": "2026-10-12T14:06:11.000Z"
-    },
-    {
-      "company": "Aon",
-      "role": "Health Analytics Intern",
-      "location": "Chicago, IL, Atlanta, GA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.aon.com/jobs/107878?icims=1",
-      "postedAt": "2026-10-12T14:05:37.000Z"
-    },
-    {
-      "company": "Crown Innovations",
-      "role": "Intern",
-      "location": "Mountain View, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.smartrecruiters.com/TBD20261012CrownInnovationsInc/744000144112445",
-      "postedAt": "2026-10-12T09:42:23.000Z"
-    },
-    {
-      "company": "Bosch Home Comfort",
-      "role": "Robotics Research Intern",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://jobs.smartrecruiters.com/BoschGroup/744000154911489",
-      "postedAt": "2026-10-12T06:06:41.000Z"
-    },
-    {
-      "company": "Kainos",
-      "role": "Placement Technologist Intern",
-      "location": "Londonderry, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://kainos.wd3.myworkdayjobs.com/kainos/job/Derry-Londonderry/Placement-Technologist--L-Derry----June-2027-Start-Date_JR_18557-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Kainos",
-      "role": "Technologist Intern",
-      "location": "Belfast, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://kainos.wd3.myworkdayjobs.com/kainos/job/Belfast/Placement-Technologist--Belfast----June-2027-Start-Date_JR_18556",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Kainos",
-      "role": "Technologist Intern",
-      "location": "Birmingham, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://kainos.wd3.myworkdayjobs.com/kainos/job/Birmingham/Placement-Technologist--Birmingham----July-2027-Start-Date_JR_18558",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "LSEG",
-      "role": "Engineering Intern",
-      "location": "Nottingham, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://lseg.wd3.myworkdayjobs.com/Graduate_Careers/job/Nottingham-United-Kingdom/Engineering-Summer-Internship-Programme_R0124221",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Tencent",
-      "role": "LLM & Agent Research Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://tencent.wd1.myworkdayjobs.com/Tencent_Careers/job/United-Kingdom-London/LLM---Agent-Research-Intern_R108173",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "RTX",
-      "role": "Software Engineer Intern",
-      "location": "Tucson, AZ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://globalhr.wd5.myworkdayjobs.com/fr-CA/Private_Posting_No_TMP/job/US-AZ-TUCSON-805--1151-E-Hermans-Rd--BLDG-805/Software-Engineer-Intern_01874282-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Dynamics Information Technology",
-      "role": "Software Development Intern",
-      "location": "Falls Church, VA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://gdit.wd5.myworkdayjobs.com/gdit_earlytalent/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228406-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Dynamics Information Technology",
-      "role": "Software Development Intern",
-      "location": "Falls Church, VA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://gdit.wd5.myworkdayjobs.com/gdit_earlytalent/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228404-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "HVP/Cert Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/HVP-Cert---Engineering-Intern_J000704374",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Cloud Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Cloud-Engineering-Intern_J000704383",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "HVP/Cert Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/HVP-Cert--Engineering-Intern_J000704372",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "HVP/Certification Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/HVP-Cert-Engineering-Intern_J000704377",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Dynamics Information Technology",
-      "role": "Software Development Intern",
-      "location": "Falls Church, VA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://gdit.wd5.myworkdayjobs.com/gdit_earlytalent/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228405-2",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Cloud Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Cloud-Engineer-Intern_J000704376",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Valmont",
-      "role": "Product Analyst Intern",
-      "location": "Nebraska, Valley, NE",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Fall 2026",
-        "Spring 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://valmont.wd1.myworkdayjobs.com/ValmontCareers/job/Valley-NE/Product-Analyst-Intern--Part-Time-_R29081",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Cloud Software Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Engineering-Intern_J000704381",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "AtkinsRéalis",
-      "role": "Software Developer Intern",
-      "location": "Denver, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://slihrms.wd3.myworkdayjobs.com/careers/job/USCODenver/Software-Developer-Intern---Summer-2027_R-161580-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "GAF",
-      "role": "Master Data Management Intern",
-      "location": "Parsippany-Troy Hills, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Associate's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://gafsgi.wd5.myworkdayjobs.com/GAF_Careers/job/Parsippany-NJ/Data-Management-Intern_26425",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "CAI",
-      "role": "Software Developer Intern",
-      "location": "Pennsylvania",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://cai.wd5.myworkdayjobs.com/computer_aid/job/PA-CLIENT-STATE/Software-Developer-Intern_R8554",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "TIAA",
-      "role": "Enterprise Analytics Intern",
-      "location": "Dallas, TX, Charlotte, NC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://tiaa.wd1.myworkdayjobs.com/Search/job/Charlotte-NC-USA/XMLNAME-2027-Early-Talent-Internship--TIAA-Enterprise-Analytics_R261000118-2",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Rochester Regional Health",
-      "role": "Information Systems & Technology Co-op",
-      "location": "Rochester, NY",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://rrhs.wd5.myworkdayjobs.com/RRH/job/Riedman---Remote/RIT-Co-op--Information-Systems---Technology_REQ_243093",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Highmark Health",
-      "role": "Population Health Analytics Graduate Intern",
-      "location": "New Mexico, Washington, Kansas, Pennsylvania, North Dakota, Oregon, Delaware, Iowa, California, Washington, DC, Vermont, Wyoming, Connecticut, Texas, Montana, Florida, New Hampshire, Nevada, South Carolina, South Dakota, Georgia, Arizona, Mississippi, Tennessee, Virginia, Arkansas, Minnesota, Colorado, Nebraska, Rhode Island, Utah, Kentucky, West Virginia, NYC, Maryland, Hawaii, Wisconsin, Maine, Massachusetts, North Carolina, Oklahoma, Missouri, Ohio, New Jersey, Indiana, Louisiana, Alaska, Michigan, Illinois, Alabama, Idaho",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://highmarkhealth.wd1.myworkdayjobs.com/highmark/job/PA-Working-at-Home---Pennsylvania/Summer-2027-Population-Health-Analytics-Graduate-Intern_J287150",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "TIAA",
-      "role": "Insurance Solutions & New Markets Intern",
-      "location": "Charlotte, NC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://tiaa.wd1.myworkdayjobs.com/Search/job/Charlotte-NC-USA/XMLNAME-2027-Early-Talent-Internship--Insurance-Solutions---New-Markets_R261000120-2",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Johnson & Johnson",
-      "role": "IDAR Summer Intern - C&SP",
-      "location": "Spring House, PA, Raritan, NJ, Hopewell Township, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "MBA"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jj.wd5.myworkdayjobs.com/JJ/job/Raritan-New-Jersey-United-States-of-America/IDAR-Summer-Intern--C-SP-_R-103534",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Johnson & Johnson",
-      "role": "IDAR Summer Intern - Ease",
-      "location": "Spring House, PA, Raritan, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "MBA"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jj.wd5.myworkdayjobs.com/JJ/job/Raritan-New-Jersey-United-States-of-America/IDAR-Summer-Intern--EASE-_R-102328",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Nissan",
-      "role": "AI & Data Analytics Intern",
-      "location": "Franklin, TN, Irving, TX",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://alliance.wd3.myworkdayjobs.com/en-US/nissanjobs/job/Franklin-Tennessee---United-States-of-America/AI---Data-Analytics-Intern---Summer-2027---Irving--TX-or-Franklin--TN_R00214223",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "TJX",
-      "role": "IT Engineer Intern",
-      "location": "Watford, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://tjx.wd1.myworkdayjobs.com/tjx_external/job/Watford-HER-WD17-1TX/IT-Engineer-Placement_REQ156551",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Applied Science Intern",
-      "location": "Seattle, WA, Austin, TX, San Jose, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://expedia.wd108.myworkdayjobs.com/search/job/Austin-Domain-11---HomeAway/Applied-Science-Intern---PhD---2027---Austin--San-Jose--Seattle_R-110382-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Corewell Health",
-      "role": "Digital Services Integrated Data and Analytics Intern",
-      "location": "Grand Rapids, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Associate's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://spectrumhealth.wd5.myworkdayjobs.com/CorewellHealthCareers/job/Grand-Rapids-MI/Digital-Services-Integrated-Data-and-Analytics-Internship-Summer-2027_R228909",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Corewell Health",
-      "role": "Digital Services Generative AI Internship",
-      "location": "Grand Rapids, MI, Southfield, MI, St Joseph, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://spectrumhealth.wd5.myworkdayjobs.com/CorewellHealthCareers/job/Grand-Rapids-MI/Digital-Services-Generative-AI-Internship-Summer-2027_R229392",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Applied Science Intern",
-      "location": "Seattle, WA, Austin, TX, San Jose, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's"
-      ],
-      "experienceLevel": "Senior",
-      "url": "https://expedia.wd108.myworkdayjobs.com/search/job/Austin-Domain-11---HomeAway/Applied-Science-Intern---Masters---2027---Austin--San-Jose--Seattle_R-110379-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "RTX",
-      "role": "Software Engineering Co-op",
-      "location": "Cedar Rapids, IA",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Spring 2027",
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-182--1100-Cimmie-Ave-Ne--BLDG-182/Software-Engineering-Co-op--Spring-Summer-2027-_01881902",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "RTX",
-      "role": "Software Engineer Intern",
-      "location": "Fullerton, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-CA-FULLERTON-675--1801-Hughes-Dr--BLDG-675/Software-Engineering-Intern--Summer-2027-_01879741",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Corewell Health",
-      "role": "Digital Services Development Support and Operations Internship",
-      "location": "Grand Rapids, MI, Southfield, MI, St Joseph, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Associate's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://spectrumhealth.wd5.myworkdayjobs.com/CorewellHealthCareers/job/Grand-Rapids-MI/Digital-Services-Development-Support-and-Operations-Internship-Summer-2027_R227468",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Corewell Health",
-      "role": "Digital Services Web and Mobile Developer Intern",
-      "location": "Grand Rapids, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://spectrumhealth.wd5.myworkdayjobs.com/CorewellHealthCareers/job/Grand-Rapids-MI/Digital-Services-Web-and-Mobile-Development-Internship-Summer-2027_R224434",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Nissan Global",
-      "role": "Financial AI Engineer Intern",
-      "location": "Franklin, TN",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://alliance.wd3.myworkdayjobs.com/en-US/nissanjobs/job/Franklin-Tennessee---United-States-of-America/Financial-AI-Engineering-Intern---Summer-2027---Franklin--TN_R00214241",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Nissan Global",
-      "role": "Data Science Intern",
-      "location": "Franklin, TN",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://alliance.wd3.myworkdayjobs.com/en-US/nissanjobs/job/Franklin-Tennessee---United-States-of-America/Data-Science-Intern---Summer-2027---Franklin--TN_R00214250",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "KLA",
-      "role": "AI/ML Software Engineer Intern",
-      "location": "Ann Arbor, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's"
-      ],
-      "experienceLevel": "Senior",
-      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Ann-Arbor-MI/AI-ML-Software-Engineer---Intern_2641701-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "KLA",
-      "role": "AI/ML Software Engineer Intern",
-      "location": "Ann Arbor, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's"
-      ],
-      "experienceLevel": "Senior",
-      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Ann-Arbor-MI/AI-ML-Software-Engineer---Intern_2641701",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "KLA",
-      "role": "Algorithm Engineer Intern - GPU/CUDA",
-      "location": "Milpitas, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://kla.wd1.myworkdayjobs.com/UR/job/Milpitas-CA/Algorithm-Engineering-Intern--GPU-CUDA-_2642044-2",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "KLA",
-      "role": "Algorithm Engineer Intern - GPU/CUDA",
-      "location": "Milpitas, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://kla.wd1.myworkdayjobs.com/search/job/Milpitas-CA/Algorithm-Engineering-Intern--GPU-CUDA-_2642044",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Watts Water",
-      "role": "Product Management Co-op",
-      "location": "Menomonee Falls, WI",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://wattswater.wd5.myworkdayjobs.com/Intern-External/job/Menomonee-Falls-WI/Product-Management-Co-op--Jan-June-2027_10017702",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Cloud Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Cloud-Engineer-Intern_J000704380",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Prologis",
-      "role": "IT Customer Experience Technologies Intern",
-      "location": "Denver, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://prologis.wd5.myworkdayjobs.com/Prologis_External_Careers/job/Denver-Colorado/IT-Customer-Experience-Technologies-Intern_R6829",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Motors",
-      "role": "AI/Machine Learning Intern - Research and Development",
-      "location": "Mountain View, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM/job/Mountain-View-California-United-States-of-America/XMLNAME-2027-Summer-Intern---Research-and-Development---AI-Machine-Learning_JR-202621620",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Nissan Global",
-      "role": "Data Science Intern",
-      "location": "Smyrna, TN",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://alliance.wd3.myworkdayjobs.com/en-US/nissanjobs/job/Smyrna-Tennessee---United-States-of-America/Data-Science-Intern---Summer-2027---Smyrna--TN_R00215331",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Life Fitness",
-      "role": "Android Software Engineer Intern",
-      "location": "Schaumburg, IL",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://lifefitness.wd1.myworkdayjobs.com/searchLFN/job/Schaumburg-IL-60173/Android-Software-Intern_JR-025277",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Nissan Global",
-      "role": "Purchasing Aftersales Intern",
-      "location": "Franklin, TN",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://alliance.wd3.myworkdayjobs.com/en-US/nissanjobs/job/Franklin-Tennessee---United-States-of-America/Purchasing-Aftersales-Intern---Summer-2027---Franklin--TN_R00214278",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Motors",
-      "role": "Research and Development Intern - Smart Manufacturing Systems",
-      "location": "Warren, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM/job/Warren-Michigan-United-States-of-America/Summer-2027-Intern---Research-and-Development---Smart-Manufacturing-Systems_JR-202621657",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Life Fitness",
-      "role": "Product Management Intern",
-      "location": "Rosemont, IL",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://lifefitness.wd1.myworkdayjobs.com/searchLFN/job/Rosemont-IL/Product-Management-Intern_JR-025280",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Motors",
-      "role": "Machine Learning for Automation Researcher Intern - AI and Machine Learning for Automation Researcher",
-      "location": "Warren, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM/job/Warren-Michigan-United-States-of-America/Entry-Level---AI-and-Machine-Learning-for-Automation-Researcher_JR-202621769",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Life Fitness",
-      "role": "Embedded Software Engineer Intern",
-      "location": "Schaumburg, IL",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://lifefitness.wd1.myworkdayjobs.com/searchLFN/job/Schaumburg-IL-60173/Embedded-Software-Intern_JR-025276",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Motors",
-      "role": "Summer Intern - Research and Development - Machine Learning for Automation",
-      "location": "Warren, MI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://generalmotors.wd5.myworkdayjobs.com/Careers_GM/job/Warren-Michigan-United-States-of-America/XMLNAME-2027-Summer-Intern---Research-and-Development---Machine-Learning-for-Automation_JR-202621724",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "American Family Insurance Group",
-      "role": "Software Engineering Intern",
-      "location": "Madison, WI, Boston, MA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://amfam.wd1.myworkdayjobs.com/AmFamGroupInternCareers/job/WI-Madison/Summer-2027-Intern---Software-Engineering--Hybrid-_R39666-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Manulife Financial",
-      "role": "Data Engineering Co-op",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://manulife.wd3.myworkdayjobs.com/en-US/MFCJH_adminJobs/job/Toronto-Ontario/Winter-Co-op-2027---Data-Engineering_JR26081658-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Manulife Financial",
-      "role": "Data Engineering Co-op",
-      "location": "Waterloo, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://manulife.wd3.myworkdayjobs.com/en-US/MFCJH_adminJobs/job/Waterloo-Ontario/Winter-Co-op-2027---Data-Engineering_JR26081660-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Cboe",
-      "role": "Software Engineer Intern - C++",
-      "location": "Kansas City, MO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://cboe.wd1.myworkdayjobs.com/External_Career_CBOE/job/Kansas-City-MO/Software-Engineer-Intern--C---_R-4726",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Manulife Financial",
-      "role": "Software Engineer Co-op",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://manulife.wd3.myworkdayjobs.com/en-US/MFCJH_adminJobs/job/Toronto-Ontario/Winter-Co-op-2027---Software-Engineering_JR26081663-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "American Family Insurance Group",
-      "role": "Software Engineering Intern",
-      "location": "Madison, WI, Boston, MA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://amfam.wd1.myworkdayjobs.com/AmFamGroupInternCareers/job/MA-Boston/Summer-2027-Intern---Software-Engineering--Hybrid-_R39662",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "American Family Insurance Group",
-      "role": "Data Analyst Intern - Agency Performance, Insights and Operations",
-      "location": "Madison, WI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://amfam.wd1.myworkdayjobs.com/AmFamGroupInternCareers/job/WI-Madison/Summer-2027-Data-Analyst-Intern---Agency-Performance--Insights-and-Operations_R39513",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Manulife Financial",
-      "role": "Software Engineering Co-op",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://manulife.wd3.myworkdayjobs.com/en-US/MFCJH_adminJobs/job/Toronto-Ontario/Winter-Co-op-2027---Software-Engineering--8-Months-_JR26081664-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Manulife Financial",
-      "role": "AI Co-op",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://manulife.wd3.myworkdayjobs.com/en-US/MFCJH_adminJobs/job/Toronto-Ontario/Winter-Co-op-2027---AI_JR26081677-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Micron Technology",
-      "role": "SSD Hardware Engineering Intern",
-      "location": "Longmont, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://micron.wd1.myworkdayjobs.com/External/job/Longmont-MAX--Office-CO/Intern---SSD-Hardware-Engineering_JR114232",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "General Dynamics Information Technology",
-      "role": "Defense Agencies Intern - AI/ML",
-      "location": "Falls Church, VA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "Associate's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://gdit.wd5.myworkdayjobs.com/gdit_earlytalent/job/USA-VA-Falls-Church/XMLNAME-2027-Summer-Intern---Defense-Angencies--AI-ML-_RQ230275",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "RTX",
-      "role": "Electrical Engineer Intern",
-      "location": "Tucson, AZ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://globalhr.wd5.myworkdayjobs.com/fr-CA/Private_Posting_No_TMP/job/US-AZ-TUCSON-805--1151-E-Hermans-Rd--BLDG-805/Electrical-Engineer-Intern_01874283-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "GAF",
-      "role": "Data Science (AI) Intern",
-      "location": "Parsippany-Troy Hills, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://gafsgi.wd5.myworkdayjobs.com/GAF_Careers/job/Parsippany-NJ/AI-Intern_26421",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Cloud Software Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Cloud-Software-Engineer-Intern_J000704375",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Schweitzer Engineering Laboratories",
-      "role": "Software Engineer Intern",
-      "location": "Boise, ID",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://selinc.wd1.myworkdayjobs.com/SEL/job/Idaho---Boise/Software-Engineer-Intern_2026-22958",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "American Family Insurance Group",
-      "role": "Application Development Intern - Application Development",
-      "location": "Madison, WI, Boston, MA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://amfam.wd1.myworkdayjobs.com/AmFamGroupInternCareers/job/WI-Madison/Summer-2027-Intern---Application-Development--Hybrid-_R39458",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "RTX",
-      "role": "Electrical Engineer Co-op",
-      "location": "Cedar Rapids, IA",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Summer 2027",
-        "Fall 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-131--5450-C-Ave-NE--BLDG-131/Electrical-Engineer-Co-Op--Summer-Fall-2027-_01873470",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "NVIDIA",
-      "role": "Differentiable Simulation Research Intern",
-      "location": "Santa Clara, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Differentiable-Simulation-Research-Intern---Summer-2027_JR2027561",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Mobile Engineer Intern",
-      "location": "Seattle, WA, Austin, TX, San Jose, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://expedia.wd108.myworkdayjobs.com/search/job/Austin-Domain-11---HomeAway/Mobile-Engineering-Intern---2027---Austin--San-Jose--Seattle_R-110306-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Software Development Engineer Intern",
-      "location": "Seattle, WA, Austin, TX, San Jose, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://expedia.wd108.myworkdayjobs.com/search/job/Washington---Seattle-Campus/Software-Development-Engineering-Intern---2027---Austin--San-Jose--Seattle_R-110311-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Realty Income",
-      "role": "Technology Intern",
-      "location": "San Diego, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026",
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://realtyincome.wd108.myworkdayjobs.com/realty_income_careers/job/San-Diego-California/Technology-Intern---Multiple-Opportunities_R-100339",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "GAF",
-      "role": "IT Data Analytics Intern",
-      "location": "Parsippany-Troy Hills, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://gafsgi.wd5.myworkdayjobs.com/GAF_Careers/job/Parsippany-NJ/IT-Data-Analytics-Intern_26422",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Hewlett Packard Enterprise",
-      "role": "ASIC Intern",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Sunnyvale-California-United-States-of-America/ASIC-Intern_1214034",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Hewlett Packard Enterprise",
-      "role": "VLSI Logic Design Intern",
-      "location": "Chippewa Falls, WI",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Chippewa-Falls-Wisconsin-United-States-of-America/VLSI-Logic-Design-Intern_1213411",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Hewlett Packard Enterprise",
-      "role": "VLSI Design Verification Intern",
-      "location": "Fort Collins, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Ft-Collins-Colorado-United-States-of-America/VLSI-Design-Verification-Intern_1213399",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Hewlett Packard Enterprise",
-      "role": "ASIC Verification Engineer Intern",
-      "location": "Roseville, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Roseville-California-United-States-of-America/ASIC-Verification-Engineering-Intern_1214219",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Hewlett Packard Enterprise",
-      "role": "VLSI Logic Design Intern",
-      "location": "Fort Collins, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Ft-Collins-Colorado-United-States-of-America/VLSI-Logic-Design-Intern_1213412",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Hewlett Packard Enterprise",
-      "role": "Firmware Engineer Intern",
-      "location": "Sunnyvale, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://hpe.wd5.myworkdayjobs.com/jobsathpe/job/Sunnyvale-California-United-States-of-America/Firmware-Engineering-Intern_1214254",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Software Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Software-Engineering-Intern_J000704368-1",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Engineering Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Engineering-Intern_J000704361",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Engineering-Intern_J000704362",
-      "postedAt": "2026-10-12T00:00:00.000Z"
-    },
-    {
-      "company": "Resource Innovations",
-      "role": "Energy Engineering Intern",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://apply.workable.com/resource-innovations/j/4CAAA40639/apply",
-      "postedAt": "2026-10-11T22:14:29.000Z"
-    },
-    {
-      "company": "C&S Wholesale Grocers",
-      "role": "IS Intern - Data Analytics & Data Science",
-      "location": "Edison, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://cswg.wd1.myworkdayjobs.com/cs_careers/job/Edison-NJ/IS-Internship---Data-Analytics---Data-Science_R-268963",
-      "postedAt": "2026-10-11T00:00:00.000Z"
-    },
-    {
-      "company": "Tencent",
-      "role": "Data Science Intern",
-      "location": "Palo Alto, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://tencent.wd1.myworkdayjobs.com/Tencent_Careers/job/US-California-Palo-Alto/Data-Science-Intern_R108213",
-      "postedAt": "2026-10-11T00:00:00.000Z"
-    },
-    {
-      "company": "Meter",
-      "role": "Hardware Engineer Intern",
-      "location": "SF",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ashbyhq.com/meter/a5f1e4c3-2930-4933-ab38-8f600486494b/application?embed=true",
-      "postedAt": "2026-10-10T01:16:13.000Z"
-    },
-    {
-      "company": "Zipline",
-      "role": "Firmware Engineer Intern",
-      "location": "South SF",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://www.zipline.com/open-roles/8020865003?gh_jid=8020865003",
-      "postedAt": "2026-10-10T01:15:06.000Z"
-    },
-    {
-      "company": "Zipline",
-      "role": "Firmware Engineer Intern",
-      "location": "South SF",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://www.zipline.com/open-roles/8020863003?gh_jid=8020863003",
-      "postedAt": "2026-10-10T01:15:06.000Z"
-    },
-    {
-      "company": "TikTok",
-      "role": "Machine Learning Engineer Intern - Conversational AI",
-      "location": "Seattle, WA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://lifeattiktok.com/search/7670689681491364101",
-      "postedAt": "2026-10-10T01:12:18.000Z"
-    },
-    {
-      "company": "DocuSign",
-      "role": "Software Engineer Intern",
-      "location": "Seattle, WA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://careers.docusign.com/jobs/30499?icims=1",
-      "postedAt": "2026-10-10T01:11:05.000Z"
-    },
-    {
-      "company": "Magnet Forensics",
-      "role": "Software Developer Co-op",
-      "location": "Ontario, Canada, Waterloo, ON, Canada, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.lever.co/magnetforensics/6eba87dc-f110-47b2-8015-31311ca60f52/apply",
-      "postedAt": "2026-10-10T01:09:55.000Z"
-    },
-    {
-      "company": "Waymo",
-      "role": "Summer Intern - Research - Post Training",
-      "location": "SF, Mountain View, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://careers.withwaymo.com/jobs?gh_jid=8257006",
-      "postedAt": "2026-10-10T01:08:46.000Z"
-    },
-    {
-      "company": "Waymo",
-      "role": "Research Intern - AV Planning",
-      "location": "Mountain View, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://careers.withwaymo.com/jobs?gh_jid=8258070",
-      "postedAt": "2026-10-10T01:08:46.000Z"
-    },
-    {
-      "company": "Arizona State University",
-      "role": "Student Web Developer & Content Specialist Intern",
-      "location": "Tempe, AZ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://asuep.wd5.myworkdayjobs.com/ASUEP/job/Tempe-AZ/Student-Web-Developer---Content-Specialist_R1546",
-      "postedAt": "2026-10-10T00:00:00.000Z"
-    },
-    {
-      "company": "Microsoft",
-      "role": "Research Intern - Document Intelligence and Content Understanding",
-      "location": "Redmond, WA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://apply.careers.microsoft.com/careers/job/1970393557037649",
-      "postedAt": "2026-10-09T22:25:07.000Z"
-    },
-    {
-      "company": "Tenet3",
-      "role": "Software Developer Intern - Full Stack",
-      "location": "Dayton, OH",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://job-boards.greenhouse.io/tenet3/jobs/8878874002",
-      "postedAt": "2026-10-09T22:21:51.000Z"
-    },
-    {
-      "company": "Electronic Arts",
-      "role": "Software Engineer Intern",
-      "location": "Vancouver, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ea.com/en_US/careers/JobDetail/Software-Engineer-Intern-Summer-2027-8-Months-Sports-Technology/216225",
-      "postedAt": "2026-10-09T22:21:04.000Z"
-    },
-    {
-      "company": "Electronic Arts",
-      "role": "Software Engineer Co-op",
-      "location": "Vancouver, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ea.com/en_US/careers/JobDetail/Software-Engineer-Co-op/216231",
-      "postedAt": "2026-10-09T22:21:02.000Z"
-    },
-    {
-      "company": "Electronic Arts",
-      "role": "Gameplay Software Engineer Co-op",
-      "location": "Vancouver, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ea.com/en_US/careers/JobDetail/Software-Engineer-Co-op/216230",
-      "postedAt": "2026-10-09T22:21:01.000Z"
     }
   ]
 }
