@@ -1,7 +1,315 @@
 {
-  "generatedAt": "2026-10-17T16:28:12.859Z",
+  "generatedAt": "2026-10-18T16:34:20.860Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "Tesla",
+      "role": "Firmware Intern - SoC Firmware Engineer - SI Hardware Infrastructure",
+      "location": "Austin, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://www.tesla.com/careers/search/job/287024",
+      "postedAt": "2026-10-18T09:37:26.000Z"
+    },
+    {
+      "company": "Tesla",
+      "role": "Advanced Automation Engineer Intern - Cell Engineering - Winter/Spring 2027",
+      "location": "Fremont, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027",
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://www.tesla.com/careers/search/job/286986",
+      "postedAt": "2026-10-18T09:37:21.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Test Software Engineer Intern",
+      "location": "Edinburgh, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Edinburgh/Industrial-Placement-Test-Software-Engineer_R0034205",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Electronics Engineer Intern",
+      "location": "Bristol, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Bristol---Coldharbour-Lane/Industrial-Placement-Electronics_R0034212",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Electronics Intern",
+      "location": "Basildon, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2026"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Basildon/Electronics-Summer-Placement_R0034217",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Electronics Engineer Intern",
+      "location": "Southampton, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Southampton/Industrial-Placement-Electronics_R0034216",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Test Systems Engineer Intern",
+      "location": "Edinburgh, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Edinburgh/Industrial-Placement-Test-Systems-Engineer_R0034207",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Firmware Engineer Intern",
+      "location": "Luton, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Luton---Cap-Green-300/Industrial-Placement-Firmware-Engineer_R0032906",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Hardware Engineer Intern",
+      "location": "Luton, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Luton---Cap-Green-300/Industrial-Placement-Hardware-Engineer_R0032911",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Graduate Apprentice",
+      "location": "Edinburgh, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Edinburgh/Software-Engineer-Graduate-Apprenticeship_R0034176",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Apprentice",
+      "location": "Luton, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Luton---Cap-Green-300/Software-Engineering-Degree-Apprentice_R0034102",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Test Engineer Apprentice",
+      "location": "Luton, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Luton---Cap-Green-300/Test-Engineering-Degree-Apprentice_R0034143",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Test Systems Engineer Intern",
+      "location": "Edinburgh, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2026"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Edinburgh/Summer-Placement-Test-Systems-Engineer_R0034211",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Intern",
+      "location": "Edinburgh, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Edinburgh/Summer-Placement-Software-Engineer_R0033869-1",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Placement Intern",
+      "location": "Basildon, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Basildon/Summer-Placement-Software-Engineer_R0034282",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Intern",
+      "location": "Edinburgh, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Edinburgh/Industrial-Placement-Software-Engineer_R0033875",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Electronics Engineer Intern",
+      "location": "Basildon, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Basildon/Industrial-Placement-Electronics_R0034210",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Intern",
+      "location": "Newcastle upon Tyne, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Newcastle/Industrial-Placement-Software-Engineer_R0033876",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
+    {
+      "company": "Leonardo",
+      "role": "Software Engineer Intern",
+      "location": "Newcastle upon Tyne, UK",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Newcastle/Summer-Placement-Software-Engineer_R0033874",
+      "postedAt": "2026-10-18T00:00:00.000Z"
+    },
     {
       "company": "Ascension",
       "role": "Managed Care Analytics Intern",
@@ -100,6 +408,54 @@
       "experienceLevel": "Advanced",
       "url": "https://job-boards.greenhouse.io/togetherai/jobs/5267198007",
       "postedAt": "2026-10-17T01:04:30.000Z"
+    },
+    {
+      "company": "Northrop Grumman",
+      "role": "Engineering Technician Intern - Electrical Ground Support Equipment",
+      "location": "Chandler, AZ",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Associate's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://ngc.wd1.myworkdayjobs.com/Northrop_Grumman_External_Site/job/United-States-Arizona-Chandler/XMLNAME--Skillbridge----Engineering-Technician---Electrical-Ground-Support-Equipment_R10256530",
+      "postedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "company": "HCSC",
+      "role": "Finance Data & Analytics Developer Intern",
+      "location": "Chicago, IL, Richardson, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://hcsc.wd1.myworkdayjobs.com/en-US/HCSC_External/job/IL---Chicago/Early-Careers---Finance-Data---Analytics-Developer-Intern_R0059478",
+      "postedAt": "2026-10-17T00:00:00.000Z"
+    },
+    {
+      "company": "HCSC",
+      "role": "Finance Application Developer Intern",
+      "location": "Chicago, IL, Richardson, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://hcsc.wd1.myworkdayjobs.com/en-US/HCSC_External/job/IL---Chicago/Early-Careers---Finance-Application-Developer-Intern_R0059477",
+      "postedAt": "2026-10-17T00:00:00.000Z"
     },
     {
       "company": "Waabi",
@@ -1057,22 +1413,6 @@
       ],
       "experienceLevel": "Advanced",
       "url": "https://jj.wd5.myworkdayjobs.com/JJ/job/Cambridge-Massachusetts-United-States-of-America/Summer-intern--Digital-Signal--Imaging-AI_R-103933",
-      "postedAt": "2026-10-16T00:00:00.000Z"
-    },
-    {
-      "company": "Leonardo",
-      "role": "Software Engineer Intern",
-      "location": "Basildon, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://leonardocompany.wd3.myworkdayjobs.com/LeonardoCareerSite/job/GB---Basildon/Industrial-Placement-Software-Engineer_R0034283",
       "postedAt": "2026-10-16T00:00:00.000Z"
     },
     {
@@ -2083,345 +2423,6 @@
       "experienceLevel": "Advanced",
       "url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/job/210800615",
       "postedAt": "2026-10-15T09:39:50.000Z"
-    },
-    {
-      "company": "Microsoft",
-      "role": "Researcher Intern - Coreai",
-      "location": "Redmond, WA, Mountain View, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://apply.careers.microsoft.com/careers/job/1970393557027387",
-      "postedAt": "2026-10-15T09:04:24.000Z"
-    },
-    {
-      "company": "Microsoft",
-      "role": "Applied Sciences Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://apply.careers.microsoft.com/careers/job/1970393557040084",
-      "postedAt": "2026-10-15T09:04:23.000Z"
-    },
-    {
-      "company": "PA Consulting",
-      "role": "Electronic Engineer Intern",
-      "location": "Melbourn, Royston, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.smartrecruiters.com/PAConsulting/744000155687129",
-      "postedAt": "2026-10-15T09:04:07.000Z"
-    },
-    {
-      "company": "PA Consulting",
-      "role": "Software and AI Systems Intern",
-      "location": "Melbourn, Royston, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.smartrecruiters.com/PAConsulting/744000155685700",
-      "postedAt": "2026-10-15T09:04:06.000Z"
-    },
-    {
-      "company": "Tessera Labs",
-      "role": "Full Stack Software Engineer Intern - Full Stack",
-      "location": "San Jose, CA, Remote in USA, NYC",
-      "workMode": "Remote",
-      "isCoop": false,
-      "terms": [
-        "Fall 2026",
-        "Spring 2027",
-        "Summer 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jobs.ashbyhq.com/tessera-labs/892bb150-8c98-47f4-a8b6-93633ecb2ea7/application?embed=true",
-      "postedAt": "2026-10-15T06:29:21.000Z"
-    },
-    {
-      "company": "TikTok",
-      "role": "Research Engineer Intern - Video and Edge - Multimedia Lab",
-      "location": "San Diego, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://lifeattiktok.com/search/7696664743112788277",
-      "postedAt": "2026-10-15T01:24:35.000Z"
-    },
-    {
-      "company": "Atom Computing",
-      "role": "Research Intern",
-      "location": "Cambridge, MA, Berkeley, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2026"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://jobs.lever.co/atomcomputing/f17f16bc-d448-4a24-8449-281d660fdbfc/apply",
-      "postedAt": "2026-10-15T01:03:57.000Z"
-    },
-    {
-      "company": "Interac",
-      "role": "Product Intern - Money Movement",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://interac.wd3.myworkdayjobs.com/Interac/job/Toronto/Product-Intern--Money-Movement_REQ-2386",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Johnson & Johnson",
-      "role": "External Manufacturing Center of Excellence Intern",
-      "location": "New Brunswick, NJ, Hopewell Township, NJ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jj.wd5.myworkdayjobs.com/JJ/job/Titusville-New-Jersey-United-States-of-America/EM-Center-of-Excellence-Intern_R-103760",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Symbotic",
-      "role": "Robot Manipulation Co-op",
-      "location": "Wilmington, MA",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Spring 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://symbotic.wd504.myworkdayjobs.com/Symbotic/job/USA-Wilmington--MA---HQ/Co-op--Robot-Manipulation_R8257",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "LSEG",
-      "role": "Quant Analyst Intern",
-      "location": "Boston, MA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://lseg.wd3.myworkdayjobs.com/en-US/Careers/job/Boston-Massachusetts/Quant-Analyst_R0123224",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Autodesk",
-      "role": "PhD Researcher Intern - Agentic 3D Modeling in Immersive Environments",
-      "location": "Boston, MA, NYC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://autodesk.wd1.myworkdayjobs.com/uni/job/New-York-USA---Remote/PhD-Researcher--Agentic-3D-Modeling-in-Immersive-Environments_26WD101374",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Boeing",
-      "role": "Data Science Intern",
-      "location": "Vancouver, BC, Canada, Richmond, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://boeing.wd1.myworkdayjobs.com/external_subsidiary/job/CAN---Richmond-Canada/Data-Science-Intern_JR2026526159",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Draper",
-      "role": "Integrated Circuit Intern",
-      "location": "Cambridge, MA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://draper.wd5.myworkdayjobs.com/Draper_Careers/job/Cambridge-MA/Integrated-Circuits-Intern_JR003036",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Tencent",
-      "role": "Game Development Tools Intern - AI Focus",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://tencent.wd1.myworkdayjobs.com/Tencent_Careers/job/United-Kingdom-London/Game-Development-Tools-Intern--AI-Focus-_R108251",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Boeing",
-      "role": "Data Science Intern",
-      "location": "Vancouver, BC, Canada, Richmond, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://boeing.wd1.myworkdayjobs.com/EXTERNAL_CAREERS/job/CAN---Richmond-Canada/Data-Science-Intern_JR2026526159-1",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Applied Science Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's"
-      ],
-      "experienceLevel": "Senior",
-      "url": "https://expedia.wd108.myworkdayjobs.com/private/job/UK---London/Applied-Science-Intern---Masters---2027---London_R-110540",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Software Development Engineer Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://expedia.wd108.myworkdayjobs.com/private/job/UK---London/Software-Development-Engineering-Intern---June-2027---London_R-110551",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Expedia Group",
-      "role": "Mobile Engineer Intern",
-      "location": "London, UK",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://expedia.wd108.myworkdayjobs.com/private/job/UK---London/Mobile-Engineering-Intern---2027---London_R-110545",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Motorola Solutions",
-      "role": "Electronics Design Co-op",
-      "location": "Vancouver, BC, Canada",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://motorolasolutions.wd5.myworkdayjobs.com/Careers/job/Vancouver-Canada/Electronics-Design-Co-Op_R69811",
-      "postedAt": "2026-10-15T00:00:00.000Z"
-    },
-    {
-      "company": "Autodesk",
-      "role": "PhD Researcher Intern - Agentic 3D Modeling in Immersive Environments",
-      "location": "Boston, MA, NYC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://autodesk.wd1.myworkdayjobs.com/Ext/job/New-York-USA---Remote/PhD-Researcher--Agentic-3D-Modeling-in-Immersive-Environments_26WD101374-1",
-      "postedAt": "2026-10-15T00:00:00.000Z"
     }
   ]
 }
