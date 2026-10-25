@@ -1,7 +1,40 @@
 {
-  "generatedAt": "2026-10-24T16:38:40.051Z",
+  "generatedAt": "2026-10-25T17:04:38.366Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "Dell Technologies",
+      "role": "Data Science Intern",
+      "location": "Round Rock, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Master's",
+        "PhD"
+      ],
+      "experienceLevel": "Advanced",
+      "url": "https://iawmqy.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/careers/job/301413",
+      "postedAt": "2026-10-25T06:22:27.000Z"
+    },
+    {
+      "company": "Dell Technologies",
+      "role": "Graduate Analytics Intern",
+      "location": "Texas",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://iawmqy.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/careers/job/301412",
+      "postedAt": "2026-10-25T06:22:26.000Z"
+    },
     {
       "company": "Meta",
       "role": "Research Scientist Intern - Policy Learning for Robotics - PhD",
@@ -2412,37 +2445,6 @@
       ],
       "experienceLevel": "Junior",
       "url": "https://jobs.ashbyhq.com/sardine/b25449a4-c78c-4b1a-b5b2-74b45981a37a/application?embed=true",
-      "postedAt": "2026-10-23T00:00:00.000Z"
-    },
-    {
-      "company": "Johnson & Johnson",
-      "role": "Laboratory Automation Systems Intern",
-      "location": "Spring House, PA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jj.wd5.myworkdayjobs.com/JJ/job/Spring-House-Pennsylvania-United-States-of-America/Laboratory-Automation-Systems-Intern_R-103027",
-      "postedAt": "2026-10-23T00:00:00.000Z"
-    },
-    {
-      "company": "Aptiv",
-      "role": "Cloud Software Engineer Intern",
-      "location": "Kanata, Ottawa, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://aptiv.wd5.myworkdayjobs.com/aptiv_careers/job/CAN-Kanata-2-ON---WR/Engineering-Intern_J000704366",
       "postedAt": "2026-10-23T00:00:00.000Z"
     }
   ]
