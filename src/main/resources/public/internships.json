@@ -1,7 +1,21 @@
 {
-  "generatedAt": "2026-10-31T17:47:45.906Z",
+  "generatedAt": "2026-11-01T18:26:39.265Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "TRG",
+      "role": "Full Stack Application Developer Intern",
+      "location": "Dallas, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [],
+      "experienceLevel": "Junior",
+      "url": "https://secure7.saashr.com/ta/6203759.careers?ShowJob=638057422&lang=en-US",
+      "postedAt": "2026-11-01T15:05:18.000Z"
+    },
     {
       "company": "Firework",
       "role": "Data Engineer Intern",
@@ -2345,23 +2359,6 @@
       "experienceLevel": "Advanced",
       "url": "https://jobs.smartrecruiters.com/SyngentaGroup/744000158494415",
       "postedAt": "2026-10-29T11:27:42.000Z"
-    },
-    {
-      "company": "Tesla",
-      "role": "Data Engineer Intern - Energy",
-      "location": "Palo Alto, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Spring 2027",
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://www.tesla.com/careers/search/job/287982",
-      "postedAt": "2026-10-29T09:58:53.000Z"
     }
   ]
 }
