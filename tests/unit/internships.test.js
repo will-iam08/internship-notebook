@@ -101,3 +101,11 @@ test("selectListings maps degrees to a student-relevant experience tier", () => 
   assert.equal(level(["PhD"]), "Advanced", "not offered as a Junior/Intermediate/Senior choice");
   assert.equal(level(["JD"]), "Advanced");
 });
+
+test("advanced degrees do not hide roles that also accept undergraduate or master's students", () => {
+  const level = degrees => selectListings([role({ degrees })])[0].experienceLevel;
+  assert.equal(level(["Bachelor's", "Master's", "PhD"]), "Intermediate");
+  assert.equal(level(["Bachelor's", "PhD"]), "Junior");
+  assert.equal(level(["Master's", "PhD"]), "Senior");
+  assert.equal(level(["Associate's", "JD"]), "Junior");
+});

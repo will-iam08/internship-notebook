@@ -37,17 +37,16 @@ function workMode(locationText) {
  * that into three student-relevant tiers instead of showing raw degree names most applicants
  * here don't need: Junior (no grad degree needed - Bachelor's/Associate's/Certificate/Bootcamp
  * or nothing specified), Intermediate (open to Bachelor's or Master's), Senior (Master's/MBA,
- * without Bachelor's). A PhD or JD requirement is its own thing entirely and not a fit for this
- * audience, so those roles simply aren't offered under any of the three tiers here (they still
- * appear under "Any experience level").
+ * without Bachelor's). Roles that only accept PhD or JD candidates are Advanced and appear
+ * under "Any experience level"; accepting those degrees as well does not exclude other students.
  */
 function experienceLevel(degrees) {
   const set = new Set(degrees);
-  if (set.has("PhD") || set.has("JD")) return "Advanced";
   const undergradFriendly = set.size === 0 || set.has("Bachelor's") || set.has("Associate's") || set.has("Certificate") || set.has("Bootcamp");
   const gradLevel = set.has("Master's") || set.has("MBA");
   if (gradLevel && undergradFriendly) return "Intermediate";
   if (gradLevel) return "Senior";
+  if (!undergradFriendly && (set.has("PhD") || set.has("JD"))) return "Advanced";
   return "Junior";
 }
 
@@ -95,7 +94,7 @@ async function main() {
   console.log(`Wrote ${listings.length} listings to ${path.relative(root, target)}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main().catch(error => {
     console.error(error.message);
     process.exitCode = 1;
