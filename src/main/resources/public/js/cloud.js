@@ -1,6 +1,7 @@
 import { browserApi, setBrowserWriteListener } from "./api.js";
 import { sanitizeImportedEntry } from "./domain.js";
 import { decideSync, notebookHash } from "./sync.js";
+import { readDrafts } from "./storage.js";
 
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0";
 const MAX_CLOUD_BYTES = 900_000;
@@ -21,6 +22,9 @@ let currentUser = null;
 let notify = () => {};
 let uploadTimer = null;
 let pendingRecord = null;
+let uploadChain = Promise.resolve();
+let uploadGeneration = 0;
+let deletingAccount = false;
 let enabledUid = "";
 let status = "local";
 let error = "";
@@ -78,18 +82,37 @@ function cloudPayload(record) {
   return payload;
 }
 
-async function upload(record) {
-  if (!cloudSnapshot().enabled) return;
-  update({ status: "syncing", error: "" });
-  try {
-    const payload = cloudPayload(record);
-    const contentHash = await notebookHash(payload);
-    await storeSdk.setDoc(cloudRef(), { ...payload, contentHash, updatedAt: storeSdk.serverTimestamp() });
-    localStorage.setItem(baseKey(currentUser.uid), contentHash);
-    update({ status: "synced", error: "" });
-  } catch (uploadError) {
-    update({ status: "error", error: friendly(uploadError) });
-  }
+function cancelUploads() {
+  clearTimeout(uploadTimer);
+  uploadTimer = null;
+  pendingRecord = null;
+  uploadGeneration++;
+}
+
+function upload(record) {
+  const uid = currentUser?.uid;
+  const generation = uploadGeneration;
+  const active = () => cloudSnapshot().enabled && currentUser.uid === uid && generation === uploadGeneration;
+  const result = uploadChain.then(async () => {
+    if (!active()) throw new Error("Cloud sync was paused before this notebook could upload.");
+    update({ status: "syncing", error: "" });
+    try {
+      const payload = cloudPayload(record);
+      const contentHash = await notebookHash(payload);
+      if (!active()) throw new Error("Cloud sync was paused before this notebook could upload.");
+      await storeSdk.setDoc(storeSdk.doc(db, "notebooks", uid), { ...payload, contentHash, updatedAt: storeSdk.serverTimestamp() });
+      if (active()) {
+        localStorage.setItem(baseKey(uid), contentHash);
+        update({ status: "synced", error: "" });
+      }
+    } catch (uploadError) {
+      if (active()) update({ status: "error", error: friendly(uploadError) });
+      throw new Error(friendly(uploadError));
+    }
+  });
+  // Keep later writes and account deletion waiting even when an earlier write failed.
+  uploadChain = result.catch(() => {});
+  return result;
 }
 
 function scheduleUpload(record) {
@@ -99,7 +122,7 @@ function scheduleUpload(record) {
   uploadTimer = setTimeout(() => {
     const next = pendingRecord;
     pendingRecord = null;
-    upload(next);
+    upload(next).catch(() => {}); // Scheduled failures are shown in the cloud status; explicit uploads reject.
   }, 700);
 }
 
@@ -120,8 +143,8 @@ export async function initializeCloud(onChange) {
     await authSdk.setPersistence(auth, authSdk.browserLocalPersistence);
     setBrowserWriteListener(scheduleUpload);
     authSdk.onAuthStateChanged(auth, user => {
+      if (currentUser?.uid !== user?.uid) { enabledUid = ""; cancelUploads(); }
       currentUser = user;
-      if (!user) enabledUid = "";
       update({ status: user ? (cloudSnapshot().enabled ? "synced" : "paused") : "local", error: "" });
     });
   } catch (loadError) {
@@ -177,32 +200,39 @@ export async function refreshAccount() {
 }
 
 export async function signOutCloud() {
-  localStorage.removeItem(ENABLED_KEY);
-  enabledUid = "";
+  disableCloud();
   await authSdk.signOut(auth);
 }
 
 export async function deleteCloudAccount(password = "") {
   if (!currentUser) throw new Error("Sign in before deleting your account.");
-  const uid = currentUser.uid;
-  const providers = currentUser.providerData.map(provider => provider.providerId);
+  if (deletingAccount) throw new Error("Account deletion is already in progress.");
+  const user = currentUser;
+  const uid = user.uid;
+  const providers = user.providerData.map(provider => provider.providerId);
+  deletingAccount = true;
   try {
+    disableCloud();
     if (providers.includes("password")) {
       if (!password) throw new Error("Enter your current password to delete this account.");
-      const credential = authSdk.EmailAuthProvider.credential(currentUser.email, password);
-      await authSdk.reauthenticateWithCredential(currentUser, credential);
+      const credential = authSdk.EmailAuthProvider.credential(user.email, password);
+      await authSdk.reauthenticateWithCredential(user, credential);
     } else if (providers.includes("google.com")) {
-      await authSdk.reauthenticateWithPopup(currentUser, new authSdk.GoogleAuthProvider());
+      await authSdk.reauthenticateWithPopup(user, new authSdk.GoogleAuthProvider());
     }
+    await uploadChain;
+    if (currentUser?.uid !== uid) throw new Error("The signed-in account changed. Try deleting it again.");
     // Unverified email accounts never gain Firestore access or create a cloud notebook, but they
     // still need to be able to delete the Authentication account they just created.
-    if (currentUser.emailVerified) await storeSdk.deleteDoc(cloudRef());
-    await authSdk.deleteUser(currentUser);
+    if (user.emailVerified) await storeSdk.deleteDoc(storeSdk.doc(db, "notebooks", uid));
+    await authSdk.deleteUser(user);
     localStorage.removeItem(ENABLED_KEY);
     localStorage.removeItem(baseKey(uid));
     enabledUid = "";
   } catch (deleteError) {
     throw new Error(friendly(deleteError));
+  } finally {
+    deletingAccount = false;
   }
 }
 
@@ -236,6 +266,8 @@ export async function fetchCloudNotebook() {
 
 export async function enableCloudWithLocal() {
   if (!currentUser?.emailVerified) throw new Error("Verify your email before turning on cloud sync.");
+  if (deletingAccount) throw new Error("Wait for account deletion to finish.");
+  cancelUploads();
   enabledUid = currentUser.uid;
   localStorage.setItem(ENABLED_KEY, currentUser.uid);
   await upload(browserApi.read());
@@ -243,26 +275,46 @@ export async function enableCloudWithLocal() {
 
 export async function enableCloudWithRemote(record) {
   if (!currentUser?.emailVerified) throw new Error("Verify your email before turning on cloud sync.");
+  if (deletingAccount) throw new Error("Wait for account deletion to finish.");
+  if (Object.keys(readDrafts()).length) throw new Error("Finish saving your pending edits before replacing this notebook.");
+  const uid = currentUser.uid;
+  const original = JSON.stringify(browserApi.read());
+  const payload = cloudPayload(record);
+  disableCloud();
+  const generation = uploadGeneration;
+  const contentHash = await notebookHash(payload);
+  await uploadChain;
+  if (currentUser?.uid !== uid || deletingAccount || generation !== uploadGeneration) throw new Error("Cloud sync changed. Choose your notebook again.");
+  if (JSON.stringify(browserApi.read()) !== original || Object.keys(readDrafts()).length) {
+    throw new Error("Your local notebook changed. Finish saving your edits and choose a notebook again.");
+  }
   setBrowserWriteListener(null);
-  try { browserApi.write(cloudPayload(record)); } finally { setBrowserWriteListener(scheduleUpload); }
-  enabledUid = currentUser.uid;
-  localStorage.setItem(ENABLED_KEY, currentUser.uid);
-  localStorage.setItem(baseKey(currentUser.uid), await notebookHash(record));
+  try { browserApi.write(payload); } finally { setBrowserWriteListener(scheduleUpload); }
+  enabledUid = uid;
+  localStorage.setItem(ENABLED_KEY, uid);
+  localStorage.setItem(baseKey(uid), contentHash);
   update({ status: "synced", error: "" });
 }
 
 export function disableCloud() {
   localStorage.removeItem(ENABLED_KEY);
   enabledUid = "";
+  cancelUploads();
   update({ status: currentUser ? "paused" : "local", error: "" });
 }
 
 export async function resumeCloud(record) {
   if (!currentUser?.emailVerified || localStorage.getItem(ENABLED_KEY) !== currentUser.uid) return { action: "paused" };
+  const uid = currentUser.uid;
+  const generation = uploadGeneration;
   const remote = await fetchCloudNotebook();
-  const localHash = await notebookHash(record);
-  const remoteHash = remote ? await notebookHash(remote) : "";
-  const decision = decideSync(localHash, remoteHash, localStorage.getItem(baseKey(currentUser.uid)) || "");
+  record = browserApi.read();
+  const original = JSON.stringify(record);
+  const [localHash, remoteHash] = await Promise.all([notebookHash(record), remote ? notebookHash(remote) : ""]);
+  if (currentUser?.uid !== uid || deletingAccount || generation !== uploadGeneration
+      || localStorage.getItem(ENABLED_KEY) !== uid) return { action: "paused" };
+  const decision = JSON.stringify(browserApi.read()) !== original || Object.keys(readDrafts()).length
+    ? "conflict" : decideSync(localHash, remoteHash, localStorage.getItem(baseKey(uid)) || "");
   if (decision === "use-remote") await enableCloudWithRemote(remote);
   else if (decision === "upload-local") await enableCloudWithLocal();
   else if (decision === "synced") {
@@ -270,7 +322,7 @@ export async function resumeCloud(record) {
     localStorage.setItem(baseKey(currentUser.uid), localHash);
     update({ status: "synced", error: "" });
   } else {
-    localStorage.removeItem(ENABLED_KEY);
+    disableCloud();
     update({ status: "paused", error: "Both the device and cloud notebooks changed. Choose which copy to keep in Settings." });
   }
   return { action: decision, remote };

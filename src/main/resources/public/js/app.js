@@ -1675,6 +1675,9 @@ function cloudCredentials() {
 }
 
 async function chooseCloudNotebook() {
+  await retryPendingDrafts();
+  await saveChain;
+  if (Object.keys(readDrafts()).length) throw new Error("Some edits are still waiting to save. Retry them before choosing a cloud notebook.");
   const remote = await fetchCloudNotebook();
   const local = BROWSER_MODE ? api.read() : null;
   if (!remote) {
