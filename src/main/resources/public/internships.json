@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T17:27:25.346Z",
+  "generatedAt": "2026-11-05T20:41:21.679Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
     {
@@ -537,23 +537,6 @@
       "experienceLevel": "Advanced",
       "url": "https://jobs.lever.co/tri/d4184c04-b963-489a-9a0b-91bc57d6267e/apply",
       "postedAt": "2026-11-05T02:43:53.000Z"
-    },
-    {
-      "company": "Toyota Research Institute",
-      "role": "Automated Driving Advanced Development Intern - Machine Learning Research",
-      "location": "Los Altos, CA",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027",
-        "Summer 2026"
-      ],
-      "degrees": [
-        "PhD"
-      ],
-      "experienceLevel": "Advanced",
-      "url": "https://jobs.lever.co/tri/e7cc38d2-2b08-4349-b322-4d56cac9fb1b/apply",
-      "postedAt": "2026-11-05T02:43:52.000Z"
     },
     {
       "company": "Toyota Research Institute",
@@ -2435,6 +2418,22 @@
       "experienceLevel": "Junior",
       "url": "https://jobs.ea.com/en_US/careers/JobDetail/Anticheat-Engineer-Intern-Summer-2027/216242",
       "postedAt": "2026-11-03T23:29:40.000Z"
+    },
+    {
+      "company": "Commonwealth Fusion Systems",
+      "role": "Software Engineer Intern",
+      "location": "Devens, MA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://jobs.lever.co/cfsenergy/f71bb176-75b9-4a30-8b2a-e3078b45505d/apply",
+      "postedAt": "2026-11-03T23:25:42.000Z"
     }
   ]
 }
