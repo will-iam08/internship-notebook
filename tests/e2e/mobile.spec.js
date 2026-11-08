@@ -2,7 +2,7 @@
 // replacing the five-column scroller, the "Move to..." touch control, collapsed quick-add
 // fields, and that nothing overflows horizontally at 320/375/390/430px.
 import { expect, test } from "./fixtures.js";
-import { openApp, seedNotebook } from "./helpers.js";
+import { openApp, savedNotebook, seedNotebook } from "./helpers.js";
 
 // These are mobile/touch layout tests: force a touch-capable context (pointer: coarse) regardless
 // of which project runs the file, so "Move to..." and the stage tabs behave the same everywhere
@@ -42,6 +42,25 @@ test("Board shows stage tabs and one column at a time below 760px, with a Move t
 
   await page.getByRole("tab", { name: /Interview/ }).click();
   await expect(page.locator('.column[data-stage="INTERVIEW"]')).toHaveClass(/active-stage/);
+});
+
+test("mobile Select all affects only the visible stage and clears when that stage changes", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 860 });
+  await seedNotebook(page);
+  await openApp(page, "#/board");
+  await page.getByRole("button", { name: "Select", exact: true }).click();
+  await page.getByRole("button", { name: "Select all", exact: true }).click();
+  await expect(page.locator("#selection-bar")).toContainText("1 selected");
+  await expect(page.locator('.column:not(.active-stage) input[type="checkbox"]:checked')).toHaveCount(0);
+  await page.getByRole("combobox", { name: "Move selected to", exact: true }).selectOption("APPLIED");
+  await page.getByRole("button", { name: "Move", exact: true }).click();
+  await expect.poll(async () => (await savedNotebook(page)).applications.find(entry => entry.id === 1).status).toBe("APPLIED");
+  expect((await savedNotebook(page)).applications.find(entry => entry.id === 4).status).toBe("OFFER");
+  await page.getByRole("tab", { name: /Applied/ }).click();
+  await page.getByRole("button", { name: "Select", exact: true }).click();
+  await page.getByRole("button", { name: "Select all", exact: true }).click();
+  await page.getByRole("tab", { name: /Offer/ }).click();
+  await expect(page.locator("#selection-bar")).toContainText("0 selected");
 });
 
 test("quick add shows only Company, Role, and Stage until More details is opened", async ({ page }) => {

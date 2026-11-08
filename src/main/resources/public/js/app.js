@@ -11,7 +11,7 @@ import {
   STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
-  cleanSkills, cleanLink, countBy, reached, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  cleanSkills, cleanLink, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   previewImport
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
@@ -59,11 +59,19 @@ function readPrefs() {
   try { saved = JSON.parse(storage.get(KEYS.prefs) || "{}") || {}; } catch { saved = {}; }
   const legacyGoal = Number(storage.get(KEYS.goal) ?? storage.get(KEYS.legacyGoal));
   const theme = storage.get(KEYS.theme);
+  const filters = saved.newsFilter || {};
   return {
     goal: clamp(Number(saved.goal) || (legacyGoal > 0 ? legacyGoal : 5), 1, 50),
     name: typeof saved.name === "string" ? saved.name.slice(0, 40) : "",
     theme: theme === "light" || theme === "dark" ? theme : "system",
-    sort: ["updated", "created", "deadline", "company"].includes(saved.sort) ? saved.sort : "updated"
+    sort: ["updated", "created", "deadline", "company"].includes(saved.sort) ? saved.sort : "updated",
+    newsFilter: {
+      term: typeof filters.term === "string" ? filters.term.slice(0, 80) : "ALL",
+      degree: ["Junior", "Intermediate", "Senior"].includes(filters.degree) ? filters.degree : "ALL",
+      coopOnly: filters.coopOnly === true,
+      location: typeof filters.location === "string" ? filters.location.slice(0, 120) : "",
+      keywords: typeof filters.keywords === "string" ? filters.keywords.slice(0, 120) : ""
+    }
   };
 }
 
@@ -74,6 +82,7 @@ const state = {
   loadError: "",
   corrupted: null,
   route: { view: "today", id: null },
+  rescheduleId: null,
   backRoute: "#/board",
   selecting: false,
   selectScope: "",
@@ -86,8 +95,7 @@ const state = {
   cloud: cloudSnapshot(),
   installPrompt: null,
   dragId: null,
-  internships: { listings: [], generatedAt: "", source: "" },
-  newsFilter: { term: "ALL", degree: "ALL", coopOnly: false, location: "" }
+  internships: { listings: [], generatedAt: "", source: "" }
 };
 
 async function loadInternships() {
@@ -107,8 +115,8 @@ async function loadInternships() {
 }
 
 function savePrefs() {
-  const { goal, name, sort } = state.prefs;
-  storage.set(KEYS.prefs, JSON.stringify({ goal, name, sort }));
+  const { goal, name, sort, newsFilter } = state.prefs;
+  storage.set(KEYS.prefs, JSON.stringify({ goal, name, sort, newsFilter }));
   storage.set(KEYS.goal, String(goal));
   storage.set(KEYS.theme, state.prefs.theme);
 }
@@ -206,6 +214,13 @@ const selectButton = scope => `<button class="button ghost" type="button" data-a
 /* ==========================================================================
    10. Views
    ========================================================================== */
+function nextStepActions(entry) {
+  return entry.nextStep.trim() ? `<div class="view-actions next-step-actions">
+    <button class="button small" type="button" data-action="complete-next" data-id="${entry.id}">${icon("check")}Done</button>
+    <button class="button small ghost" type="button" data-action="reschedule-next" data-id="${entry.id}">${icon("calendar")}Reschedule</button>
+  </div>` : "";
+}
+
 function viewToday() {
   const now = new Date();
   const hour = now.getHours();
@@ -233,7 +248,7 @@ function viewToday() {
           <li><strong>Keep your notes</strong>Each application gets its own lined page for prep and contacts.</li>
         </ol>
         <div class="welcome-actions">
-          ${newButton("Add your first application")}
+          ${newButton("Save your first internship")}
           <a class="button ghost" href="#/settings">${icon("install")}<span>Install as an app</span></a>
         </div>
       </section>
@@ -292,11 +307,11 @@ function viewToday() {
           const days = daysUntil(item.date);
           const dayLabel = days < 0 ? "Overdue" : days === 0 ? "Today" : days === 1 ? "Tomorrow" : formatDay(item.date, { weekday: "short" });
           return `
-          <button class="agenda-item" type="button" data-open="${item.entry.id}">
+          <div class="agenda-row"><button class="agenda-item" type="button" data-open="${item.entry.id}">
             <span class="agenda-kind st-${item.kind === "deadline" ? "SAVED" : item.entry.status}">${icon(item.kind === "deadline" ? "clock" : "flag")}</span>
             <span class="agenda-text"><strong>${esc(item.kind === "deadline" ? `Apply to ${item.entry.company}` : item.entry.nextStep || `Next step with ${item.entry.company}`)}</strong>
             <span>${esc(dayLabel)} · ${esc(item.entry.role)}</span></span>
-          </button>`;
+          </button>${item.kind === "next" ? nextStepActions(item.entry) : ""}</div>`;
         }).join("")}</div>`
       : `<p class="empty-note">Nothing dated yet. Add a deadline or a next step (like an interview date) to a page.</p>`}
       <p class="card-note" style="margin-top:10px">Full agenda and nudges moved to <a href="#/board">Board</a>.</p>
@@ -332,11 +347,11 @@ function agendaCard() {
         <li class="agenda-day">
           <p class="agenda-date ${group.tone}">${esc(group.label)}</p>
           <div class="agenda-items">${group.items.map(item => `
-            <button class="agenda-item" type="button" data-open="${item.entry.id}">
+            <div class="agenda-row"><button class="agenda-item" type="button" data-open="${item.entry.id}">
               <span class="agenda-kind st-${item.kind === "deadline" ? "SAVED" : item.entry.status}">${icon(item.kind === "deadline" ? "clock" : "flag")}</span>
               <span class="agenda-text"><strong>${esc(item.kind === "deadline" ? `Apply to ${item.entry.company}` : item.entry.nextStep || `Next step with ${item.entry.company}`)}</strong>
               <span>${esc(item.kind === "deadline" ? item.entry.role : `${item.entry.company} · ${item.entry.role}`)}</span></span>
-            </button>`).join("")}</div>
+            </button>${item.kind === "next" ? nextStepActions(item.entry) : ""}</div>`).join("")}</div>
         </li>`).join("")}</ul>${agenda.length > 9 ? `<p class="card-note" style="margin-top:10px">${plural(agenda.length - 9, "more item")} in <a href="#/notebook" data-action="sort-deadline">All pages</a>.</p>` : ""}`
       : `<p class="empty-note">Nothing dated yet. Add a deadline or a next step (like an interview date) to a page and it shows up here.</p>`}
     </section>`;
@@ -367,43 +382,60 @@ function sortTerms(terms) {
   });
 }
 const EXPERIENCE_LEVELS = [
-  ["Junior", "Junior (Bachelor's)"],
-  ["Intermediate", "Intermediate (Bachelor's or Master's)"],
-  ["Senior", "Senior (Master's)"]
+  ["Junior", "Undergraduate or unspecified"],
+  ["Intermediate", "Undergraduate or graduate"],
+  ["Senior", "Graduate degree"]
 ];
 function newsTerms() {
   return sortTerms([...new Set(state.internships.listings.flatMap(listing => listing.terms || []).filter(term => term && term !== "N/A"))]);
 }
 
+function postingKey(link) {
+  try {
+    const url = new URL(cleanLink(link));
+    url.hash = "";
+    for (const key of [...url.searchParams.keys()]) if (/^utm_|^(gclid|fbclid)$/i.test(key)) url.searchParams.delete(key);
+    url.searchParams.sort();
+    return `${url.origin}${url.pathname.replace(/\/$/, "")}${url.search}`;
+  } catch { return ""; }
+}
+
 function newsCard() {
   const feed = state.internships;
-  const filters = state.newsFilter;
+  const filters = state.prefs.newsFilter;
+  const trackedPostings = new Map(state.applications.filter(entry => entry.link).map(entry => [postingKey(entry.link), entry]));
   const safeRows = feed.listings
-    .map(listing => {
+    .map((listing, index) => {
       let safeUrl = "";
       try { safeUrl = listing.url ? cleanLink(listing.url) : ""; } catch { safeUrl = ""; }
-      return { ...listing, safeUrl };
+      const tracked = safeUrl && trackedPostings.get(postingKey(safeUrl));
+      return { ...listing, index, safeUrl, tracked };
     })
     .filter(listing => listing.company && listing.role && listing.safeUrl);
 
   const location = filters.location.trim().toLowerCase();
+  const keywords = filters.keywords.toLowerCase().trim().split(/\s+/).filter(Boolean);
   const rows = safeRows.filter(listing =>
-    (filters.term === "ALL" || listing.terms.includes(filters.term))
+    (filters.term === "ALL" || (listing.terms || []).includes(filters.term))
     && (filters.degree === "ALL" || listing.experienceLevel === filters.degree)
     && (!filters.coopOnly || listing.isCoop)
     && (!location || listing.location.toLowerCase().includes(location))
+    && keywords.every(word => `${listing.company} ${listing.role}`.toLowerCase().includes(word))
   );
 
   const modeClass = { Remote: "remote", Hybrid: "hybrid", "In-person": "onsite" };
   const termLabel = filters.term === "ALL" ? "All terms" : filters.term;
-  const degreeLabel = filters.degree === "ALL" ? "Any experience level" : EXPERIENCE_LEVELS.find(([value]) => value === filters.degree)?.[1] || "Any experience level";
+  const degreeLabel = filters.degree === "ALL" ? "Any degree eligibility" : EXPERIENCE_LEVELS.find(([value]) => value === filters.degree)?.[1] || "Any degree eligibility";
   const filterBar = safeRows.length ? `
     <div class="news-filters">
       <button class="filter-select" type="button" data-action="news-term-menu" aria-haspopup="menu">${esc(termLabel)}</button>
       <button class="filter-select" type="button" data-action="news-degree-menu" aria-haspopup="menu">${esc(degreeLabel)}</button>
+      <label class="sr-only" for="news-keywords">Role or company</label>
+      <input id="news-keywords" class="news-location" type="search" data-input="news-keywords" value="${esc(filters.keywords)}" maxlength="120" placeholder="Role or company" />
       <label class="sr-only" for="news-location">Location</label>
-      <input id="news-location" class="news-location" type="search" data-input="news-location" value="${esc(filters.location)}" placeholder="City, region, or country" />
+      <input id="news-location" class="news-location" type="search" data-input="news-location" value="${esc(filters.location)}" maxlength="120" placeholder="City, region, or country" />
       <label class="news-check"><input type="checkbox" data-input="news-coop" ${filters.coopOnly ? "checked" : ""} /> Co-op only</label>
+      <button class="text-button" type="button" data-action="news-clear">Clear filters</button>
     </div>` : "";
 
   return `
@@ -423,6 +455,7 @@ function newsCard() {
             </span>
           </div>
           <div class="news-actions">
+            ${listing.tracked ? `<button class="button small" type="button" data-open="${listing.tracked.id}">Open notebook page</button>` : `<button class="button small" type="button" data-action="news-save" data-index="${listing.index}">${icon("plus")}Save to notebook</button>`}
             <a class="button ghost small" href="${esc(listing.safeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Apply to ${esc(listing.role)} at ${esc(listing.company)} (opens in a new tab)">Apply${icon("external")}</a>
           </div>
         </li>`).join("")}</ul>`
@@ -434,7 +467,9 @@ function newsCard() {
 function viewBoard() {
   const query = state.boardQuery.trim();
   const visible = state.applications.filter(entry => matchesQuery(entry, query));
-  state.visibleIds = visible.map(entry => entry.id);
+  const narrow = window.matchMedia("(max-width: 759px)").matches;
+  state.visibleIds = visible.filter(entry => !narrow || entry.status === state.boardStage).map(entry => entry.id);
+  if (state.selectScope === "board") state.selected = new Set([...state.selected].filter(id => state.visibleIds.includes(id)));
   const selecting = state.selecting && state.selectScope === "board";
   const finePointer = window.matchMedia("(pointer: fine)").matches;
   const counts = countBy(visible);
@@ -585,8 +620,8 @@ function viewInsights() {
   const funnelSteps = [
     ["Saved", list.length],
     ["Applied", stats.sent],
-    ["Interview", list.filter(entry => reached(entry, "INTERVIEW")).length],
-    ["Offer", list.filter(entry => reached(entry, "OFFER")).length]
+    ["Interview", stats.interviews],
+    ["Offer", list.filter(entry => sentAt(entry) && reached(entry, "OFFER")).length]
   ];
   const funnel = funnelSteps.map(([label, count], index) => {
     const previous = index ? funnelSteps[index - 1][1] : 0;
@@ -600,8 +635,8 @@ function viewInsights() {
     const key = entry.source.trim() || "Not recorded";
     const row = sources.get(key.toLowerCase()) || { name: key, pages: 0, sent: 0, interviews: 0 };
     row.pages++;
-    if (entry.status !== "SAVED") row.sent++;
-    if (entry.status !== "SAVED" && reached(entry, "INTERVIEW")) row.interviews++;
+    if (sentAt(entry)) row.sent++;
+    if (sentAt(entry) && reached(entry, "INTERVIEW")) row.interviews++;
     sources.set(key.toLowerCase(), row);
   }
   const sourceRows = [...sources.values()].sort((left, right) => right.sent - left.sent || right.pages - left.pages).slice(0, 8);
@@ -768,7 +803,8 @@ function cloudSettings() {
     <div class="setting-row"><div><strong>Delete unverified account</strong><p>Permanently removes this sign-in. No cloud notebook can be created before verification.</p></div>
       <div class="view-actions"><input id="cloud-delete-password" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password" aria-label="Current password for account deletion" /><button class="button danger-soft" type="button" data-action="cloud-delete-account">Delete account</button></div></div>`;
   return `
-    <div class="setting-row"><div><strong>${cloud.enabled ? "Cloud sync is on" : "Signed in — sync is paused"}</strong><p>${esc(cloud.user.email)} · ${cloud.enabled ? (cloud.status === "syncing" ? "Syncing…" : cloud.status === "error" ? cloud.error : "Synced with your private account notebook.") : "This device is still local-only until you choose a copy to sync."}</p></div>
+    <div class="setting-row"><div><strong>${cloud.enabled ? "Cloud sync is on" : "Signed in, sync is paused"}</strong><p>${esc(cloud.user.email)} · ${cloud.enabled ? (cloud.status === "waiting" ? "Saved locally, waiting to sync." : cloud.status === "syncing" ? "Syncing…" : cloud.status === "error" ? esc(cloud.error) : "Synced with your private account notebook.") : "This device is still local-only until you choose a copy to sync."}</p>
+      ${cloud.lastSyncedAt ? `<p>Last confirmed cloud save: ${esc(formatDateTime(cloud.lastSyncedAt))}</p>` : ""}</div>
       ${cloud.enabled
         ? `<div class="view-actions">${cloud.status === "error" ? `<button class="button primary" type="button" data-action="cloud-retry">Retry sync</button>` : ""}<button class="button ghost" type="button" data-action="cloud-disable">Pause sync</button></div>`
         : `<button class="button primary" type="button" data-action="cloud-enable">Choose notebook</button>`}</div>
@@ -840,6 +876,7 @@ function viewEntry(id) {
           ${field("nextStep", "Next step", "flag", { placeholder: "e.g. Technical interview", size: "wide-lg" })}
           ${field("nextStepDate", "Next step date", "calendar", { type: "date" })}
         </div>
+        <div id="entry-next-actions">${nextStepActions(entry)}</div>
         <p class="section-label">Skills</p>
         <div class="skills-editor" id="skills-editor">
           ${entry.skills.map(skill => `<span class="skill-chip">${esc(skill)}<button type="button" data-action="remove-skill" data-skill="${esc(skill)}" aria-label="Remove ${esc(skill)}">${icon("x")}</button></span>`).join("")}
@@ -930,6 +967,9 @@ function drawCharts() {
   $$('[data-chart="weekly"]').forEach(element => { element.innerHTML = weeklyChart(element.clientWidth); });
 }
 window.addEventListener("resize", debounce(() => { if (state.route.view === "insights") drawCharts(); }, 150));
+window.matchMedia("(max-width: 759px)").addEventListener("change", () => {
+  if (state.route.view === "board") { state.selected.clear(); rerender(); }
+});
 
 async function navigate() {
   await flushEntrySave();
@@ -944,6 +984,10 @@ async function navigate() {
   page.scrollTop = 0;
   window.scrollTo(0, 0);
   viewRoot.focus({ preventScroll: true });
+  if (state.route.view === "entry" && state.rescheduleId === state.route.id) {
+    state.rescheduleId = null;
+    $('[data-field="nextStepDate"]')?.focus();
+  }
 }
 
 function go(hash) {
@@ -1146,8 +1190,10 @@ async function removeApplications(ids, { confirmFirst = ids.length > 1 } = {}) {
     if (!ok) return;
   }
   try {
-    if (state.route.view === "entry" && ids.includes(state.route.id)) { entrySave.cancel(); pendingChanges = {}; }
+    await Promise.all(ids.map(id => flushEntrySave(id)));
+    if (ids.some(id => readDrafts()[id])) throw new Error("Some edits are still waiting to save. Retry them before deleting this page.");
     const removed = await api.remove(ids);
+    ids.forEach(clearDraft);
     state.applications = state.applications.filter(entry => !ids.includes(entry.id));
     state.deleted.push(...removed);
     ids.forEach(id => state.selected.delete(id));
@@ -1258,6 +1304,7 @@ function toggleSelected(id, checked) {
 const newDialog = $("#new-dialog");
 const newForm = $("#new-form");
 let newStage = "SAVED";
+let newPostingLink = "";
 function renderStagePicker() {
   // Roving tabindex: only the checked option is a Tab stop, matching how a native radio group
   // behaves, and letting arrow keys move both focus and the selection between options.
@@ -1277,6 +1324,7 @@ function updateSourceOptions() {
   $("#source-options").innerHTML = options.map(source => `<option value="${esc(source)}"></option>`).join("");
 }
 function openNew(stage = "SAVED", initial = {}) {
+  newPostingLink = "";
   dialogOpener = document.activeElement;
   closeMenu();
   if ($("#palette").open) $("#palette").close();
@@ -1298,6 +1346,10 @@ newForm.addEventListener("submit", async event => {
   const submit = newForm.querySelector('[type="submit"]');
   submit.disabled = true;
   try {
+    const applications = BROWSER_MODE ? api.read().applications : state.applications;
+    const duplicate = newPostingLink && postingKey(fields.link) === newPostingLink
+      && applications.find(entry => postingKey(entry.link) === newPostingLink);
+    if (duplicate) { newDialog.close(); go(`#/entry/${duplicate.id}`); toast("That posting is already in your notebook."); return; }
     await createApplication(fields);
     newDialog.close();
   } catch (error) {
@@ -1487,6 +1539,7 @@ function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id
         const edited = $("[data-edited]");
         if (edited) edited.textContent = timeAgo(updated.updatedAt);
         if ("link" in changes) refreshLinkButton(updated);
+        if ("nextStep" in changes) $("#entry-next-actions").innerHTML = nextStepActions(updated);
         if ("company" in changes) { $("#mobile-title").textContent = updated.company; document.title = `${updated.company} · My Internship Notebook`; }
       }
       resendQueued = Boolean(readDrafts()[targetId]); // something else arrived while this save was in flight
@@ -1597,7 +1650,11 @@ viewRoot.addEventListener("input", event => {
   const input = target.dataset.input;
   if (input === "board-query") { state.boardQuery = target.value; refreshList(target); }
   if (input === "notebook-query") { state.filter.query = target.value; refreshList(target); }
-  if (input === "news-location") { state.newsFilter.location = target.value; refreshList(target); }
+  if (input === "news-location" || input === "news-keywords") {
+    state.prefs.newsFilter[input === "news-location" ? "location" : "keywords"] = target.value.slice(0, 120);
+    savePrefs();
+    refreshList(target);
+  }
   if (input === "name") { state.prefs.name = target.value.slice(0, 40); savePrefs(); }
 });
 
@@ -1624,7 +1681,7 @@ viewRoot.addEventListener("change", event => {
   }
   if (target.dataset.select) { toggleSelected(Number(target.dataset.select), target.checked); return; }
   if (target.dataset.input === "sort") { state.prefs.sort = target.value; savePrefs(); rerender(); }
-  if (target.dataset.input === "news-coop") { state.newsFilter.coopOnly = target.checked; rerender(); }
+  if (target.dataset.input === "news-coop") { state.prefs.newsFilter.coopOnly = target.checked; savePrefs(); rerender(); }
 });
 
 viewRoot.addEventListener("keydown", event => {
@@ -1680,12 +1737,17 @@ async function chooseCloudNotebook() {
   if (Object.keys(readDrafts()).length) throw new Error("Some edits are still waiting to save. Retry them before choosing a cloud notebook.");
   const remote = await fetchCloudNotebook();
   const local = BROWSER_MODE ? api.read() : null;
+  const summary = record => {
+    const latest = [...(record?.applications || []), ...(record?.recentlyDeleted || [])]
+      .map(entry => entry.updatedAt).filter(Boolean).sort().at(-1);
+    return `${record?.applications?.length || 0} active, ${record?.recentlyDeleted?.length || 0} deleted pages${latest ? `, last edited ${formatDateTime(latest)}` : ""}`;
+  };
   if (!remote) {
     const upload = await confirmDialog({
       eyebrow: "First cloud sync",
       title: notebookHasData(local) ? "Upload this device's notebook?" : "Create your cloud notebook?",
       copy: notebookHasData(local)
-        ? "This copies the notebook currently in this browser into your private account. Nothing local is deleted."
+        ? `This device: ${summary(local)}. This copies the notebook into your private account. Nothing local is deleted.`
         : "This creates an empty private notebook for your account and turns on sync for future pages.",
       yes: "Upload & sync",
       no: "Not now",
@@ -1702,7 +1764,7 @@ async function chooseCloudNotebook() {
     const download = await confirmDialog({
       eyebrow: "Notebook found",
       title: "Use your cloud notebook on this device?",
-      copy: "This downloads your account notebook into this browser and turns on sync.",
+      copy: `Cloud: ${summary(remote)}. This downloads your account notebook into this browser and turns on sync.`,
       yes: "Use cloud notebook",
       no: "Keep local-only",
       iconName: "download",
@@ -1717,13 +1779,15 @@ async function chooseCloudNotebook() {
   const useCloud = await confirmDialog({
     eyebrow: "Choose carefully",
     title: "A notebook already exists in your account",
-    copy: "Use the cloud notebook on this device? Your current device copy will be replaced, so download a backup first if you need both. Choosing Keep local leaves sync paused and changes neither copy.",
+    copy: `This device: ${summary(local)}. Cloud: ${summary(remote)}. Using the cloud notebook replaces this device copy. A backup of the current device copy will download first. Choosing Keep local leaves both copies unchanged.`,
     yes: "Use cloud notebook",
     no: "Keep local",
     iconName: "download",
     danger: false
   });
   if (!useCloud) return;
+  if (JSON.stringify(api.read()) !== JSON.stringify(local)) throw new Error("Your local notebook changed while choosing a copy. Choose again so your latest edits are included.");
+  exportJson(local);
   await enableCloudWithRemote(remote);
   await load();
   toast("Cloud notebook restored.");
@@ -1732,6 +1796,36 @@ async function chooseCloudNotebook() {
 async function runCloud(action) {
   try { await action(); }
   catch (error) { fail(error); }
+}
+
+const completingNextSteps = new Set();
+async function completeNextStep(id) {
+  if (completingNextSteps.has(id)) return;
+  completingNextSteps.add(id);
+  try {
+    await flushEntrySave(id);
+    if (readDrafts()[id]) throw new Error("Retry the pending edits before completing this step.");
+    const entry = find(id);
+    if (!entry?.nextStep.trim()) return;
+    const previous = { nextStep: entry.nextStep, nextStepDate: entry.nextStepDate, notes: entry.notes };
+    const note = `${dayKey()} · Completed next step: ${entry.nextStep}${entry.nextStepDate ? ` (planned ${entry.nextStepDate})` : ""}`;
+    const notes = `${entry.notes}${entry.notes ? "\n\n" : ""}${note}`;
+    replaceApplications([await api.update(id, { nextStep: "", nextStepDate: "", notes })]);
+    rerender();
+    viewRoot.focus({ preventScroll: true });
+    toast("Next step completed. A dated record is saved in Notes.", { action: "Undo", run: async () => {
+      try {
+        await flushEntrySave(id);
+        const current = find(id);
+        if (readDrafts()[id] || !current || current.nextStep || current.nextStepDate || current.notes !== notes) {
+          throw new Error("This page changed after completion. Your newer edits have been kept.");
+        }
+        replaceApplications([await api.update(id, previous)]);
+        rerender();
+      } catch (error) { fail(error); }
+    } });
+  } catch (error) { fail(error); }
+  finally { completingNextSteps.delete(id); }
 }
 
 const actions = {
@@ -1795,18 +1889,42 @@ const actions = {
   "card-menu": target => { const entry = find(Number(target.dataset.id)); if (entry) cardMenu(target, entry); },
   "move-menu": target => { const entry = find(Number(target.dataset.id)); if (entry) cardMenu(target, entry); },
   "board-stage": target => { state.boardStage = target.dataset.stage; rerender(); },
+  "complete-next": target => completeNextStep(Number(target.dataset.id)),
+  "reschedule-next": target => {
+    const id = Number(target.dataset.id);
+    if (state.route.view === "entry" && state.route.id === id) $('[data-field="nextStepDate"]')?.focus();
+    else { state.rescheduleId = id; go(`#/entry/${id}`); }
+  },
+  "news-save": target => {
+    try {
+      const listing = state.internships.listings[Number(target.dataset.index)];
+      if (!listing) return;
+      const link = cleanLink(listing.url);
+      const tracked = state.applications.find(entry => postingKey(entry.link) === postingKey(link));
+      if (tracked) { go(`#/entry/${tracked.id}`); return; }
+      openNew("SAVED", {
+        company: String(listing.company).slice(0, LIMITS.company), role: String(listing.role).slice(0, LIMITS.role),
+        location: String(listing.location || "").slice(0, LIMITS.location), link, source: "Pitt CSC / Simplify"
+      });
+      newPostingLink = postingKey(link);
+    } catch (error) { fail(error); }
+  },
+  "news-clear": () => {
+    state.prefs.newsFilter = { term: "ALL", degree: "ALL", coopOnly: false, location: "", keywords: "" };
+    savePrefs(); rerender();
+  },
   "news-term-menu": target => {
-    const current = state.newsFilter.term;
+    const current = state.prefs.newsFilter.term;
     openMenu(target, [
-      { label: "All terms", radio: true, checked: current === "ALL", run: () => { state.newsFilter.term = "ALL"; rerender(); } },
-      ...newsTerms().map(term => ({ label: term, radio: true, checked: current === term, run: () => { state.newsFilter.term = term; rerender(); } }))
+      { label: "All terms", radio: true, checked: current === "ALL", run: () => { state.prefs.newsFilter.term = "ALL"; savePrefs(); rerender(); } },
+      ...newsTerms().map(term => ({ label: term, radio: true, checked: current === term, run: () => { state.prefs.newsFilter.term = term; savePrefs(); rerender(); } }))
     ]);
   },
   "news-degree-menu": target => {
-    const current = state.newsFilter.degree;
+    const current = state.prefs.newsFilter.degree;
     openMenu(target, [
-      { label: "Any experience level", radio: true, checked: current === "ALL", run: () => { state.newsFilter.degree = "ALL"; rerender(); } },
-      ...EXPERIENCE_LEVELS.map(([value, label]) => ({ label, radio: true, checked: current === value, run: () => { state.newsFilter.degree = value; rerender(); } }))
+      { label: "Any degree eligibility", radio: true, checked: current === "ALL", run: () => { state.prefs.newsFilter.degree = "ALL"; savePrefs(); rerender(); } },
+      ...EXPERIENCE_LEVELS.map(([value, label]) => ({ label, radio: true, checked: current === value, run: () => { state.prefs.newsFilter.degree = value; savePrefs(); rerender(); } }))
     ]);
   },
   "entry-menu": target => {
@@ -2007,8 +2125,8 @@ function exportCsv() {
   toast("CSV exported");
 }
 
-function exportJson() {
-  const backup = { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), applications: state.applications, recentlyDeleted: state.deleted };
+function exportJson(record = { applications: state.applications, recentlyDeleted: state.deleted }) {
+  const backup = { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: new Date().toISOString(), applications: record.applications, recentlyDeleted: record.recentlyDeleted };
   download(`internship-notebook-backup-${dayKey()}.json`, JSON.stringify(backup, null, 2), "application/json");
   toast("Backup downloaded. Keep it somewhere safe.");
 }
@@ -2029,37 +2147,58 @@ $("#import-file").addEventListener("change", async event => {
     if (file.size > 5 * 1024 * 1024) throw new Error("That file is too large to be a notebook backup.");
     const parsed = JSON.parse(await file.text());
     const rawEntries = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.applications) ? parsed.applications : null;
-    if (!rawEntries || !rawEntries.length) throw new Error("That file isn't a My Internship Notebook backup.");
+    const rawDeleted = !Array.isArray(parsed) && Array.isArray(parsed?.recentlyDeleted) ? parsed.recentlyDeleted : null;
+    if (!rawEntries && !rawDeleted) throw new Error("That file isn't a My Internship Notebook backup.");
     const format = Array.isArray(parsed) ? null : parsed?.format;
     const version = Array.isArray(parsed) ? NaN : Number(parsed?.version);
     // Every field goes through the same limits and safety rules as a normal entry (see
     // sanitizeImportedEntry in domain.js) - in particular, a link is only kept if it survives the
     // same http(s)-only check a typed link does, so a backup can never smuggle in an unsafe URL.
-    const { usable, skipped, linksRemoved } = previewImport(rawEntries);
-    if (!usable.length) throw new Error("No applications with a company and role were found in that backup.");
+    const active = previewImport(rawEntries || []);
+    const deleted = previewImport(rawDeleted || []);
+    const cutoff = Date.now() - RETENTION_MS;
+    const recoverable = deleted.usable.filter(entry => new Date(entry.deletedAt).getTime() > cutoff);
+    const expired = deleted.usable.length - recoverable.length;
+    const skipped = active.skipped + deleted.skipped;
+    const linksRemoved = active.linksRemoved + deleted.linksRemoved;
+    const total = active.usable.length + recoverable.length;
+    if (!total) throw new Error("No recoverable pages with a company and role were found in that backup.");
     const notes = [
       format && format !== BACKUP_FORMAT ? "This file wasn't made by My Internship Notebook. Importing what looks like application data." : "",
       Number.isFinite(version) && version > BACKUP_VERSION ? "This backup was made with a newer version of the app; some newer fields may be ignored." : "",
       skipped ? `${plural(skipped, "entry", "entries")} without a company and role will be skipped.` : "",
+      expired ? `${plural(expired, "deleted page")} with an expired or missing deletion date will be skipped.` : "",
       linksRemoved ? `${plural(linksRemoved, "link")} could not be verified as safe and will be left blank.` : ""
     ].filter(Boolean);
     const ok = await confirmDialog({
       eyebrow: "Import backup",
-      title: `Add ${plural(usable.length, "page")} to your notebook?`,
-      copy: ["Your current pages stay as they are. Pages already in your notebook are skipped.", ...notes].join(" "),
+      title: `Add ${plural(total, "page")} to your notebook?`,
+      copy: [`This backup contains ${active.usable.length} active and ${recoverable.length} deleted pages. Your current pages stay as they are. Pages already in your notebook are skipped. Original dates and history are kept, including the seven-day deletion window.`, ...notes].join(" "),
       yes: "Import",
       no: "Cancel",
       iconName: "upload",
       danger: false
     });
     if (!ok) return;
-    const added = await api.importEntries(usable);
-    state.applications.push(...added);
+    const added = await api.importBackup(active.usable, recoverable);
+    state.applications.push(...added.applications);
+    state.deleted.push(...added.recentlyDeleted);
     rerender();
-    if (!added.length) { toast("Everything in that backup is already in your notebook."); return; }
-    const duplicates = usable.length - added.length;
+    const addedCount = added.applications.length + added.recentlyDeleted.length;
+    if (!addedCount) { toast("Everything in that backup is already in your notebook."); return; }
+    const duplicates = total - addedCount;
     const detail = [duplicates ? `${plural(duplicates, "duplicate")} skipped` : "", skipped ? `${plural(skipped, "entry", "entries")} skipped` : "", linksRemoved ? `${plural(linksRemoved, "link")} removed for safety` : ""].filter(Boolean).join(", ");
-    toast(`Imported ${plural(added.length, "page")}${detail ? ` (${detail})` : ""}`, { action: "Undo", run: () => removeApplications(added.map(entry => entry.id), { confirmFirst: false }) });
+    toast(`Imported ${plural(addedCount, "page")}${detail ? ` (${detail})` : ""}`, { action: "Undo", run: async () => {
+      try {
+        const deletedIds = added.recentlyDeleted.map(entry => entry.id);
+        if (deletedIds.length) {
+          await api.purge(deletedIds);
+          state.deleted = state.deleted.filter(entry => !deletedIds.includes(entry.id));
+        }
+        if (added.applications.length) await removeApplications(added.applications.map(entry => entry.id), { confirmFirst: false });
+        else { rerender(); toast("Import undone. Your backup file is unchanged."); }
+      } catch (error) { fail(error); }
+    } });
   } catch (error) {
     fail(error instanceof SyntaxError ? new Error("That file couldn't be read as a backup.") : error);
   }
@@ -2153,8 +2292,8 @@ function updateStorageChip() {
     label.textContent = "Saved on this computer";
     chip.title = "Your pages are saved by the local Java server.";
   } else if (state.cloud.enabled) {
-    label.textContent = state.cloud.status === "syncing" ? "Syncing securely" : state.cloud.status === "error" ? "Cloud sync needs attention" : "Synced to your account";
-    chip.title = state.cloud.error || "Your local notebook is synced to your private Firebase account.";
+    label.textContent = state.cloud.status === "waiting" ? "Saved locally, waiting to sync" : state.cloud.status === "syncing" ? "Syncing securely" : state.cloud.status === "error" ? "Cloud sync needs attention" : "Synced to your account";
+    chip.title = state.cloud.error || (state.cloud.lastSyncedAt ? `Last confirmed cloud save: ${formatDateTime(state.cloud.lastSyncedAt)}` : "Your local notebook is synced to your private Firebase account.");
   } else {
     label.textContent = "Private to this browser";
     chip.title = "Your pages are stored only in this browser on this device.";

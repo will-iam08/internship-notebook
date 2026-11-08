@@ -7,9 +7,9 @@ A private, installable web app for organizing internship applications, interview
 ## Features
 
 - **Today:** a greeting, a weekly application goal with a progress ring and day-by-day dots, a compact "Next up" look at your soonest deadline or next step, and recently edited pages
-- **Latest internship openings:** a worldwide feed of recently posted internship and co-op roles on the Today page, filterable by term (Summer 2027, Winter 2027, ...), experience level, co-op status, and location, each tagged Remote/Hybrid/In-person with a direct Apply link. Pulled from the public [Pitt CSC & Simplify internship tracker](https://github.com/SimplifyJobs/Summer2027-Internships) by a scheduled workflow, not fetched live in your browser
+- **Latest internship openings:** a worldwide feed of recently posted internship and co-op roles on the Today page. Search role/company and location, filter by term, degree eligibility, and co-op status, and keep those choices after reopening. Save a role into the notebook with its details prefilled, or open its posting to apply. Already tracked postings link back to their notebook page. Pulled from the public [Pitt CSC & Simplify internship tracker](https://github.com/SimplifyJobs/Summer2027-Internships) by a scheduled workflow, not fetched live in your browser
 - **Board:** a Kanban pipeline (Saved, Applied, Interview, Offer, Rejected) with drag and drop, a quick "Move to" menu on every card, filtering, the full "Coming up" agenda of deadlines and next steps, and gentle nudges (roles closing soon, deadlines that passed, applications waiting 14+ days for a reply)
-- **Notebook pages:** open any application to edit every field with autosave: company, role, location, source, deadline, job posting link, contact, next step and date, skill tags, and long notes on ruled paper. A timeline records each stage change
+- **Notebook pages:** open any application to edit every field with autosave: company, role, location, source, deadline, job posting link, contact, next step and date, skill tags, and long notes on ruled paper. Complete or reschedule next steps from Today, Board, or the page; completion keeps a dated record in Notes and can be undone. A timeline records each stage change
 - **All pages:** a table-of-contents view with stage filters, starred pages, search across notes and skills, and sorting
 - **Insights:** response rate, interview rate, a weekly rhythm chart against your goal, a pipeline funnel, which sources lead to interviews, and the most requested skills
 - **Batch actions:** select several applications to move them together or send them to Recently Deleted
@@ -18,7 +18,7 @@ A private, installable web app for organizing internship applications, interview
 - **Installable and offline:** a web app manifest and service worker let it install to the Dock, desktop, or phone home screen and keep working without a connection
 - **Light and dark themes** that follow the device setting or a manual choice, checked against WCAG 2.2 AA contrast
 - **Your data, portable:** CSV export for spreadsheets, plus a JSON backup you can import on another device. Every imported field is validated the same way a typed one is (limits, calendar dates, and links: only `http(s)://` is ever accepted), the import is previewed before anything is written, and it can be undone as a batch
-- **Optional account sync:** Google sign-in or a verified email/password account can copy the browser notebook to a private Firestore document and sync later edits. Email accounts have recovery links; phone/SMS recovery is deliberately off to avoid paid-SMS abuse
+- **Optional account sync:** Google sign-in or a verified email/password account can copy the browser notebook to a private Firestore document and sync later edits. The interface distinguishes waiting, syncing, errors, and confirmed saves, with the last confirmed save time. Notebook replacement previews both copies and downloads the device backup first; pending edits are preserved. Email accounts have recovery links; phone/SMS recovery is deliberately off to avoid paid-SMS abuse
 - **Account privacy controls:** a public privacy policy and deletion guide, plus in-app deletion of both the Firebase account and its cloud notebook
 - **Google/Android-friendly PWA:** job links can be shared into the installed app, and application deadlines or next steps can be downloaded as standard calendar events
 - **Autosave that doesn't lose work:** every edit is captured to this browser the instant it happens. If a save can't be confirmed yet (offline, storage briefly unavailable), it stays queued and retries automatically, or press Retry - it is never silently dropped. The save indicator says exactly what's true: Saving, Saved locally, Synced (server mode only), or Couldn't save
@@ -84,7 +84,7 @@ Firebase encrypts stored data and network traffic using its managed infrastructu
 
 Browser storage is separated by origin, not URL path. The production app uses the dedicated `internshipnotebook.app` origin, so its browser-local notebook is isolated from other GitHub Pages projects. Anyone who can use the same unlocked browser profile can still see that profile's local notebook. See `docs/cross-device-sync-proposal.md` for the sync design.
 
-The Java API is a single-user development server. It binds only to the loopback interface, rejects cross-site browser requests and non-JSON writes, caps request bodies at 64 KiB, and sends restrictive browser security headers. It still has no accounts or per-user database rows, so it must not be exposed as a public shared backend.
+The Java API is a single-user development server. It binds only to the loopback interface, rejects cross-site browser requests and non-JSON writes, caps ordinary request bodies at 64 KiB and backup imports at 5 MiB, and sends restrictive browser security headers. Backup import preserves active and recently deleted pages, original timestamps and stage history, and saves the whole batch atomically. An unreadable local storage row stops startup with the original file intact for recovery. The server still has no accounts or per-user database rows, so it must not be exposed as a public shared backend.
 
 To install it: in Chrome or Edge use the install icon in the address bar; in Safari on a Mac choose **File → Add to Dock**; on iPhone or iPad tap **Share → Add to Home Screen**.
 
@@ -114,6 +114,7 @@ ApplicationRepository ── data/applications.tsv
 |---|---|---|
 | `GET` | `/api/applications` | List active applications |
 | `POST` | `/api/applications` | Create an application |
+| `POST` | `/api/applications/import` | Atomically import active and recently deleted pages with their original dates and history |
 | `PATCH` | `/api/applications/{id}` | Update any subset of fields; a new `status` is added to the history |
 | `DELETE` | `/api/applications/{id}` | Move to Recently Deleted |
 | `POST` | `/api/applications/bulk-status` | Move several applications to one stage |

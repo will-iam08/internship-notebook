@@ -16,7 +16,7 @@ test("adds an application and opens its page", async ({ page }) => {
   await openApp(page);
   await page.locator('[data-action="new"]:visible').first().click();
   await page.locator('#new-form [name="company"]').fill("Acme Aerospace");
-  await page.getByLabel("Role").fill("Flight Software Intern");
+  await page.locator("#new-form").getByLabel("Role").fill("Flight Software Intern");
   await page.getByRole("button", { name: "Add to notebook" }).click();
   await expect(page.locator("#toasts")).toContainText("Acme Aerospace added");
   const data = await savedNotebook(page);

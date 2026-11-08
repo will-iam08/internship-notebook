@@ -1,7 +1,7 @@
 import { browserApi, setBrowserWriteListener } from "./api.js";
 import { sanitizeImportedEntry } from "./domain.js";
 import { decideSync, notebookHash } from "./sync.js";
-import { readDrafts } from "./storage.js";
+import { readDrafts, storage } from "./storage.js";
 
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0";
 const MAX_CLOUD_BYTES = 900_000;
@@ -23,6 +23,7 @@ let notify = () => {};
 let uploadTimer = null;
 let pendingRecord = null;
 let uploadChain = Promise.resolve();
+let uploadCount = 0;
 let uploadGeneration = 0;
 let deletingAccount = false;
 let enabledUid = "";
@@ -30,6 +31,7 @@ let status = "local";
 let error = "";
 const ENABLED_KEY = "my-internship-notebook-cloud-enabled-v1";
 const baseKey = uid => `my-internship-notebook-cloud-base-v1:${uid}`;
+const syncedAtKey = uid => `my-internship-notebook-cloud-synced-at-v1:${uid}`;
 
 export function cloudSnapshot() {
   return {
@@ -41,6 +43,7 @@ export function cloudSnapshot() {
       providers: currentUser.providerData.map(provider => provider.providerId)
     } : null,
     enabled: Boolean(currentUser?.emailVerified && enabledUid === currentUser.uid),
+    lastSyncedAt: currentUser ? storage.get(syncedAtKey(currentUser.uid)) || "" : "",
     status,
     error
   };
@@ -89,25 +92,33 @@ function cancelUploads() {
   uploadGeneration++;
 }
 
+function recordSync(uid, contentHash) {
+  localStorage.setItem(baseKey(uid), contentHash);
+  storage.set(syncedAtKey(uid), new Date().toISOString());
+}
+
 function upload(record) {
   const uid = currentUser?.uid;
   const generation = uploadGeneration;
   const active = () => cloudSnapshot().enabled && currentUser.uid === uid && generation === uploadGeneration;
+  uploadCount++;
   const result = uploadChain.then(async () => {
-    if (!active()) throw new Error("Cloud sync was paused before this notebook could upload.");
-    update({ status: "syncing", error: "" });
     try {
+      if (!active()) throw new Error("Cloud sync was paused before this notebook could upload.");
+      update({ status: "syncing", error: "" });
       const payload = cloudPayload(record);
       const contentHash = await notebookHash(payload);
       if (!active()) throw new Error("Cloud sync was paused before this notebook could upload.");
       await storeSdk.setDoc(storeSdk.doc(db, "notebooks", uid), { ...payload, contentHash, updatedAt: storeSdk.serverTimestamp() });
       if (active()) {
-        localStorage.setItem(baseKey(uid), contentHash);
-        update({ status: "synced", error: "" });
+        recordSync(uid, contentHash);
+        update({ status: pendingRecord ? "waiting" : uploadCount > 1 ? "syncing" : "synced", error: "" });
       }
     } catch (uploadError) {
       if (active()) update({ status: "error", error: friendly(uploadError) });
       throw new Error(friendly(uploadError));
+    } finally {
+      uploadCount--;
     }
   });
   // Keep later writes and account deletion waiting even when an earlier write failed.
@@ -124,6 +135,7 @@ function scheduleUpload(record) {
     pendingRecord = null;
     upload(next).catch(() => {}); // Scheduled failures are shown in the cloud status; explicit uploads reject.
   }, 700);
+  update({ status: "waiting", error: "" });
 }
 
 export async function initializeCloud(onChange) {
@@ -145,7 +157,8 @@ export async function initializeCloud(onChange) {
     authSdk.onAuthStateChanged(auth, user => {
       if (currentUser?.uid !== user?.uid) { enabledUid = ""; cancelUploads(); }
       currentUser = user;
-      update({ status: user ? (cloudSnapshot().enabled ? "synced" : "paused") : "local", error: "" });
+      const enabled = cloudSnapshot().enabled;
+      update({ status: user ? (enabled ? status : "paused") : "local", error: enabled ? error : "" });
     });
   } catch (loadError) {
     update({ status: "unavailable", error: friendly(loadError) });
@@ -196,7 +209,8 @@ export async function refreshAccount() {
   if (!currentUser) return;
   await authSdk.reload(currentUser);
   currentUser = auth.currentUser;
-  update({ status: cloudSnapshot().enabled ? "synced" : "paused", error: "" });
+  const enabled = cloudSnapshot().enabled;
+  update({ status: enabled ? status : "paused", error: enabled ? error : "" });
 }
 
 export async function signOutCloud() {
@@ -228,6 +242,7 @@ export async function deleteCloudAccount(password = "") {
     await authSdk.deleteUser(user);
     localStorage.removeItem(ENABLED_KEY);
     localStorage.removeItem(baseKey(uid));
+    storage.remove(syncedAtKey(uid));
     enabledUid = "";
   } catch (deleteError) {
     throw new Error(friendly(deleteError));
@@ -254,7 +269,7 @@ function sanitizeCloudList(list) {
 }
 
 export async function fetchCloudNotebook() {
-  const snapshot = await storeSdk.getDoc(cloudRef());
+  const snapshot = await storeSdk.getDocFromServer(cloudRef());
   if (!snapshot.exists()) return null;
   const data = snapshot.data();
   return {
@@ -292,7 +307,7 @@ export async function enableCloudWithRemote(record) {
   try { browserApi.write(payload); } finally { setBrowserWriteListener(scheduleUpload); }
   enabledUid = uid;
   localStorage.setItem(ENABLED_KEY, uid);
-  localStorage.setItem(baseKey(uid), contentHash);
+  recordSync(uid, contentHash);
   update({ status: "synced", error: "" });
 }
 
@@ -318,8 +333,8 @@ export async function resumeCloud(record) {
   if (decision === "use-remote") await enableCloudWithRemote(remote);
   else if (decision === "upload-local") await enableCloudWithLocal();
   else if (decision === "synced") {
-    enabledUid = currentUser.uid;
-    localStorage.setItem(baseKey(currentUser.uid), localHash);
+    enabledUid = uid;
+    recordSync(uid, localHash);
     update({ status: "synced", error: "" });
   } else {
     disableCloud();

@@ -22,7 +22,7 @@ test("the manifest is linked and declares the fields an installer needs", async 
 test("a shared job opens a safely prefilled new-application sheet", async ({ page }) => {
   await page.goto("/?share-target=1&title=Software%20Intern&text=Shared%20from%20a%20job%20site&url=https%3A%2F%2Fexample.com%2Fjob");
   await expect(page.getByRole("heading", { name: "Add an application" })).toBeVisible();
-  await expect(page.getByLabel("Role")).toHaveValue("Software Intern");
+  await expect(page.locator("#new-form").getByLabel("Role")).toHaveValue("Software Intern");
   await expect(page.getByLabel("Job posting link")).toHaveValue("https://example.com/job");
   await expect(page.getByLabel("Notes")).toHaveValue("Shared from a job site");
 });

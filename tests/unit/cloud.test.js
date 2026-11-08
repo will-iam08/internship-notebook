@@ -9,8 +9,8 @@ import { readDrafts, writeDraft } from "../../src/main/resources/public/js/stora
 const SDK = "https://www.gstatic.com/firebasejs/12.19.0/";
 const exportsByModule = {
   "firebase-app.js": ["initializeApp"],
-  "firebase-auth.js": ["getAuth", "setPersistence", "onAuthStateChanged", "signOut", "deleteUser"],
-  "firebase-firestore.js": ["getFirestore", "doc", "getDoc", "setDoc", "deleteDoc", "serverTimestamp"]
+  "firebase-auth.js": ["getAuth", "setPersistence", "onAuthStateChanged", "reload", "signOut", "deleteUser"],
+  "firebase-firestore.js": ["getFirestore", "doc", "getDoc", "getDocFromServer", "setDoc", "deleteDoc", "serverTimestamp"]
 };
 // Substitute only external SDK modules. The real cloud, storage, and validation code runs unchanged.
 registerHooks({
@@ -43,13 +43,17 @@ async function fixture(t, sdkOverrides = {}) {
     removeItem: key => values.delete(key)
   };
   const user = { uid: "owner", emailVerified: true, providerData: [] };
+  const auth = { currentUser: user };
+  let authChanged;
   const updates = [];
   let remote = null;
   globalThis.__cloudTestSdk = {
-    initializeApp: () => ({}), getAuth: () => ({ currentUser: user }), setPersistence: async () => {},
-    onAuthStateChanged: (_auth, callback) => callback(user), signOut: async () => {}, deleteUser: async () => {},
+    initializeApp: () => ({}), getAuth: () => auth, setPersistence: async () => {}, reload: async () => {},
+    onAuthStateChanged: (_auth, callback) => { authChanged = callback; callback(user); },
+    signOut: async () => {}, deleteUser: async () => {},
     getFirestore: () => ({}), doc: (_db, _collection, uid) => uid, serverTimestamp: () => "server-time",
     getDoc: async () => ({ exists: () => remote !== null, data: () => remote }),
+    getDocFromServer: async () => ({ exists: () => remote !== null, data: () => remote }),
     setDoc: async (_ref, value) => { remote = value; }, deleteDoc: async () => { remote = null; },
     ...sdkOverrides
   };
@@ -57,12 +61,12 @@ async function fixture(t, sdkOverrides = {}) {
   await cloud.initializeCloud(snapshot => updates.push(snapshot));
   assert.equal(cloud.cloudSnapshot().ready, true);
   t.after(() => cloud.disableCloud());
-  return { cloud, updates, remote: () => remote };
+  return { cloud, updates, remote: () => remote, emitUser: nextUser => { auth.currentUser = nextUser; authChanged(nextUser); } };
 }
 
 test("startup sync preserves edits saved while its cloud read is pending", async t => {
   const fetching = deferred();
-  const { cloud } = await fixture(t, { getDoc: () => fetching.promise });
+  const { cloud } = await fixture(t, { getDocFromServer: () => fetching.promise });
   const original = notebook("base");
   browserApi.write(original);
   localStorage.setItem("my-internship-notebook-cloud-enabled-v1", "owner");
@@ -73,10 +77,11 @@ test("startup sync preserves edits saved while its cloud read is pending", async
   assert.equal((await resuming).action, "conflict");
   assert.equal(browserApi.read().applications[0].notes, "new local work");
   assert.equal(cloud.cloudSnapshot().enabled, false);
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, "");
 });
 
 test("startup sync pauses for unsaved drafts instead of replacing them", async t => {
-  const { cloud } = await fixture(t, { getDoc: async () => ({ exists: () => true, data: () => notebook("remote") }) });
+  const { cloud } = await fixture(t, { getDocFromServer: async () => ({ exists: () => true, data: () => notebook("remote") }) });
   const original = notebook("base");
   browserApi.write(original);
   writeDraft(1, { notes: "unsaved local work" });
@@ -106,6 +111,7 @@ test("cloud replacement rechecks local saves before writing and succeeds once se
   await cloud.enableCloudWithRemote(notebook("remote"));
   assert.equal(browserApi.read().applications[0].notes, "remote");
   assert.equal(cloud.cloudSnapshot().status, "synced");
+  assert.ok(Number.isFinite(Date.parse(cloud.cloudSnapshot().lastSyncedAt)));
 });
 
 test("account deletion cancels a pending upload before removing the cloud notebook", async t => {
@@ -118,6 +124,7 @@ test("account deletion cancels a pending upload before removing the cloud notebo
   });
   browserApi.write(notebook("original"));
   await cloud.enableCloudWithLocal();
+  assert.ok(cloud.cloudSnapshot().lastSyncedAt);
   await browserApi.update(1, { notes: "pending upload" });
   const removal = cloud.deleteCloudAccount();
   await new Promise(setImmediate);
@@ -129,10 +136,12 @@ test("account deletion cancels a pending upload before removing the cloud notebo
   deleting.resolve();
   await removal;
   assert.equal(cloud.cloudSnapshot().enabled, false);
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, "");
   assert.equal(localStorage.getItem("my-internship-notebook-cloud-enabled-v1"), null);
 });
 
 test("account deletion drains an upload already sent before deleting its document", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
   const writing = deferred();
   const started = deferred();
   const order = [];
@@ -144,6 +153,8 @@ test("account deletion drains an upload already sent before deleting its documen
   browserApi.write(notebook("original"));
   const uploading = cloud.enableCloudWithLocal();
   await started.promise;
+  await browserApi.update(1, { notes: "queued upload that deletion must cancel" });
+  t.mock.timers.tick(700);
   const removing = cloud.deleteCloudAccount();
   await new Promise(setImmediate);
   assert.deepEqual(order, []);
@@ -156,11 +167,14 @@ test("a later scheduled upload waits for the earlier write and keeps the newest 
   t.mock.timers.enable({ apis: ["setTimeout"] });
   const firstWrite = deferred();
   const firstStarted = deferred();
+  const lastWrite = deferred();
+  const lastStarted = deferred();
   const lastWritten = deferred();
   const written = [];
-  const { cloud } = await fixture(t, { setDoc: async (_ref, value) => {
+  const { cloud, updates } = await fixture(t, { setDoc: async (_ref, value) => {
     const notes = value.applications[0].notes;
     if (notes === "first edit") { firstStarted.resolve(); await firstWrite.promise; }
+    if (notes === "latest edit") { lastStarted.resolve(); await lastWrite.promise; }
     written.push(notes);
     if (notes === "latest edit") lastWritten.resolve();
   } });
@@ -171,11 +185,19 @@ test("a later scheduled upload waits for the earlier write and keeps the newest 
   await firstStarted.promise;
   await browserApi.update(1, { notes: "latest edit" });
   t.mock.timers.tick(700);
+  const unconfirmedStart = updates.length;
   await new Promise(setImmediate);
   assert.deepEqual(written, ["original"]);
   firstWrite.resolve();
+  await lastStarted.promise;
+  assert.equal(cloud.cloudSnapshot().status, "syncing");
+  assert.equal(updates.slice(unconfirmedStart).some(snapshot => snapshot.status === "synced"), false,
+    "an earlier confirmation must not report synced while a later upload is queued");
+  lastWrite.resolve();
   await lastWritten.promise;
+  await new Promise(setImmediate);
   assert.deepEqual(written, ["original", "first edit", "latest edit"]);
+  assert.equal(cloud.cloudSnapshot().status, "synced");
 });
 
 test("explicit upload failures reject, while scheduled failures update status without escaping", async t => {
@@ -183,12 +205,17 @@ test("explicit upload failures reject, while scheduled failures update status wi
   let fail = true;
   let scheduled = false;
   const failedScheduled = deferred();
-  const { cloud, updates } = await fixture(t, { setDoc: async () => {
+  const { cloud, updates, emitUser } = await fixture(t, { setDoc: async () => {
     if (fail) { if (scheduled) failedScheduled.resolve(); throw new Error("permission denied"); }
   } });
   browserApi.write(notebook("original"));
   await assert.rejects(cloud.enableCloudWithLocal(), /permission denied/);
   assert.equal(cloud.cloudSnapshot().status, "error");
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, "");
+  await cloud.refreshAccount();
+  emitUser({ uid: "owner", emailVerified: true, providerData: [] });
+  assert.equal(cloud.cloudSnapshot().status, "error");
+  assert.match(cloud.cloudSnapshot().error, /permission denied/);
   fail = false;
   await cloud.enableCloudWithLocal();
   fail = true;
@@ -199,4 +226,83 @@ test("explicit upload failures reject, while scheduled failures update status wi
   await new Promise(setImmediate);
   assert.equal(cloud.cloudSnapshot().status, "error");
   assert.match(updates.at(-1).error, /permission denied/);
+});
+
+test("last sync time is recorded after remote acknowledgement and isolated by account", async t => {
+  const writing = deferred();
+  const started = deferred();
+  const { cloud, emitUser } = await fixture(t, { setDoc: async () => { started.resolve(); await writing.promise; } });
+  browserApi.write(notebook("original"));
+  const uploading = cloud.enableCloudWithLocal();
+  await started.promise;
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, "");
+  writing.resolve();
+  await uploading;
+  const timestamp = cloud.cloudSnapshot().lastSyncedAt;
+  assert.ok(Number.isFinite(Date.parse(timestamp)));
+  cloud.disableCloud();
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, timestamp);
+  emitUser({ uid: "another-account", emailVerified: true, providerData: [] });
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, "");
+  emitUser({ uid: "owner", emailVerified: true, providerData: [] });
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, timestamp);
+  const getItem = localStorage.getItem;
+  try {
+    localStorage.getItem = () => { throw new Error("storage blocked"); };
+    assert.equal(cloud.cloudSnapshot().lastSyncedAt, "");
+  } finally { localStorage.getItem = getItem; }
+});
+
+test("pending changes show waiting immediately and auth refresh preserves waiting and syncing", async t => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const writing = deferred();
+  const started = deferred();
+  let holdWrite = false;
+  const { cloud, emitUser } = await fixture(t, { setDoc: async () => {
+    if (holdWrite) { started.resolve(); await writing.promise; }
+  } });
+  browserApi.write(notebook("original"));
+  await cloud.enableCloudWithLocal();
+  const timestamp = cloud.cloudSnapshot().lastSyncedAt;
+  holdWrite = true;
+  await browserApi.update(1, { notes: "pending" });
+  assert.equal(cloud.cloudSnapshot().status, "waiting");
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, timestamp);
+  emitUser({ uid: "owner", emailVerified: true, providerData: [] });
+  await cloud.refreshAccount();
+  assert.equal(cloud.cloudSnapshot().status, "waiting");
+  t.mock.timers.tick(700);
+  await started.promise;
+  await cloud.refreshAccount();
+  assert.equal(cloud.cloudSnapshot().status, "syncing");
+  await browserApi.update(1, { notes: "another pending edit" });
+  writing.resolve();
+  await new Promise(setImmediate);
+  assert.equal(cloud.cloudSnapshot().status, "waiting", "an older confirmation must not hide a pending edit");
+});
+
+test("confirmed server equality records a last sync time", async t => {
+  const original = notebook("same");
+  const { cloud } = await fixture(t, { getDocFromServer: async () => ({ exists: () => true, data: () => original }) });
+  browserApi.write(original);
+  localStorage.setItem("my-internship-notebook-cloud-enabled-v1", "owner");
+  assert.equal((await cloud.resumeCloud(original)).action, "synced");
+  assert.ok(Number.isFinite(Date.parse(cloud.cloudSnapshot().lastSyncedAt)));
+});
+
+test("an offline server read rejects instead of restoring a stale cached notebook", async t => {
+  let cachedReads = 0;
+  const { cloud } = await fixture(t, {
+    getDoc: async () => { cachedReads++; return { exists: () => true, data: () => notebook("stale cache") }; },
+    getDocFromServer: async () => { throw new Error("client is offline"); }
+  });
+  const original = notebook("local work");
+  browserApi.write(original);
+  localStorage.setItem("my-internship-notebook-cloud-enabled-v1", "owner");
+  const timestamp = "2026-11-01T12:00:00.000Z";
+  localStorage.setItem("my-internship-notebook-cloud-synced-at-v1:owner", timestamp);
+  await assert.rejects(cloud.resumeCloud(original), /offline/);
+  assert.equal(cachedReads, 0);
+  assert.equal(browserApi.read().applications[0].notes, "local work");
+  assert.equal(cloud.cloudSnapshot().lastSyncedAt, timestamp);
 });
