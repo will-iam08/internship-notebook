@@ -32,6 +32,29 @@ test("a feed listing becomes a reviewed notebook page and cannot be saved twice"
   expect((await savedNotebook(page)).applications).toHaveLength(1);
 });
 
+test("distinct job hash routes stay separate when saving feed listings", async ({ page }) => {
+  const hashListings = listings.map((listing, index) => ({ ...listing, url: `https://example.com/careers#/job/${index + 1}` }));
+  await page.route("**/internships.json", route => route.fulfill({ json: { listings: hashListings } }));
+  await openApp(page);
+  const first = page.locator(".news-item").filter({ hasText: "Aurora Robotics" });
+  const second = page.locator(".news-item").filter({ hasText: "Harbour Labs" });
+  await first.locator('[data-action="news-save"]').click();
+  await expect(page.locator('#new-form [name="link"]')).toHaveValue(hashListings[0].url);
+  await page.locator("#new-form").getByRole("button", { name: "Add to notebook" }).click();
+  await expect(first.getByRole("button", { name: "Open notebook page" })).toBeVisible();
+  await expect(second.locator('[data-action="news-save"]')).toBeVisible();
+  await expect(second.getByRole("button", { name: "Open notebook page" })).toHaveCount(0);
+  expect((await savedNotebook(page)).applications).toHaveLength(1);
+  await second.locator('[data-action="news-save"]').click();
+  await expect(page.locator('#new-form [name="link"]')).toHaveValue(hashListings[1].url);
+  await page.locator("#new-form").getByRole("button", { name: "Add to notebook" }).click();
+  await expect(second.getByRole("button", { name: "Open notebook page" })).toBeVisible();
+  expect((await savedNotebook(page)).applications.map(entry => entry.link)).toEqual(hashListings.map(listing => listing.url));
+  await page.reload();
+  await expect(page.locator(".news-item").getByRole("button", { name: "Open notebook page" })).toHaveCount(2);
+  expect((await savedNotebook(page)).applications).toHaveLength(2);
+});
+
 test("feed filters persist after reload and clear together", async ({ page }) => {
   await openApp(page);
   await expect(page.locator(".news-item")).toHaveCount(2);

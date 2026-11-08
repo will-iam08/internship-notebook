@@ -393,10 +393,9 @@ function newsTerms() {
 function postingKey(link) {
   try {
     const url = new URL(cleanLink(link));
-    url.hash = "";
     for (const key of [...url.searchParams.keys()]) if (/^utm_|^(gclid|fbclid)$/i.test(key)) url.searchParams.delete(key);
     url.searchParams.sort();
-    return `${url.origin}${url.pathname.replace(/\/$/, "")}${url.search}`;
+    return `${url.origin}${url.pathname.replace(/\/$/, "")}${url.search}${url.hash}`;
   } catch { return ""; }
 }
 
