@@ -3,7 +3,7 @@
  * - browserApi keeps entries in this browser (the public website).
  * - serverApi talks to the Java server (the full-stack local project).
  */
-import { RETENTION_MS, cleanChanges, cleanStage, normalize, withStatus } from "./domain.js";
+import { RETENTION_MS, cleanChanges, cleanStage, normalize, sanitizeImportedEntry, withStatus } from "./domain.js";
 import { KEYS, StorageCorruptedError, quarantine, readJsonRecord, storage } from "./storage.js";
 
 let browserWriteListener = null;
@@ -109,20 +109,32 @@ export const browserApi = {
     return purged;
   },
   async importEntries(entries) {
+    return (await this.importBackup(entries)).applications;
+  },
+  async importBackup(applications, recentlyDeleted = []) {
     const data = this.read();
-    const fingerprint = entry => `${entry.company.toLowerCase()}|${entry.role.toLowerCase()}|${entry.createdAt}`;
+    const fingerprint = entry => {
+      const createdAt = new Date(entry.createdAt);
+      return JSON.stringify([entry.company.toLowerCase(), entry.role.toLowerCase(),
+        Number.isNaN(createdAt.getTime()) ? entry.createdAt : createdAt.toISOString()]);
+    };
     const existing = new Set([...data.applications, ...data.recentlyDeleted].map(fingerprint));
-    const added = [];
-    for (const raw of entries) {
-      const entry = normalize({ ...raw, id: 1 });
-      delete entry.deletedAt;
-      if (!entry.company.trim() || !entry.role.trim() || existing.has(fingerprint(entry))) continue;
-      entry.id = data.nextId++;
-      existing.add(fingerprint(entry));
-      added.push(entry);
+    const added = { applications: [], recentlyDeleted: [] };
+    const cutoff = Date.now() - RETENTION_MS;
+    for (const [key, entries] of Object.entries({ applications, recentlyDeleted })) {
+      for (const raw of entries) {
+        const { entry } = sanitizeImportedEntry({ ...raw, id: 1 });
+        if (!entry || existing.has(fingerprint(entry))) continue;
+        if (key === "recentlyDeleted" && !(new Date(entry.deletedAt).getTime() > cutoff)) continue;
+        if (key === "applications") delete entry.deletedAt;
+        entry.id = data.nextId++;
+        existing.add(fingerprint(entry));
+        added[key].push(entry);
+      }
     }
-    data.applications.push(...added);
-    this.write(data);
+    data.applications.push(...added.applications);
+    data.recentlyDeleted.push(...added.recentlyDeleted);
+    if (added.applications.length || added.recentlyDeleted.length) this.write(data);
     return added;
   }
 };
@@ -170,12 +182,22 @@ export const serverApi = {
     return (await this.request("/api/recently-deleted/bulk-permanent-delete", { method: "POST", body: JSON.stringify({ ids }) })).map(normalize);
   },
   async importEntries(entries) {
-    const added = [];
-    for (const entry of entries) {
-      const { id, createdAt, updatedAt, history, deletedAt, status, ...fields } = normalize({ ...entry, id: 1 });
-      added.push(await this.create({ ...fields, status }));
-    }
-    return added;
+    return (await this.importBackup(entries)).applications;
+  },
+  async importBackup(applications, recentlyDeleted = []) {
+    const serialize = raw => {
+      const { entry } = sanitizeImportedEntry({ ...raw, id: 1 });
+      return entry && {
+        ...entry,
+        skills: entry.skills.join(", "),
+        history: entry.history.map(change => `${change.status}@${change.at}`).join(";")
+      };
+    };
+    const added = await this.request("/api/applications/import", {
+      method: "POST",
+      body: JSON.stringify({ applications: applications.map(serialize).filter(Boolean), recentlyDeleted: recentlyDeleted.map(serialize).filter(Boolean) })
+    });
+    return { applications: added.applications.map(normalize), recentlyDeleted: added.recentlyDeleted.map(normalize) };
   }
 };
 

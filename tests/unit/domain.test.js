@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   cleanChanges, cleanLink, cleanSkills, cleanStage, cleanText, cleanDate,
-  normalize, withStatus, metrics, agendaItems, attentionItems, matchesQuery, compareBy,
+  normalize, withStatus, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   isValidDate, dayKey
 } from "../../src/main/resources/public/js/domain.js";
 
@@ -97,12 +97,50 @@ test("metrics computes response and interview rate only over sent applications",
     normalize({ id: 1, company: "A", role: "R", status: "SAVED" }),
     normalize({ id: 2, company: "B", role: "R", status: "APPLIED" }),
     normalize({ id: 3, company: "C", role: "R", status: "INTERVIEW" }),
-    normalize({ id: 4, company: "D", role: "R", status: "REJECTED" })
+    normalize({ id: 4, company: "D", role: "R", status: "REJECTED", history: [{ status: "APPLIED", at: "2026-01-01T12:00:00Z" }, { status: "REJECTED", at: "2026-01-02T12:00:00Z" }] })
   ];
   const stats = metrics(list);
   assert.equal(stats.total, 4);
   assert.equal(stats.sent, 3);
   assert.equal(stats.responseRate, Math.round((2 * 100) / 3));
+});
+
+test("closing a saved role without applying earns no sent, response, or weekly-goal credit", () => {
+  const now = new Date().toISOString();
+  const saved = normalize({ id: 1, company: "Expired", role: "Intern", status: "SAVED", createdAt: now });
+  const rejected = withStatus(saved, "REJECTED", now);
+  assert.equal(sentAt(rejected), null);
+  assert.equal(sentAt(normalize({ id: 2, company: "No history", role: "Intern", status: "REJECTED" })), null);
+  const stats = metrics([rejected]);
+  assert.equal(stats.sent, 0);
+  assert.equal(stats.responseRate, 0);
+  assert.equal(stats.interviewRate, 0);
+  assert.equal(weekActivity([rejected]).total, 0);
+});
+
+test("submission and response history survive moving an application back to an earlier stage", () => {
+  const now = new Date().toISOString();
+  const saved = normalize({ id: 1, company: "Acme", role: "Intern", createdAt: now });
+  const applied = withStatus(saved, "APPLIED", now);
+  const interviewed = withStatus(applied, "INTERVIEW", now);
+  const movedBack = withStatus(interviewed, "SAVED", now);
+  assert.equal(sentAt(movedBack), now);
+  assert.equal(weekActivity([movedBack]).total, 1);
+  const stats = metrics([movedBack]);
+  assert.equal(stats.sent, 1);
+  assert.equal(stats.responseRate, 100);
+  assert.equal(stats.interviewRate, 100);
+});
+
+test("a rejected bookmark reopened and applied later has not received a response", () => {
+  const now = new Date().toISOString();
+  const saved = normalize({ id: 1, company: "Acme", role: "Intern", createdAt: now });
+  const rejected = withStatus(saved, "REJECTED", now);
+  const applied = withStatus(rejected, "APPLIED", now);
+  assert.equal(sentAt(applied), now);
+  const stats = metrics([applied]);
+  assert.equal(stats.sent, 1);
+  assert.equal(stats.responseRate, 0);
 });
 
 test("agendaItems surfaces upcoming deadlines and next steps, sorted by date", () => {

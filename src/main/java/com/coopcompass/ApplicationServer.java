@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 
 public final class ApplicationServer {
     private static final int MAX_REQUEST_BYTES = 64 * 1024;
+    private static final int MAX_IMPORT_BYTES = 5 * 1024 * 1024;
     private static final String CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'sha256-48D3gRF3fp2g7CI15bz3WUDeNsrYv/Zo28KQ02ZrUXQ='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
     private final ApplicationRepository repository;
     private final Path publicDirectory;
@@ -58,6 +59,15 @@ public final class ApplicationServer {
             String path = exchange.getRequestURI().getPath();
             if ("GET".equals(method) && "/api/applications".equals(path)) {
                 respondJson(exchange, 200, "[" + repository.list().stream().map(this::applicationJson).reduce((left, right) -> left + "," + right).orElse("") + "]");
+                return;
+            }
+            if ("POST".equals(method) && "/api/applications/import".equals(path)) {
+                String body = readBody(exchange, MAX_IMPORT_BYTES);
+                List<Map<String, String>> active = Json.objectArray(body, "applications").stream().map(this::importPayload).toList();
+                List<Map<String, String>> deleted = Json.objectArray(body, "recentlyDeleted").stream().map(this::importPayload).toList();
+                ApplicationRepository.ImportedApplications imported = repository.importBackup(active, deleted);
+                respondJson(exchange, 200, "{\"applications\":" + applicationsJson(imported.applications())
+                        + ",\"recentlyDeleted\":" + deletedApplicationsJson(imported.recentlyDeleted()) + "}");
                 return;
             }
             if ("POST".equals(method) && "/api/applications/bulk-status".equals(path)) {
@@ -212,6 +222,14 @@ public final class ApplicationServer {
         return values;
     }
 
+    private Map<String, String> importPayload(String body) {
+        Map<String, String> values = payload(body);
+        for (String field : new String[]{"createdAt", "updatedAt", "deletedAt", "history"}) {
+            Json.string(body, field).ifPresent(value -> values.put(field, value));
+        }
+        return values;
+    }
+
     private long idFrom(String path) {
         return idFrom(path, "/api/applications/");
     }
@@ -264,8 +282,12 @@ public final class ApplicationServer {
     }
 
     private static String readBody(HttpExchange exchange) throws IOException {
-        byte[] content = exchange.getRequestBody().readNBytes(MAX_REQUEST_BYTES + 1);
-        if (content.length > MAX_REQUEST_BYTES) throw new HttpException(413, "Request body is too large.");
+        return readBody(exchange, MAX_REQUEST_BYTES);
+    }
+
+    private static String readBody(HttpExchange exchange, int limit) throws IOException {
+        byte[] content = exchange.getRequestBody().readNBytes(limit + 1);
+        if (content.length > limit) throw new HttpException(413, "Request body is too large.");
         return new String(content, StandardCharsets.UTF_8);
     }
 

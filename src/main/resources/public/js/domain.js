@@ -190,11 +190,13 @@ export const countBy = list => Object.fromEntries(STAGES.map(stage => [stage, li
 export const reached = (entry, stage) => entry.status === stage || entry.history.some(change => change.status === stage)
   || (stage === "INTERVIEW" && entry.status === "OFFER");
 
-/** When an application was sent: the first time it left "Saved". */
+const SUBMITTED_STAGES = ["APPLIED", "INTERVIEW", "OFFER"];
+
+/** A rejected bookmark was never sent unless its history records a submitted stage. */
 export function sentAt(entry) {
-  const change = entry.history.find(item => item.status !== "SAVED");
+  const change = entry.history.find(item => SUBMITTED_STAGES.includes(item.status));
   if (change) return change.at;
-  return entry.status === "SAVED" ? null : entry.createdAt;
+  return SUBMITTED_STAGES.includes(entry.status) ? entry.createdAt : null;
 }
 
 /** The date the stage last changed, used to spot applications waiting for a reply. */
@@ -205,9 +207,15 @@ export function stageSince(entry) {
 
 export function metrics(list) {
   const counts = countBy(list);
-  const sent = list.length - counts.SAVED;
-  const responses = counts.INTERVIEW + counts.OFFER + counts.REJECTED;
-  const interviews = list.filter(entry => entry.status !== "SAVED" && reached(entry, "INTERVIEW")).length;
+  const submitted = list.filter(entry => sentAt(entry));
+  const sent = submitted.length;
+  const responseStages = ["INTERVIEW", "OFFER", "REJECTED"];
+  const responses = submitted.filter(entry => {
+    const sentIndex = entry.history.findIndex(change => SUBMITTED_STAGES.includes(change.status));
+    return responseStages.includes(entry.status)
+      || (sentIndex >= 0 && entry.history.slice(sentIndex).some(change => responseStages.includes(change.status)));
+  }).length;
+  const interviews = submitted.filter(entry => reached(entry, "INTERVIEW")).length;
   return {
     counts,
     total: list.length,

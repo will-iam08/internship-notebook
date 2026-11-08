@@ -83,6 +83,70 @@ public final class ApplicationRepository {
         return application;
     }
 
+    public synchronized ImportedApplications importBackup(List<Map<String, String>> active,
+                                                          List<Map<String, String>> deleted) throws IOException {
+        Instant now = clock.instant();
+        Instant cutoff = now.minus(RECENTLY_DELETED_RETENTION);
+        Set<List<String>> existing = new HashSet<>();
+        applications.values().forEach(application -> existing.add(fingerprint(application)));
+        recentlyDeleted.values().stream().filter(entry -> entry.deletedAt().isAfter(cutoff))
+                .forEach(entry -> existing.add(fingerprint(entry.application())));
+        List<Application> added = new ArrayList<>();
+        List<DeletedApplication> addedDeleted = new ArrayList<>();
+        long originalNextId = nextId.get();
+        long importedNextId = originalNextId;
+        for (int group = 0; group < 2; group++) {
+            for (Map<String, String> input : group == 0 ? active : deleted) {
+                Instant createdAt = timestamp(input.getOrDefault("createdAt", now.toString()), "createdAt");
+                Instant updatedAt = timestamp(input.getOrDefault("updatedAt", createdAt.toString()), "updatedAt");
+                Application.Status status = Application.Status.from(input.get("status"));
+                Application application = new Application(importedNextId,
+                        required(input, "company", 80), required(input, "role", 100),
+                        optional(input, "location", 80), optional(input, "source", 60), status,
+                        date(input.getOrDefault("deadline", ""), "Deadline"), optional(input, "notes", MAX_NOTES),
+                        skills(input.getOrDefault("skills", "")), createdAt, link(input.getOrDefault("link", "")),
+                        optional(input, "contact", 120), optional(input, "nextStep", 140),
+                        date(input.getOrDefault("nextStepDate", ""), "Next step date"),
+                        Boolean.parseBoolean(input.getOrDefault("starred", "false")),
+                        history(input.getOrDefault("history", ""), status, createdAt), updatedAt);
+                Instant deletedAt = group == 1 ? timestamp(input.get("deletedAt"), "deletedAt") : null;
+                if (deletedAt != null && !deletedAt.isAfter(cutoff)) continue;
+                if (!existing.add(fingerprint(application))) continue;
+                if (importedNextId == Long.MAX_VALUE) throw new IllegalArgumentException("Too many notebook pages.");
+                importedNextId++;
+                if (deletedAt == null) added.add(application);
+                else addedDeleted.add(new DeletedApplication(application, deletedAt));
+            }
+        }
+        if (added.isEmpty() && addedDeleted.isEmpty()) return new ImportedApplications(List.of(), List.of());
+        added.forEach(application -> applications.put(application.id(), application));
+        addedDeleted.forEach(entry -> recentlyDeleted.put(entry.application().id(), entry));
+        nextId.set(importedNextId);
+        try {
+            save();
+        } catch (IOException exception) {
+            added.forEach(application -> applications.remove(application.id()));
+            addedDeleted.forEach(entry -> recentlyDeleted.remove(entry.application().id()));
+            nextId.set(originalNextId);
+            throw exception;
+        }
+        return new ImportedApplications(List.copyOf(added), List.copyOf(addedDeleted));
+    }
+
+    private static List<String> fingerprint(Application application) {
+        return List.of(application.company().toLowerCase(Locale.ROOT), application.role().toLowerCase(Locale.ROOT),
+                application.createdAt().toString());
+    }
+
+    private static Instant timestamp(String value, String field) {
+        try {
+            if (value == null) throw new IllegalArgumentException();
+            return Instant.parse(value);
+        } catch (IllegalArgumentException | DateTimeParseException exception) {
+            throw new IllegalArgumentException(field + " must be a valid timestamp.");
+        }
+    }
+
     public synchronized Optional<Application> updateStatus(long id, String rawStatus) throws IOException {
         purgeExpiredAndSave();
         Application existing = applications.get(id);
@@ -292,23 +356,42 @@ public final class ApplicationRepository {
             byStatus.put(status, applications.values().stream().filter(application -> application.status() == status).count());
         }
         long total = applications.size();
-        long applied = byStatus.get(Application.Status.APPLIED) + byStatus.get(Application.Status.INTERVIEW)
-                + byStatus.get(Application.Status.OFFER) + byStatus.get(Application.Status.REJECTED);
-        long responses = byStatus.get(Application.Status.INTERVIEW) + byStatus.get(Application.Status.OFFER)
-                + byStatus.get(Application.Status.REJECTED);
-        int responseRate = applied == 0 ? 0 : (int) Math.round((responses * 100.0) / applied);
+        List<Application.Status> submittedStages = List.of(Application.Status.APPLIED, Application.Status.INTERVIEW, Application.Status.OFFER);
+        List<Application.Status> responseStages = List.of(Application.Status.INTERVIEW, Application.Status.OFFER, Application.Status.REJECTED);
+        long sent = 0;
+        long responses = 0;
+        for (Application application : applications.values()) {
+            boolean submitted = false;
+            boolean responded = responseStages.contains(application.status());
+            for (Application.StatusChange change : application.history()) {
+                if (submittedStages.contains(change.status())) submitted = true;
+                if (submitted && responseStages.contains(change.status())) responded = true;
+            }
+            if (submitted || submittedStages.contains(application.status())) {
+                sent++;
+                if (responded) responses++;
+            }
+        }
+        int responseRate = sent == 0 ? 0 : (int) Math.round((responses * 100.0) / sent);
         return new Dashboard(total, byStatus, responseRate);
     }
 
     private void load() throws IOException {
         if (!Files.exists(dataFile)) return;
+        int line = 0;
         for (String row : Files.readAllLines(dataFile, StandardCharsets.UTF_8)) {
+            line++;
             if (row.isBlank()) continue;
             String[] values = row.split("\\t", -1);
             // 10/11 columns: rows written before notebook pages existed. 18 columns: current format.
-            if (values.length != 10 && values.length != 11 && values.length < EXTENDED_COLUMNS) continue;
+            if (values.length != 10 && values.length != 11 && values.length != EXTENDED_COLUMNS) {
+                throw new IOException("Notebook row " + line + " is unreadable. The original file has not been changed.");
+            }
             try {
                 long id = Long.parseLong(values[0]);
+                if (id <= 0 || id == Long.MAX_VALUE || applications.containsKey(id) || recentlyDeleted.containsKey(id)) {
+                    throw new IllegalArgumentException("Invalid or repeated application ID.");
+                }
                 Application.Status status = Application.Status.valueOf(values[5]);
                 Instant createdAt = Instant.parse(values[9]);
                 boolean extended = values.length >= EXTENDED_COLUMNS;
@@ -331,8 +414,8 @@ public final class ApplicationRepository {
                     recentlyDeleted.put(id, new DeletedApplication(application, Instant.parse(deletedAt)));
                 }
                 nextId.set(Math.max(nextId.get(), id + 1));
-            } catch (RuntimeException ignored) {
-                // A malformed local row should not make the whole tracker unavailable.
+            } catch (RuntimeException exception) {
+                throw new IOException("Notebook row " + line + " is unreadable. The original file has not been changed.", exception);
             }
         }
     }
@@ -372,13 +455,14 @@ public final class ApplicationRepository {
 
     private static List<Application.StatusChange> history(String raw, Application.Status status, Instant createdAt) {
         List<Application.StatusChange> changes = new ArrayList<>();
-        for (String entry : raw.split(";")) {
+        if (raw.isBlank()) return List.of(new Application.StatusChange(status, createdAt));
+        for (String entry : raw.split(";", -1)) {
             int separator = entry.indexOf('@');
-            if (separator <= 0) continue;
+            if (separator <= 0) throw new IllegalArgumentException("History must contain valid stages and timestamps.");
             changes.add(new Application.StatusChange(Application.Status.valueOf(entry.substring(0, separator)),
-                    Instant.parse(entry.substring(separator + 1))));
+                    timestamp(entry.substring(separator + 1), "History time")));
         }
-        return changes.isEmpty() ? List.of(new Application.StatusChange(status, createdAt)) : changes;
+        return List.copyOf(changes);
     }
 
     private void purgeExpiredAndSave() throws IOException {
@@ -490,16 +574,21 @@ public final class ApplicationRepository {
         for (int index = 0; index < value.length(); index++) {
             char character = value.charAt(index);
             if (escaping) {
-                result.append(switch (character) { case 't' -> '\t'; case 'n' -> '\n'; case 'r' -> '\r'; default -> character; });
+                result.append(switch (character) {
+                    case 't' -> '\t'; case 'n' -> '\n'; case 'r' -> '\r'; case '\\' -> '\\';
+                    default -> throw new IllegalArgumentException("Invalid notebook text escape.");
+                });
                 escaping = false;
             } else if (character == '\\') escaping = true;
             else result.append(character);
         }
-        if (escaping) result.append('\\');
+        if (escaping) throw new IllegalArgumentException("Incomplete notebook text escape.");
         return result.toString();
     }
 
     public record DeletedApplication(Application application, Instant deletedAt) { }
+
+    public record ImportedApplications(List<Application> applications, List<DeletedApplication> recentlyDeleted) { }
 
     public record Dashboard(long total, Map<Application.Status, Long> byStatus, int responseRate) { }
 }
