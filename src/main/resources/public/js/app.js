@@ -54,6 +54,10 @@ function debounce(fn, wait) {
 /* ==========================================================================
    6. State and preferences
    ========================================================================== */
+// Guided-setup onboarding preferences. targetRole reuses the role limit (100); each target
+// company reuses the company limit (80); name keeps its existing 40-char cap used everywhere else.
+const SEASONS = ["Winter", "Spring", "Summer", "Fall"];
+
 function readPrefs() {
   let saved = {};
   try { saved = JSON.parse(storage.get(KEYS.prefs) || "{}") || {}; } catch { saved = {}; }
@@ -63,6 +67,12 @@ function readPrefs() {
   return {
     goal: clamp(Number(saved.goal) || (legacyGoal > 0 ? legacyGoal : 5), 1, 50),
     name: typeof saved.name === "string" ? saved.name.slice(0, 40) : "",
+    targetRole: typeof saved.targetRole === "string" ? saved.targetRole.slice(0, LIMITS.role) : "",
+    season: SEASONS.includes(saved.season) ? saved.season : "",
+    targetCompanies: Array.isArray(saved.targetCompanies)
+      ? saved.targetCompanies.filter(item => typeof item === "string" && item.trim()).map(item => item.trim().slice(0, LIMITS.company)).slice(0, 50)
+      : [],
+    started: saved.started === true,
     theme: theme === "light" || theme === "dark" ? theme : "system",
     sort: ["updated", "created", "deadline", "company"].includes(saved.sort) ? saved.sort : "updated",
     newsFilter: {
@@ -115,10 +125,14 @@ async function loadInternships() {
 }
 
 function savePrefs() {
-  const { goal, name, sort, newsFilter } = state.prefs;
-  storage.set(KEYS.prefs, JSON.stringify({ goal, name, sort, newsFilter }));
+  const { goal, name, targetRole, season, targetCompanies, started, sort, newsFilter } = state.prefs;
+  // storage.set returns false (it never throws) when the write is rejected, e.g. a full or blocked
+  // store. Return that result so onboarding can report a failed preferences write honestly rather
+  // than assuming it landed. The goal/theme mirrors are best-effort and do not change the result.
+  const saved = storage.set(KEYS.prefs, JSON.stringify({ goal, name, targetRole, season, targetCompanies, started, sort, newsFilter }));
   storage.set(KEYS.goal, String(goal));
   storage.set(KEYS.theme, state.prefs.theme);
+  return saved;
 }
 
 const find = id => state.applications.find(entry => entry.id === id);
