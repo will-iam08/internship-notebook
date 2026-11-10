@@ -21,6 +21,12 @@ import {
   fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, resumeCloud, sendPasswordReset,
   signInEmail, signInGoogle, signOutCloud
 } from "./cloud.js";
+import { buildDemoDataset } from "./demo.js";
+import {
+  SEASONS, hasExistingWork, isNewVisitor as isNewVisitorPure,
+  sanitizeTargetRole, sanitizeSeason, sanitizeTargetCompanies,
+  validateSetup, buildStarterApplications
+} from "./onboarding.js";
 import { entryCalendar } from "./calendar.js";
 import { icon, LOGO } from "./ui/icons.js";
 
@@ -54,10 +60,6 @@ function debounce(fn, wait) {
 /* ==========================================================================
    6. State and preferences
    ========================================================================== */
-// Guided-setup onboarding preferences. targetRole reuses the role limit (100); each target
-// company reuses the company limit (80); name keeps its existing 40-char cap used everywhere else.
-const SEASONS = ["Winter", "Spring", "Summer", "Fall"];
-
 function readPrefs() {
   let saved = {};
   try { saved = JSON.parse(storage.get(KEYS.prefs) || "{}") || {}; } catch { saved = {}; }
@@ -67,11 +69,9 @@ function readPrefs() {
   return {
     goal: clamp(Number(saved.goal) || (legacyGoal > 0 ? legacyGoal : 5), 1, 50),
     name: typeof saved.name === "string" ? saved.name.slice(0, 40) : "",
-    targetRole: typeof saved.targetRole === "string" ? saved.targetRole.slice(0, LIMITS.role) : "",
-    season: SEASONS.includes(saved.season) ? saved.season : "",
-    targetCompanies: Array.isArray(saved.targetCompanies)
-      ? saved.targetCompanies.filter(item => typeof item === "string" && item.trim()).map(item => item.trim().slice(0, LIMITS.company)).slice(0, 50)
-      : [],
+    targetRole: sanitizeTargetRole(saved.targetRole),
+    season: sanitizeSeason(saved.season),
+    targetCompanies: sanitizeTargetCompanies(saved.targetCompanies),
     started: saved.started === true,
     theme: theme === "light" || theme === "dark" ? theme : "system",
     sort: ["updated", "created", "deadline", "company"].includes(saved.sort) ? saved.sort : "updated",
@@ -88,6 +88,8 @@ function readPrefs() {
 const state = {
   applications: [],
   deleted: [],
+  demoMode: false,
+  demo: null,
   loaded: false,
   loadError: "",
   corrupted: null,
@@ -141,6 +143,19 @@ const findDeleted = id => state.deleted.find(entry => entry.id === id);
 function replaceApplications(updated) {
   const byId = new Map(updated.map(entry => [entry.id, entry]));
   state.applications = state.applications.map(entry => byId.get(entry.id) || entry);
+}
+
+/* ==========================================================================
+   6b. Demo-first onboarding: existing-work check and first-run classification
+   ==========================================================================
+   A visitor is "returning" the moment they have any real work to protect: an active page, a
+   recoverable Recently Deleted page, a pending draft, or a set "started" flag from a past setup.
+   Only a visitor with none of those and no started flag is "new" and sees the demo. This reads
+   real storage through the existing readers; it is never given the demo copy. It must run only
+   after a successful api.read() - a StorageCorruptedError is handled by the existing recovery path
+   before this is ever reached, so corrupted data is never mistaken for an empty (new) notebook. */
+function isNewVisitor(record) {
+  return isNewVisitorPure({ browserMode: BROWSER_MODE, record, drafts: readDrafts(), started: readPrefs().started });
 }
 
 /* ==========================================================================
