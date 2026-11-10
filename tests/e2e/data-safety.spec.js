@@ -1,7 +1,7 @@
 // Covers: autosave failure and retry, drafts surviving a refresh, corrupted-storage recovery,
 // and backup import (validation, unsafe-link stripping, duplicates, undo).
 import { expect, test } from "./fixtures.js";
-import { DATA_KEY, openApp, savedNotebook, seedNotebook } from "./helpers.js";
+import { DATA_KEY, openApp, savedNotebook, seedNotebook, seedStarted } from "./helpers.js";
 
 const DRAFTS_KEY = "my-internship-notebook-drafts-v1";
 
@@ -151,6 +151,7 @@ test.describe("backup import", () => {
   }
 
   test("validates every field, strips an unsafe link, skips invalid entries, and can be undone", async ({ page }) => {
+    await seedStarted(page); // import into a real empty notebook, not the demo
     await openApp(page);
     const applications = [
       { company: "Acme Aerospace", role: "Flight Software Intern", status: "SAVED", link: "https://acme.example/jobs/1" },
@@ -181,6 +182,7 @@ test.describe("backup import", () => {
   });
 
   test("rejects a file that isn't a backup", async ({ page }) => {
+    await seedStarted(page);
     await openApp(page);
     await page.setInputFiles("#import-file", { name: "notes.json", mimeType: "application/json", buffer: Buffer.from("not json") });
     await expect(page.locator("#toasts")).toContainText("couldn't be read as a backup");

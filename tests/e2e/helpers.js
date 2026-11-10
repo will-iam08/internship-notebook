@@ -1,5 +1,6 @@
 // Shared helpers for the end-to-end tests.
 export const DATA_KEY = "my-internship-notebook-browser-data-v1";
+export const PREFS_KEY = "my-internship-notebook-prefs-v1";
 
 const daysFromNow = days => {
   const date = new Date();
@@ -41,6 +42,22 @@ export async function seedNotebook(page, applications = sampleApplications(), ex
       sessionStorage.setItem("seeded", "1");
     }
   }, [DATA_KEY, JSON.stringify(data)]);
+}
+
+/**
+ * Seeds an empty but STARTED notebook: a returning visitor whose notebook is empty. With demo-first
+ * onboarding, a brand-new visitor (no data, no started flag) lands in the interactive demo instead
+ * of an empty Today screen. Tests that need the real empty notebook (import into empty, manifest,
+ * security, layout) use this so they are not routed into the demo.
+ */
+export async function seedStarted(page, prefs = {}) {
+  await page.addInitScript(([dataKey, prefsKey, prefsValue]) => {
+    if (!sessionStorage.getItem("seeded")) {
+      localStorage.setItem(dataKey, JSON.stringify({ nextId: 1, applications: [], recentlyDeleted: [] }));
+      localStorage.setItem(prefsKey, prefsValue);
+      sessionStorage.setItem("seeded", "1");
+    }
+  }, [DATA_KEY, PREFS_KEY, JSON.stringify({ started: true, ...prefs })]);
 }
 
 /** Reads the saved notebook straight from browser storage. */

@@ -1,9 +1,33 @@
-import { expect, test } from "./fixtures.js";
-import { openApp, savedNotebook } from "./helpers.js";
+import { ROUTE_FILES, expect, test } from "./fixtures.js";
+import path from "node:path";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { openApp, savedNotebook, seedStarted } from "./helpers.js";
+
+/** Installs the same file-serving route interceptor used by the fixtures on a manually-created
+ *  context. Required in PW_ROUTE_FILES=1 mode, where the base fixture only routes the page fixture's
+ *  context, not independently created contexts. */
+async function installRouting(context, baseURL) {
+  if (!ROUTE_FILES) return;
+  const site = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../_site");
+  const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon" };
+  await context.route(`${baseURL}/**`, async route => {
+    const { pathname } = new URL(route.request().url());
+    const file = path.join(site, pathname.endsWith("/") ? `${pathname}index.html` : pathname);
+    try {
+      const body = await readFile(file);
+      await route.fulfill({ status: 200, body, headers: { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-store" } });
+    } catch {
+      await route.fulfill({ status: 404, body: "Not found" });
+    }
+  });
+}
 
 test("separate browser profiles cannot read each other's notebook", async ({ browser, baseURL }) => {
   const firstContext = await browser.newContext({ baseURL });
   const secondContext = await browser.newContext({ baseURL });
+  await installRouting(firstContext, baseURL);
+  await installRouting(secondContext, baseURL);
   try {
     const first = await firstContext.newPage();
     const second = await secondContext.newPage();
@@ -12,6 +36,7 @@ test("separate browser profiles cannot read each other's notebook", async ({ bro
       if (new URL(request.url()).pathname.includes("/api/")) apiRequests.push(request.url());
     });
 
+    await seedStarted(first); // first profile is a real, started notebook (not the demo)
     await openApp(first);
     await first.locator('[data-action="new"]:visible').first().click();
     await first.locator('#new-form [name="company"]').fill("Private Profile Company");

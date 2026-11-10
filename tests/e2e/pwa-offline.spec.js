@@ -1,9 +1,10 @@
 // Covers: the web app manifest is valid and linked, the service worker registers and caches the
 // app shell, and a previously-visited page still loads while offline.
-import { expect, test } from "./fixtures.js";
-import { openApp, seedNotebook } from "./helpers.js";
+import { ROUTE_FILES, expect, test } from "./fixtures.js";
+import { openApp, seedNotebook, seedStarted } from "./helpers.js";
 
 test("the manifest is linked and declares the fields an installer needs", async ({ page, baseURL }) => {
+  await seedStarted(page); // a real empty notebook, not the demo
   await openApp(page);
   const href = await page.locator('link[rel="manifest"]').getAttribute("href");
   expect(href).toBeTruthy();
@@ -14,8 +15,12 @@ test("the manifest is linked and declares the fields an installer needs", async 
   expect(manifest.share_target?.params).toEqual({ title: "title", text: "text", url: "url" });
   expect(manifest.icons.length).toBeGreaterThan(0);
   for (const icon of manifest.icons) {
-    const response = await page.request.get(new URL(icon.src, baseURL).toString());
-    expect(response.ok(), `icon ${icon.src} should be reachable`).toBe(true);
+    // With PW_ROUTE_FILES=1, page.request.get() bypasses the browser-level routing interceptor
+    // and hits the network directly. Use an in-page fetch() instead so the interceptor catches it.
+    const ok = await page.evaluate(async url => {
+      try { const r = await fetch(url); return r.ok; } catch { return false; }
+    }, new URL(icon.src, baseURL).toString());
+    expect(ok, `icon ${icon.src} should be reachable`).toBe(true);
   }
 });
 
