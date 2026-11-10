@@ -182,17 +182,28 @@ function isNewVisitor(record) {
    demoSession is bumped on every enter/exit. Delayed callbacks (undo toasts, autosave retry timers)
    captured during the demo check the session they were created in, so a demo-era callback can never
    run against the real backend after the visitor leaves the demo. */
+let demoStore = null; // the demo backend's own in-memory record, detached from the visible arrays
 const demoApi = {
   ...browserApi,
   read() {
-    const data = state.demo || { applications: [], recentlyDeleted: [], nextId: 1 };
-    return { nextId: data.nextId, applications: data.applications, recentlyDeleted: data.recentlyDeleted };
+    const data = demoStore || { applications: [], recentlyDeleted: [], nextId: 1 };
+    // Return copies so callers (the real browserApi methods reused here) never mutate demoStore in
+    // place - mirrors how browserApi.read() returns freshly normalized objects, not storage aliases.
+    return {
+      nextId: data.nextId,
+      applications: data.applications.map(entry => ({ ...entry })),
+      recentlyDeleted: data.recentlyDeleted.map(entry => ({ ...entry }))
+    };
   },
   write(data) {
-    // Memory only: never storage.set, never the cloud write listener. This is the isolation.
-    state.demo = { nextId: data.nextId, applications: data.applications, recentlyDeleted: data.recentlyDeleted };
-    // Keep the visible arrays pointing at the latest demo data (importBackup/undo build new arrays).
-    if (state.demoMode) { state.applications = state.demo.applications; state.deleted = state.demo.recentlyDeleted; }
+    // Memory only: never storage.set, never the cloud write listener. This is the isolation. The
+    // record is stored detached from state.applications/state.deleted so the existing handlers can
+    // update the visible arrays exactly once, the same way they do against the real backend.
+    demoStore = {
+      nextId: data.nextId,
+      applications: data.applications.map(entry => ({ ...entry })),
+      recentlyDeleted: data.recentlyDeleted.map(entry => ({ ...entry }))
+    };
   },
   async load() {
     const data = this.read();
@@ -221,17 +232,18 @@ function enterDemoMode() {
   }
   if (!dataset || !dataset.applications.length) return false;
   demoSession++;
-  state.demo = dataset;
   state.demoMode = true;
   activeApi = demoApi;
-  // The existing views read state.applications/state.deleted directly, and handlers mutate those
-  // arrays alongside the API call. In demo mode they must reflect the in-memory demo dataset, so we
-  // point them at it (keeping the real arrays to restore on exit). demoApi.read() returns the same
-  // state.demo object, so the adapter and the visible state stay consistent.
+  // Seed the demo backend's own record from the dataset, then populate the visible arrays from a
+  // detached read. The visible arrays are independent copies, so the existing handlers update them
+  // once (push/filter) just as they do in real mode - no aliasing, no double-counting.
+  demoStore = { nextId: dataset.nextId, applications: dataset.applications, recentlyDeleted: dataset.recentlyDeleted };
   state.realApplications = state.applications;
   state.realDeleted = state.deleted;
-  state.applications = state.demo.applications;
-  state.deleted = state.demo.recentlyDeleted;
+  const seeded = demoApi.read();
+  state.applications = seeded.applications;
+  state.deleted = seeded.recentlyDeleted;
+  state.demo = demoStore;
   return true;
 }
 
@@ -247,6 +259,7 @@ function exitDemoMode() {
   state.realApplications = null;
   state.realDeleted = null;
   state.demo = null;
+  demoStore = null;
   activeApi = api;
   // Drop any autosave retry timers scheduled against demo IDs so they never fire on the real backend.
   for (const timer of retryTimers.values()) window.clearTimeout(timer);
@@ -2063,6 +2076,11 @@ function cloudCredentials() {
 }
 
 async function chooseCloudNotebook() {
+  // Choosing a real cloud notebook operates on the real backend. If the visitor reached here from the
+  // demo (e.g. opened Settings while the demo was on), end the demo first: discard the in-memory demo
+  // session and restore the real backend/arrays, so load() below works on the real notebook, not the
+  // demo. Demo data is never read here, so it can never be uploaded.
+  if (inDemo()) exitDemoMode();
   await retryPendingDrafts();
   await saveChain;
   if (Object.keys(readDrafts()).length) throw new Error("Some edits are still waiting to save. Retry them before choosing a cloud notebook.");
