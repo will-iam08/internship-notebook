@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures.js";
-import { openApp, sampleApplications, savedNotebook, seedNotebook } from "./helpers.js";
+import { openApp, sampleApplications, savedNotebook, seedNotebook, seedStarted } from "./helpers.js";
 
 test.use({ serviceWorkers: "block" });
 
@@ -15,6 +15,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("a feed listing becomes a reviewed notebook page and cannot be saved twice", async ({ page }) => {
+  await seedStarted(page);
   await openApp(page);
   const listing = page.locator(".news-item").filter({ hasText: "Aurora Robotics" });
   await listing.locator('[data-action="news-save"]').click();
@@ -35,6 +36,7 @@ test("a feed listing becomes a reviewed notebook page and cannot be saved twice"
 test("distinct job hash routes stay separate when saving feed listings", async ({ page }) => {
   const hashListings = listings.map((listing, index) => ({ ...listing, url: `https://example.com/careers#/job/${index + 1}` }));
   await page.route("**/internships.json", route => route.fulfill({ json: { listings: hashListings } }));
+  await seedStarted(page); // real started notebook so feed saves persist (new visitors land in the demo)
   await openApp(page);
   const first = page.locator(".news-item").filter({ hasText: "Aurora Robotics" });
   const second = page.locator(".news-item").filter({ hasText: "Harbour Labs" });
@@ -56,6 +58,7 @@ test("distinct job hash routes stay separate when saving feed listings", async (
 });
 
 test("feed filters persist after reload and clear together", async ({ page }) => {
+  await seedStarted(page);
   await openApp(page);
   await expect(page.locator(".news-item")).toHaveCount(2);
   await page.locator("#news-keywords").fill("Robotics");
@@ -181,6 +184,7 @@ for (const includeActive of [false, true]) {
     const active = { ...sampleApplications()[0], company: "Backup Active" };
     const deleted = { ...sampleApplications()[1], company: "Backup Deleted", deletedAt: new Date(Date.now() - 86400000).toISOString() };
     const backup = backupFile(includeActive ? [active] : [], [deleted]);
+    await seedStarted(page);
     await openApp(page);
     await page.setInputFiles("#import-file", backup);
     const dialog = page.locator("#confirm-dialog");

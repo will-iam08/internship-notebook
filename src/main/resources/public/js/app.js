@@ -2373,6 +2373,8 @@ const actions = {
     });
     if (!ok) return;
     storage.set(KEYS.data, JSON.stringify({ nextId: 1, applications: [], recentlyDeleted: [] }));
+    state.prefs.started = true; // starting fresh after recovery is an explicit start, not a demo visit
+    savePrefs();
     state.corrupted = null;
     load();
   },
@@ -2380,6 +2382,8 @@ const actions = {
     // The unreadable copy is already kept at its own key (see StorageCorruptedError), so it is
     // safe to give the primary key a valid empty starting point before opening the file picker.
     storage.set(KEYS.data, JSON.stringify({ nextId: 1, applications: [], recentlyDeleted: [] }));
+    state.prefs.started = true; // explicit recovery via import is a deliberate start, not a demo visit
+    savePrefs();
     state.corrupted = null;
     load().then(() => $("#import-file").click());
   }

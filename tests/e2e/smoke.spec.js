@@ -13,6 +13,7 @@ test("loads every section without script errors", async ({ page }) => {
 });
 
 test("adds an application and opens its page", async ({ page }) => {
+  await seedNotebook(page); // a started visitor with a real notebook (new visitors now land in the demo)
   await openApp(page);
   await page.locator('[data-action="new"]:visible').first().click();
   await page.locator('#new-form [name="company"]').fill("Acme Aerospace");
