@@ -1250,3 +1250,60 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
   .entry-company { font-size: 16px; letter-spacing: .06em; }
   .move-label select, .toolbar select { font-size: 16px; }
 }
+
+/* ==========================================================================
+   Demo-first onboarding: demo banner, guided setup, and sign-up
+   ========================================================================== */
+.demo-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--line, #d9cfbf);
+  border-radius: 12px;
+  background: var(--surface-2, #fbf7ef);
+}
+.demo-banner-text { display: flex; flex-direction: column; gap: 2px; }
+.demo-banner-text strong { font-weight: 600; }
+.demo-banner-text span { color: var(--muted, #6b6459); font-size: 14px; }
+.demo-banner-actions { display: flex; align-items: center; gap: 12px; }
+
+.setup-card, .signup-card { margin-top: 20px; max-width: 560px; }
+.setup-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.setup-field > span { font-weight: 600; font-size: 14px; }
+.setup-field small { font-weight: 400; color: var(--muted, #6b6459); }
+.setup-field input, .setup-field select {
+  padding: 10px 12px;
+  border: 1px solid var(--line, #d9cfbf);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  font: inherit;
+}
+.field-error { color: var(--danger, #b4232a); font-size: 14px; margin: 4px 0 0; }
+
+.signup-providers, .signup-browser-only { display: flex; flex-direction: column; gap: 10px; }
+.signup-providers .button.provider,
+.signup-browser-only .button.provider {
+  width: 100%;
+  justify-content: center;
+}
+.signup-or {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--muted, #6b6459);
+  margin: 16px 0;
+  font-size: 13px;
+  letter-spacing: .08em;
+}
+.signup-or::before, .signup-or::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--line, #d9cfbf);
+}
+.signup-or span { padding: 0 12px; }
+.signup-email { margin: 0; }
+.signup-browser-only { margin-top: 16px; }

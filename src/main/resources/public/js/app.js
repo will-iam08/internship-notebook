@@ -15,7 +15,7 @@ import {
   previewImport
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
-import { api, BROWSER_MODE, StorageCorruptedError } from "./api.js";
+import { api, browserApi, BROWSER_MODE, StorageCorruptedError } from "./api.js";
 import {
   cloudSnapshot, createEmailAccount, deleteCloudAccount, disableCloud, enableCloudWithLocal, enableCloudWithRemote,
   fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, resumeCloud, sendPasswordReset,
@@ -40,7 +40,9 @@ const VIEWS = {
   insights: { title: "Insights", tab: "--tab-insights" },
   deleted: { title: "Recently Deleted", tab: "--tab-deleted" },
   settings: { title: "Settings", tab: "--tab-settings" },
-  entry: { title: "Page", tab: "--tab-notebook" }
+  entry: { title: "Page", tab: "--tab-notebook" },
+  setup: { title: "Set up your notebook", tab: "--tab-today" },
+  signup: { title: "Save your notebook", tab: "--tab-settings" }
 };
 
 /* ==========================================================================
@@ -90,6 +92,11 @@ const state = {
   deleted: [],
   demoMode: false,
   demo: null,
+  realApplications: null,
+  realDeleted: null,
+  setupForm: { name: "", targetRole: "", season: "", companies: "" },
+  setupError: null,
+  setupSubmitting: false,
   loaded: false,
   loadError: "",
   corrupted: null,
@@ -156,6 +163,116 @@ function replaceApplications(updated) {
    before this is ever reached, so corrupted data is never mistaken for an empty (new) notebook. */
 function isNewVisitor(record) {
   return isNewVisitorPure({ browserMode: BROWSER_MODE, record, drafts: readDrafts(), started: readPrefs().started });
+}
+
+/* ==========================================================================
+   6c. Demo backend and active-API indirection
+   ==========================================================================
+   The demo is backed by a separate in-memory notebook. demoApi reuses the real browserApi methods
+   (create/update/remove/restore/setStatus/importBackup/...), which are all read-modify-write on top
+   of read()/write(); overriding only read() and write() to use state.demo redirects the whole object
+   to memory. Crucially, demoApi.write never calls storage.set and never notifies the cloud write
+   listener (that listener runs only inside the real browserApi.write, after persistence, so it could
+   not veto a write anyway). The exported real api/browserApi used by cloud.js are left untouched.
+
+   activeApi points at the demo backend while the demo is on and at the real api otherwise. Mutation
+   handlers call activeApi so they work unchanged in both modes. load(), cloud resume, and the cloud
+   copy-choice always use the real api and are never invoked while the demo is active.
+
+   demoSession is bumped on every enter/exit. Delayed callbacks (undo toasts, autosave retry timers)
+   captured during the demo check the session they were created in, so a demo-era callback can never
+   run against the real backend after the visitor leaves the demo. */
+const demoApi = {
+  ...browserApi,
+  read() {
+    const data = state.demo || { applications: [], recentlyDeleted: [], nextId: 1 };
+    return { nextId: data.nextId, applications: data.applications, recentlyDeleted: data.recentlyDeleted };
+  },
+  write(data) {
+    // Memory only: never storage.set, never the cloud write listener. This is the isolation.
+    state.demo = { nextId: data.nextId, applications: data.applications, recentlyDeleted: data.recentlyDeleted };
+    // Keep the visible arrays pointing at the latest demo data (importBackup/undo build new arrays).
+    if (state.demoMode) { state.applications = state.demo.applications; state.deleted = state.demo.recentlyDeleted; }
+  },
+  async load() {
+    const data = this.read();
+    return { applications: data.applications, deleted: data.recentlyDeleted };
+  }
+};
+
+let activeApi = api;
+let demoSession = 0;
+/** The session token callers capture so a delayed callback can tell if the demo it belonged to is
+ *  still active. Any session change (enter or exit) invalidates older demo-era callbacks. */
+const currentSession = () => demoSession;
+const sessionActive = token => token === demoSession;
+
+const inDemo = () => state.demoMode;
+
+/** Enter the demo: build a fresh in-memory dataset, point activeApi at the demo backend, and bump
+ *  the session so any earlier delayed callback is invalidated. Leaves real storage untouched. */
+function enterDemoMode() {
+  if (!BROWSER_MODE) return false;
+  let dataset;
+  try {
+    dataset = buildDemoDataset();
+  } catch {
+    return false; // caller shows the fallback onboarding view instead of a broken demo
+  }
+  if (!dataset || !dataset.applications.length) return false;
+  demoSession++;
+  state.demo = dataset;
+  state.demoMode = true;
+  activeApi = demoApi;
+  // The existing views read state.applications/state.deleted directly, and handlers mutate those
+  // arrays alongside the API call. In demo mode they must reflect the in-memory demo dataset, so we
+  // point them at it (keeping the real arrays to restore on exit). demoApi.read() returns the same
+  // state.demo object, so the adapter and the visible state stay consistent.
+  state.realApplications = state.applications;
+  state.realDeleted = state.deleted;
+  state.applications = state.demo.applications;
+  state.deleted = state.demo.recentlyDeleted;
+  return true;
+}
+
+/** Leave the demo for the real notebook: restore the real backend, discard the in-memory copy, and
+ *  bump the session so demo-era timers/undo callbacks become no-ops. No real write ever happens. */
+function exitDemoMode() {
+  if (!state.demoMode) return;
+  demoSession++;
+  state.demoMode = false;
+  // Restore the real notebook arrays captured on entry; discard the in-memory demo copy entirely.
+  state.applications = state.realApplications || [];
+  state.deleted = state.realDeleted || [];
+  state.realApplications = null;
+  state.realDeleted = null;
+  state.demo = null;
+  activeApi = api;
+  // Drop any autosave retry timers scheduled against demo IDs so they never fire on the real backend.
+  for (const timer of retryTimers.values()) window.clearTimeout(timer);
+  retryTimers.clear();
+}
+
+/** Wraps a delayed callback (an undo action, a timer) so it runs only if the demo session it was
+ *  created in is still current. A demo-era undo clicked after leaving the demo becomes a no-op, so a
+ *  demo ID can never reach the real backend. Outside the demo (session token captured while not in
+ *  demo) it always runs, because exiting the demo is the only thing that invalidates it. */
+function demoBound(fn) {
+  const session = currentSession();
+  const wasDemo = inDemo();
+  return (...args) => {
+    if (wasDemo && !sessionActive(session)) return;
+    return fn(...args);
+  };
+}
+
+/** "Start my notebook": leave the demo and go to guided setup. Discards the in-memory demo copy and
+ *  leaves the real notebook untouched. The started flag is NOT set here - only on successful setup
+ *  completion - so a visitor who bails out of setup still sees the demo next time. */
+function startMyNotebook() {
+  if (!BROWSER_MODE) return;
+  exitDemoMode();
+  go("#/setup");
 }
 
 /* ==========================================================================
@@ -235,6 +352,23 @@ function viewHead({ eyebrow, title, sub = "", actions = "" }) {
 
 function emptyState({ iconName, title, copy, action = "" }) {
   return `<div class="empty-state"><div class="empty-icon">${icon(iconName)}</div><h3>${title}</h3><p>${copy}</p>${action}</div>`;
+}
+
+/** Persistent demo banner shown in every view while the demo is active. It labels the view as a
+ *  demo, gives the primary "Start my notebook" action, and offers sign-up only as a low-key,
+ *  non-blocking link (no wall). */
+function demoBanner() {
+  return `
+    <div class="demo-banner" role="region" aria-label="Interactive demo">
+      <div class="demo-banner-text">
+        <strong>You're exploring a demo.</strong>
+        <span>This is sample data to show you around. Nothing here is saved to your notebook.</span>
+      </div>
+      <div class="demo-banner-actions">
+        <button class="button primary" type="button" data-action="start-my-notebook">${icon("plus")}<span>Start my notebook</span></button>
+        <a class="text-button" href="#/signup" data-action="demo-signup">Sign up</a>
+      </div>
+    </div>`;
 }
 
 const newButton = (label = "New application") => `<button class="button primary" type="button" data-action="new">${icon("plus")}<span>${label}</span></button>`;
@@ -929,11 +1063,154 @@ function viewEntry(id) {
 }
 
 /* ==========================================================================
+   10b. Onboarding views: guided setup and sign-up
+   ========================================================================== */
+function viewSetup() {
+  if (!BROWSER_MODE) return "";
+  const form = state.setupForm;
+  const error = state.setupError;
+  const seasonOptions = ["", ...SEASONS].map(value =>
+    `<option value="${esc(value)}" ${form.season === value ? "selected" : ""}>${value ? esc(value) : "Choose a season"}</option>`).join("");
+  const fieldError = field => error && error.field === field ? `<p class="field-error" role="alert">${esc(error.message)}</p>` : "";
+  return `
+    ${viewHead({ eyebrow: "Welcome", title: "Set up your notebook<span class=\"dot\">.</span>", sub: "A few details so your notebook starts with your search in mind. Nothing is saved until you finish." })}
+    <section class="card setup-card">
+      <form id="setup-form" novalidate>
+        <label class="setup-field"><span>Your name</span>
+          <input type="text" name="name" maxlength="40" value="${esc(form.name)}" placeholder="e.g. Jordan" autocomplete="given-name" />
+          ${fieldError("name")}</label>
+        <label class="setup-field"><span>Target role</span>
+          <input type="text" name="targetRole" maxlength="${LIMITS.role}" value="${esc(form.targetRole)}" placeholder="e.g. Software Engineering Intern" />
+          ${fieldError("targetRole")}</label>
+        <label class="setup-field"><span>Season</span>
+          <select name="season">${seasonOptions}</select>
+          ${fieldError("season")}</label>
+        <label class="setup-field"><span>Target companies <small>(optional, comma separated)</small></span>
+          <input type="text" name="companies" value="${esc(form.companies)}" placeholder="e.g. Northwind, Lumen, Harbor" />
+          ${fieldError("targetCompanies")}</label>
+        <div class="view-actions">
+          <button class="button primary" type="submit" data-action="setup-submit" ${state.setupSubmitting ? "disabled" : ""}>${icon("check")}<span>Create my notebook</span></button>
+        </div>
+      </form>
+    </section>`;
+}
+
+function viewSignup() {
+  if (!BROWSER_MODE) return "";
+  const error = state.cloud.error;
+  return `
+    ${viewHead({ eyebrow: "Optional", title: "Save your notebook<span class=\"dot\">.</span>", sub: "Your notebook is ready on this browser. Add an account to sync it across devices, or keep it here only." })}
+    <section class="card signup-card">
+      <div class="signup-providers">
+        <button class="button provider" type="button" data-action="cloud-google">${icon("cloud")}<span>Continue with Google</span></button>
+      </div>
+      <div class="signup-or"><span>OR</span></div>
+      <form id="signup-email" class="signup-email">
+        <label class="setup-field"><span>Email</span><input type="email" id="cloud-email" autocomplete="email" placeholder="you@example.com" /></label>
+        <label class="setup-field"><span>Password</span><input type="password" id="cloud-password" autocomplete="new-password" placeholder="At least 6 characters" /></label>
+        <label class="setup-field"><span>Confirm password</span><input type="password" id="cloud-password-confirm" autocomplete="new-password" placeholder="Re-enter your password" /></label>
+        <div class="view-actions">
+          <button class="button" type="submit" data-action="signup-email-create">${icon("mail")}<span>Create account with email</span></button>
+        </div>
+      </form>
+      ${error ? `<p class="field-error" role="alert">${esc(error)}</p>` : ""}
+      <div class="signup-browser-only">
+        <button class="button provider" type="button" data-action="signup-browser-only">${icon("notebook")}<span>Keep it on this browser only</span></button>
+      </div>
+    </section>`;
+}
+
+/* ==========================================================================
+   10c. Guided setup completion (validated single-batch notebook commit)
+   ==========================================================================
+   Order is deliberate and stated plainly: validate everything first; re-check for existing work
+   immediately before writing (covers a direct #/setup link or a second tab creating data mid-flow);
+   commit the notebook as ONE write (importBackup for companies, a single empty-notebook write for
+   none); persist preferences; then set the started flag only after the notebook commit succeeded.
+   localStorage has no multi-key transaction, so the notebook write and the prefs write are separate
+   ordered writes: the started flag gates on the notebook write specifically, a catch cannot roll
+   back a write that already landed, and we never roll back or overwrite data another tab wrote. */
+async function completeSetup() {
+  if (!BROWSER_MODE) return;
+  if (state.setupSubmitting) return; // one-shot latch against double submit
+  state.setupError = null;
+
+  // (1) Validate everything before any write. Read the live form so the submit reflects the
+  //     current inputs; mirror them into state.setupForm so an error rerender keeps the values.
+  const live = $("#setup-form");
+  if (live) {
+    state.setupForm.name = live.elements.name?.value ?? state.setupForm.name;
+    state.setupForm.targetRole = live.elements.targetRole?.value ?? state.setupForm.targetRole;
+    state.setupForm.season = live.elements.season?.value ?? state.setupForm.season;
+    state.setupForm.companies = live.elements.companies?.value ?? state.setupForm.companies;
+  }
+  const form = state.setupForm;
+  const companies = form.companies.split(",").map(item => item.trim()).filter(Boolean);
+  const result = validateSetup({ name: form.name, targetRole: form.targetRole, season: form.season, targetCompanies: companies });
+  if (!result.ok) {
+    state.setupError = result; // { field, message } - the form shows it and keeps entered values
+    rerender();
+    return;
+  }
+
+  state.setupSubmitting = true;
+  rerender();
+  try {
+    // (2) Re-check for existing work immediately before writing. If a real notebook now exists
+    //     (direct link, or another tab wrote data), never overwrite it - route to it instead.
+    const existing = browserApi.read();
+    if (hasExistingWork(existing, readDrafts())) {
+      state.setupSubmitting = false;
+      toast("You already have a notebook on this browser. Opening it.");
+      go("#/today");
+      await load();
+      return;
+    }
+
+    // (3) Commit the notebook as ONE write through the real backend.
+    const starters = buildStarterApplications({ targetRole: result.value.targetRole, targetCompanies: result.value.targetCompanies });
+    if (starters.length) {
+      await browserApi.importBackup(starters, []);
+    } else {
+      // importBackup writes nothing for an empty list, so a no-company setup writes an empty notebook
+      // once, explicitly, so the visitor still ends with a real (started) notebook.
+      browserApi.write({ applications: [], recentlyDeleted: [], nextId: 1 });
+    }
+
+    // (4) Persist the new preferences (separate write; honest about failure).
+    state.prefs.name = result.value.name;
+    state.prefs.targetRole = result.value.targetRole;
+    state.prefs.season = result.value.season;
+    state.prefs.targetCompanies = result.value.targetCompanies;
+    // (5) Set the started flag only AFTER the notebook commit above succeeded.
+    state.prefs.started = true;
+    const prefsSaved = savePrefs();
+    if (!prefsSaved) {
+      // The notebook committed but preferences could not be saved. Do not roll back the notebook
+      // (a catch cannot undo a landed write, and the notebook is the thing worth keeping). Surface
+      // the preferences failure honestly; the started flag reflects the committed notebook.
+      toast("Your notebook was created, but your preferences could not be saved on this browser.", { error: true });
+    }
+
+    state.setupSubmitting = false;
+    await load(); // load the real notebook (started flag now set, so no demo)
+    go("#/signup");
+  } catch (error) {
+    // The notebook commit failed: leave real storage unchanged, do not set the started flag, and say so.
+    state.prefs.started = false;
+    state.setupSubmitting = false;
+    state.setupError = { field: null, message: "Your notebook could not be created on this browser. Storage may be full or blocked." };
+    rerender();
+    toast(`Setup did not complete: ${error.message}`, { error: true });
+  }
+}
+
+/* ==========================================================================
    11. Router and rendering
    ========================================================================== */
 const viewRoot = $("#view");
 const page = $("#page");
-const renderers = { today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings };
+const renderers = { today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, signup: viewSignup };
 
 // The skip link targets #view directly with JS, not a "#view" hash change: every hash change
 // goes through the router below, and "view" isn't a route name, so letting the browser's default
@@ -968,7 +1245,8 @@ function render({ animate = false, keepScroll = true } = {}) {
     return;
   }
   viewRoot.classList.toggle("animate", animate);
-  viewRoot.innerHTML = view === "entry" ? viewEntry(id) : renderers[view]();
+  const body = view === "entry" ? viewEntry(id) : renderers[view]();
+  viewRoot.innerHTML = inDemo() ? demoBanner() + body : body;
   const entry = view === "entry" ? find(id) : null;
   const title = entry ? `${entry.company}` : VIEWS[view].title;
   document.title = `${title} · My Internship Notebook`;
@@ -1003,6 +1281,8 @@ async function navigate() {
   await flushEntrySave();
   const previous = state.route;
   state.route = parseRoute();
+  // Leaving the demo for setup or sign-up ends the demo so those screens and the real notebook show.
+  if (inDemo() && (state.route.view === "setup" || state.route.view === "signup")) exitDemoMode();
   if (previous.view !== state.route.view) endSelection(false);
   if (state.route.view === "entry" && previous.view !== "entry") {
     state.backRoute = `#/${previous.view === "entry" ? "board" : previous.view}`;
@@ -1178,11 +1458,11 @@ function cardMenu(anchor, entry) {
 async function changeStatus(ids, stage, { undoable = true } = {}) {
   const previous = ids.map(id => [id, find(id)?.status]);
   try {
-    const updated = await api.setStatus(ids, stage);
+    const updated = await activeApi.setStatus(ids, stage);
     replaceApplications(updated);
     rerender();
     const subject = ids.length === 1 ? find(ids[0])?.company || "Application" : plural(ids.length, "application");
-    toast(`${subject} moved to ${LABELS[stage]}`, undoable ? { action: "Undo", run: () => undoStatus(previous) } : {});
+    toast(`${subject} moved to ${LABELS[stage]}`, undoable ? { action: "Undo", run: demoBound(() => undoStatus(previous)) } : {});
   } catch (error) { fail(error); }
 }
 
@@ -1190,7 +1470,7 @@ async function undoStatus(previous) {
   try {
     const groups = new Map();
     previous.forEach(([id, stage]) => { if (stage && find(id)) groups.set(stage, [...(groups.get(stage) || []), id]); });
-    for (const [stage, ids] of groups) replaceApplications(await api.setStatus(ids, stage));
+    for (const [stage, ids] of groups) replaceApplications(await activeApi.setStatus(ids, stage));
     rerender();
     toast("Change undone");
   } catch (error) { fail(error); }
@@ -1201,7 +1481,7 @@ async function toggleStar(id) {
   const entry = find(id);
   if (!entry) return;
   try {
-    replaceApplications([await api.update(id, { starred: !entry.starred })]);
+    replaceApplications([await activeApi.update(id, { starred: !entry.starred })]);
     rerender();
   } catch (error) { fail(error); }
 }
@@ -1220,7 +1500,7 @@ async function removeApplications(ids, { confirmFirst = ids.length > 1 } = {}) {
   try {
     await Promise.all(ids.map(id => flushEntrySave(id)));
     if (ids.some(id => readDrafts()[id])) throw new Error("Some edits are still waiting to save. Retry them before deleting this page.");
-    const removed = await api.remove(ids);
+    const removed = await activeApi.remove(ids);
     ids.forEach(clearDraft);
     state.applications = state.applications.filter(entry => !ids.includes(entry.id));
     state.deleted.push(...removed);
@@ -1228,13 +1508,13 @@ async function removeApplications(ids, { confirmFirst = ids.length > 1 } = {}) {
     if (state.route.view === "entry" && ids.includes(state.route.id)) go(state.backRoute);
     else rerender();
     toast(entries.length === 1 ? `${entries[0].company} moved to Recently Deleted` : `${plural(entries.length, "application")} moved to Recently Deleted`,
-      { action: "Undo", run: () => restoreApplications(ids, { quiet: true }) });
+      { action: "Undo", run: demoBound(() => restoreApplications(ids, { quiet: true })) });
   } catch (error) { fail(error); }
 }
 
 async function restoreApplications(ids, { quiet = false } = {}) {
   try {
-    const restored = await api.restore(ids);
+    const restored = await activeApi.restore(ids);
     state.deleted = state.deleted.filter(entry => !ids.includes(entry.id));
     state.applications.push(...restored);
     ids.forEach(id => state.selected.delete(id));
@@ -1257,7 +1537,7 @@ async function purgeApplications(ids) {
   });
   if (!ok) return;
   try {
-    await api.purge(ids);
+    await activeApi.purge(ids);
     state.deleted = state.deleted.filter(entry => !ids.includes(entry.id));
     ids.forEach(id => state.selected.delete(id));
     if (!state.deleted.length) endSelection(false);
@@ -1267,7 +1547,7 @@ async function purgeApplications(ids) {
 }
 
 async function createApplication(fields) {
-  const created = await api.create(fields);
+  const created = await activeApi.create(fields);
   state.applications.push(created);
   if (state.route.view !== "entry") rerender();
   else updateCounts();
@@ -1374,7 +1654,7 @@ newForm.addEventListener("submit", async event => {
   const submit = newForm.querySelector('[type="submit"]');
   submit.disabled = true;
   try {
-    const applications = BROWSER_MODE ? api.read().applications : state.applications;
+    const applications = BROWSER_MODE ? activeApi.read().applications : state.applications;
     const duplicate = newPostingLink && postingKey(fields.link) === newPostingLink
       && applications.find(entry => postingKey(entry.link) === newPostingLink);
     if (duplicate) { newDialog.close(); go(`#/entry/${duplicate.id}`); toast("That posting is already in your notebook."); return; }
@@ -1504,7 +1784,7 @@ $$("dialog").forEach(dialog => dialog.addEventListener("close", () => {
    Every field edit is written to this browser's drafts store (see storage.js) the instant it
    happens - not just held in memory - so it survives a refresh, going offline, or the app or
    tab closing before the debounced save runs. That draft is the only source of truth for "what
-   is unsaved for entry X"; flushEntrySave() always reads from it and only clears it once api.update()
+   is unsaved for entry X"; flushEntrySave() always reads from it and only clears it once activeApi.update()
    has actually confirmed the write, so a failed save keeps the edit queued for automatic retry
    (on a timer and when the connection comes back) instead of discarding it.
 
@@ -1513,7 +1793,7 @@ $$("dialog").forEach(dialog => dialog.addEventListener("close", () => {
      "Saved locally" the edit is captured in this browser (the draft above), but not yet confirmed
      "Synced"        the Java server has confirmed the write (server mode only)
      "Couldn't save" the last attempt failed; the edit is still queued and will retry, or press Retry
-   The website edition has no server to sync to, so it never claims "Synced": once api.update()
+   The website edition has no server to sync to, so it never claims "Synced": once activeApi.update()
    succeeds there, the browser's storage *is* the confirmed record, so it stays "Saved locally". */
 let saveChain = Promise.resolve();
 const inFlight = new Set();
@@ -1541,7 +1821,10 @@ function setSaveState(mode, message = "") {
 function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id : null, overrideChanges = null) {
   entrySave.cancel();
   if (targetId == null) return saveChain;
-  const changes = overrideChanges || readDrafts()[targetId]?.changes;
+  const demo = inDemo();
+  const session = currentSession();
+  // In the demo there is no real draft store: read the override only, and never touch KEYS.drafts.
+  const changes = overrideChanges || (demo ? null : readDrafts()[targetId]?.changes);
   if (!changes || !Object.keys(changes).length) return saveChain;
   if (inFlight.has(targetId)) return saveChain;
   inFlight.add(targetId);
@@ -1550,15 +1833,15 @@ function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id
   saveChain = saveChain.then(async () => {
     let resendQueued = false;
     try {
-      if (!find(targetId)) { clearDraft(targetId); return; } // the page was deleted while a draft was pending
-      const updated = await api.update(targetId, changes);
+      if (!find(targetId)) { if (!demo) clearDraft(targetId); return; } // the page was deleted while a draft was pending
+      const updated = await activeApi.update(targetId, changes);
       replaceApplications([updated]);
       // Only the fields whose current draft value still matches what was just sent are cleared.
       // Anything typed *during* this request (queued by writeDraft while the await above was
       // pending) is a different value than what `changes` captured, so it is left queued instead
       // of being silently thrown away with the rest of the draft - that was the actual bug: a
       // plain clearDraft() here deleted the whole draft, snapshot and any later edits alike.
-      clearConfirmedDraft(targetId, changes);
+      if (!demo) clearConfirmedDraft(targetId, changes);
       window.clearTimeout(retryTimers.get(targetId));
       retryTimers.delete(targetId);
       updateCounts();
@@ -1570,14 +1853,16 @@ function flushEntrySave(targetId = state.route.view === "entry" ? state.route.id
         if ("nextStep" in changes) $("#entry-next-actions").innerHTML = nextStepActions(updated);
         if ("company" in changes) { $("#mobile-title").textContent = updated.company; document.title = `${updated.company} · My Internship Notebook`; }
       }
-      resendQueued = Boolean(readDrafts()[targetId]); // something else arrived while this save was in flight
+      resendQueued = demo ? false : Boolean(readDrafts()[targetId]); // something else arrived while this save was in flight
     } catch (error) {
       // The draft on disk is untouched (it was written before this attempt started), so nothing
       // typed is lost - only the confirmation failed. Keep retrying instead of giving up on it.
       if (isCurrent()) setSaveState("error", error.message);
       toast(`Couldn't save ${find(targetId)?.company || "your change"}: ${error.message}`, { error: true, action: "Retry", run: () => flushEntrySave(targetId) });
       window.clearTimeout(retryTimers.get(targetId));
-      retryTimers.set(targetId, window.setTimeout(() => flushEntrySave(targetId), RETRY_DELAY_MS));
+      if (!demo || sessionActive(session)) {
+        retryTimers.set(targetId, window.setTimeout(() => { if (!demo || sessionActive(session)) flushEntrySave(targetId); }, RETRY_DELAY_MS));
+      }
     } finally {
       inFlight.delete(targetId);
     }
@@ -1591,6 +1876,7 @@ const entrySave = debounce(() => flushEntrySave(), 650);
 /** Retries every draft left over from a previous visit (a save that failed, or never got the
  *  chance to run before the app closed) for entries that still exist. */
 async function retryPendingDrafts() {
+  if (inDemo()) return; // no real drafts in the demo, and real drafts must not replay into it
   for (const id of Object.keys(readDrafts()).map(Number).filter(id => find(id))) await flushEntrySave(id);
 }
 window.addEventListener("online", retryPendingDrafts);
@@ -1599,6 +1885,12 @@ function queueChange(field, value, { immediate = false } = {}) {
   const id = state.route.id;
   if ((field === "company" || field === "role") && !String(value).trim()) {
     setSaveState("error", `${field === "company" ? "Company" : "Role"} can't be empty`);
+    return;
+  }
+  if (inDemo()) {
+    // Demo edits are in-memory only: never touch the real drafts store. Save straight to the demo
+    // backend (activeApi) so the change is reflected, with no KEYS.drafts write.
+    flushEntrySave(id, { [field]: value });
     return;
   }
   const draftWritten = writeDraft(id, { [field]: value });
@@ -1684,6 +1976,9 @@ viewRoot.addEventListener("input", event => {
     refreshList(target);
   }
   if (input === "name") { state.prefs.name = target.value.slice(0, 40); savePrefs(); }
+  if (state.route.view === "setup" && target.name && target.name in state.setupForm) {
+    state.setupForm[target.name] = target.value;
+  }
 });
 
 /** Re-renders a list view while keeping the search box focused. */
@@ -1710,6 +2005,9 @@ viewRoot.addEventListener("change", event => {
   if (target.dataset.select) { toggleSelected(Number(target.dataset.select), target.checked); return; }
   if (target.dataset.input === "sort") { state.prefs.sort = target.value; savePrefs(); rerender(); }
   if (target.dataset.input === "news-coop") { state.prefs.newsFilter.coopOnly = target.checked; savePrefs(); rerender(); }
+  if (state.route.view === "setup" && target.name && target.name in state.setupForm) {
+    state.setupForm[target.name] = target.value;
+  }
 });
 
 viewRoot.addEventListener("keydown", event => {
@@ -1733,6 +2031,11 @@ viewRoot.addEventListener("keydown", event => {
     event.preventDefault();
     go(`#/entry/${target.dataset.open}`);
   }
+});
+
+viewRoot.addEventListener("submit", event => {
+  if (event.target.id === "setup-form") { event.preventDefault(); completeSetup(); return; }
+  if (event.target.id === "signup-email") { event.preventDefault(); actions["signup-email-create"](); return; }
 });
 
 viewRoot.addEventListener("focusout", event => {
@@ -1838,17 +2141,20 @@ async function completeNextStep(id) {
     const previous = { nextStep: entry.nextStep, nextStepDate: entry.nextStepDate, notes: entry.notes };
     const note = `${dayKey()} · Completed next step: ${entry.nextStep}${entry.nextStepDate ? ` (planned ${entry.nextStepDate})` : ""}`;
     const notes = `${entry.notes}${entry.notes ? "\n\n" : ""}${note}`;
-    replaceApplications([await api.update(id, { nextStep: "", nextStepDate: "", notes })]);
+    replaceApplications([await activeApi.update(id, { nextStep: "", nextStepDate: "", notes })]);
     rerender();
     viewRoot.focus({ preventScroll: true });
+    const undoSession = currentSession();
+    const undoWasDemo = inDemo();
     toast("Next step completed. A dated record is saved in Notes.", { action: "Undo", run: async () => {
+      if (undoWasDemo && !sessionActive(undoSession)) return; // demo ended: do not touch the real backend
       try {
         await flushEntrySave(id);
         const current = find(id);
         if (readDrafts()[id] || !current || current.nextStep || current.nextStepDate || current.notes !== notes) {
           throw new Error("This page changed after completion. Your newer edits have been kept.");
         }
-        replaceApplications([await api.update(id, previous)]);
+        replaceApplications([await activeApi.update(id, previous)]);
         rerender();
       } catch (error) { fail(error); }
     } });
@@ -1858,6 +2164,38 @@ async function completeNextStep(id) {
 
 const actions = {
   new: target => openNew(target.dataset.stage),
+  "start-my-notebook": () => startMyNotebook(),
+  "setup-submit": () => completeSetup(),
+  "signup-browser-only": () => {
+    // Keep it on this browser only: no account, data untouched, go to the real notebook.
+    toast("Your notebook is saved on this browser.");
+    go("#/today");
+  },
+  "signup-email-create": () => runCloud(async () => {
+    const email = $("#cloud-email")?.value.trim() || "";
+    const password = $("#cloud-password")?.value || "";
+    const confirm = $("#cloud-password-confirm")?.value || "";
+    if (!email) throw new Error("Enter your email address.");
+    // Password/confirmation mismatch is checked BEFORE any Firebase call, so no account is created.
+    if (password !== confirm) throw new Error("Those passwords do not match. Re-enter them and try again.");
+    if (password.length < 6) throw new Error("Use a password with at least 6 characters.");
+    try {
+      await createEmailAccount(email, password);
+      toast("Account created. Check your email to verify it, then you can sync across devices.");
+      rerender();
+    } catch (createError) {
+      // createEmailAccount creates and signs in the account, THEN sends verification. If the send
+      // failed, the account already exists and the user is signed in: offer a resend rather than
+      // claiming no account was created or retrying creation (which would hit email-already-in-use).
+      if (cloudSnapshot().user) {
+        toast("Your account was created, but the verification email could not be sent. Use Resend to try again.",
+          { error: true, action: "Resend", run: () => runCloud(async () => { await resendVerification(); toast("Verification email sent."); }) });
+        rerender();
+        return;
+      }
+      throw createError; // genuine creation failure: not signed in, surfaced by runCloud -> fail()
+    }
+  }),
   palette: () => openPalette(),
   "cycle-theme": () => {
     const order = ["system", "light", "dark"];
@@ -1974,9 +2312,9 @@ const actions = {
     const entry = find(id);
     if (!entry || entry.status === target.dataset.stage) return;
     try {
-      replaceApplications([await api.update(id, { status: target.dataset.stage })]);
+      replaceApplications([await activeApi.update(id, { status: target.dataset.stage })]);
       rerender();
-      toast(`Moved to ${LABELS[target.dataset.stage]}`, { action: "Undo", run: () => undoStatus([[id, entry.status]]) });
+      toast(`Moved to ${LABELS[target.dataset.stage]}`, { action: "Undo", run: demoBound(() => undoStatus([[id, entry.status]])) });
     } catch (error) { fail(error); }
   },
   "remove-skill": target => saveSkills(skills => skills.filter(skill => skill !== target.dataset.skill)),
@@ -2208,7 +2546,7 @@ $("#import-file").addEventListener("change", async event => {
       danger: false
     });
     if (!ok) return;
-    const added = await api.importBackup(active.usable, recoverable);
+    const added = await activeApi.importBackup(active.usable, recoverable);
     state.applications.push(...added.applications);
     state.deleted.push(...added.recentlyDeleted);
     rerender();
@@ -2216,11 +2554,14 @@ $("#import-file").addEventListener("change", async event => {
     if (!addedCount) { toast("Everything in that backup is already in your notebook."); return; }
     const duplicates = total - addedCount;
     const detail = [duplicates ? `${plural(duplicates, "duplicate")} skipped` : "", skipped ? `${plural(skipped, "entry", "entries")} skipped` : "", linksRemoved ? `${plural(linksRemoved, "link")} removed for safety` : ""].filter(Boolean).join(", ");
+    const importUndoSession = currentSession();
+    const importUndoWasDemo = inDemo();
     toast(`Imported ${plural(addedCount, "page")}${detail ? ` (${detail})` : ""}`, { action: "Undo", run: async () => {
+      if (importUndoWasDemo && !sessionActive(importUndoSession)) return; // demo ended: do not touch the real backend
       try {
         const deletedIds = added.recentlyDeleted.map(entry => entry.id);
         if (deletedIds.length) {
-          await api.purge(deletedIds);
+          await activeApi.purge(deletedIds);
           state.deleted = state.deleted.filter(entry => !deletedIds.includes(entry.id));
         }
         if (added.applications.length) await removeApplications(added.applications.map(entry => entry.id), { confirmFirst: false });
@@ -2292,16 +2633,31 @@ async function load() {
   state.corrupted = null;
   render();
   try {
+    // Always load the real notebook through the real backend first. The first-run decision runs
+    // only on this successful read; a StorageCorruptedError is caught below and shown via the
+    // recovery flow, so corrupted data is never mistaken for an empty (new) notebook.
     const { applications, deleted } = await api.load();
     state.applications = applications;
     state.deleted = deleted;
     state.loaded = true;
     retryPendingDrafts();
+    maybeEnterDemo();
   } catch (error) {
     if (error instanceof StorageCorruptedError) state.corrupted = error;
     else state.loadError = error.message;
   }
   render({ animate: true, keepScroll: false });
+}
+
+/** Decides first-run routing after a successful real-notebook read. A new visitor (browser edition,
+ *  no existing work, not started) lands in the demo; everyone else keeps their real notebook. If the
+ *  demo dataset cannot be built, fall back to the real (empty) notebook rather than a broken demo. */
+function maybeEnterDemo() {
+  if (state.demoMode) return;
+  if (!BROWSER_MODE) return;
+  const record = { applications: state.applications, recentlyDeleted: state.deleted };
+  if (!isNewVisitor(record)) return;
+  enterDemoMode(); // on failure this returns false and we simply stay on the real empty notebook
 }
 
 function hydrateStaticIcons() {
@@ -2329,8 +2685,8 @@ function updateStorageChip() {
 }
 
 window.addEventListener("hashchange", navigate);
-window.addEventListener("pagehide", () => { flushEntrySave(); });
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushEntrySave(); });
+window.addEventListener("pagehide", () => { if (!inDemo()) flushEntrySave(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && !inDemo()) flushEntrySave(); });
 // Keep relative times ("2 min ago", "3 days left") fresh while the app stays open.
 window.setInterval(() => {
   const typing = document.activeElement?.closest?.("#view input, #view textarea, #view select");
