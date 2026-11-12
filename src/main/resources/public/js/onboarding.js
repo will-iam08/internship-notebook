@@ -61,6 +61,40 @@ export function isNewVisitor({ browserMode, record, drafts, started }) {
   return !hasExistingWork(record, drafts);
 }
 
+/* ---------- Welcome page routing ---------- */
+
+/** Hashes that count as "arriving at the front door" rather than following a deep link. */
+const FRONT_DOOR_HASHES = new Set(["", "#", "#/", "#/welcome"]);
+
+/**
+ * True when the welcome page may render at all. It is a website-edition page that sits in front of
+ * the demo, so it needs the demo to be active: a returning visitor (whose demo is never entered) or
+ * the Server Edition always falls through to Today instead.
+ */
+export function canShowWelcome({ browserMode, demoActive }) {
+  return browserMode === true && demoActive === true;
+}
+
+/**
+ * True when a first load should be routed to #/welcome. Only a new visitor arriving at the front
+ * door (no hash, or #/welcome itself) is redirected. A deep link such as #/board or #/entry/3, or a
+ * launch intent from the installed app (#/new, a share target), is respected so those links keep
+ * doing what they say.
+ */
+export function shouldLandOnWelcome({ browserMode, newVisitor, demoActive, hash, launchIntent }) {
+  if (!canShowWelcome({ browserMode, demoActive })) return false;
+  if (newVisitor !== true || launchIntent === true) return false;
+  return FRONT_DOOR_HASHES.has(typeof hash === "string" ? hash : "");
+}
+
+/**
+ * True when the welcome tour video may start on its own. Reduced-motion users get the poster and a
+ * play button instead, and so do visitors who asked the browser to save data (the clip is ~2.7 MB).
+ */
+export function shouldAutoplayTour({ reducedMotion, saveData }) {
+  return reducedMotion !== true && saveData !== true;
+}
+
 /* ---------- Guided-setup validation ---------- */
 
 /**
