@@ -3,7 +3,7 @@
  * Network first, so a new deploy shows up on the next visit; the cached copy is
  * only used when the device is offline. API requests (Java server mode) are never cached.
  */
-const CACHE = "internship-notebook-v23";
+const CACHE = "internship-notebook-v24";
 const SHELL = [
   "./",
   "index.html",
@@ -27,7 +27,10 @@ const SHELL = [
   "icon-192.png",
   "icon-512.png",
   "apple-touch-icon.png",
-  "favicon-20260915-v4.png"
+  "favicon-20260915-v4.png",
+  // The welcome tour's poster is small and keeps the offline welcome page looking finished. The
+  // video itself (~2.7 MB) is deliberately not precached: it would cost every install that much.
+  "media/demo-tour-poster.jpg"
 ];
 
 self.addEventListener("install", event => {
@@ -46,6 +49,9 @@ self.addEventListener("fetch", event => {
   const { request } = event;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin || url.pathname.includes("/api/")) return;
+  // Leave video to the browser: media is fetched in byte ranges (206 responses cannot be cached),
+  // and keeping a multi-megabyte clip out of the cache is the point of not precaching it.
+  if (request.destination === "video" || request.headers.has("range")) return;
 
   event.respondWith(
     fetch(request)

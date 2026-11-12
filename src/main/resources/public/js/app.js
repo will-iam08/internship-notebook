@@ -21,9 +21,10 @@ import {
   fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, resumeCloud, sendPasswordReset,
   signInEmail, signInGoogle, signOutCloud
 } from "./cloud.js";
-import { buildDemoDataset } from "./demo.js";
+import { DEMO_SEED, buildDemoDataset } from "./demo.js";
 import {
   SEASONS, hasExistingWork, isNewVisitor as isNewVisitorPure,
+  canShowWelcome, shouldLandOnWelcome, shouldAutoplayTour,
   sanitizeTargetRole, sanitizeSeason, sanitizeTargetCompanies,
   validateSetup, buildStarterApplications
 } from "./onboarding.js";
@@ -34,6 +35,7 @@ import { icon, LOGO } from "./ui/icons.js";
    1. Constants
    ========================================================================== */
 const VIEWS = {
+  welcome: { title: "Welcome", tab: "--tab-today" },
   today: { title: "Today", tab: "--tab-today" },
   board: { title: "Board", tab: "--tab-board" },
   notebook: { title: "All pages", tab: "--tab-notebook" },
@@ -94,6 +96,8 @@ const state = {
   demo: null,
   realApplications: null,
   realDeleted: null,
+  // Welcome page choices (tour tab, mini-board filter, chaos/notebook toggle) survive a re-render.
+  welcome: { tab: "today", filter: "ALL", organized: false },
   setupForm: { name: "", targetRole: "", season: "", companies: "" },
   setupError: null,
   setupSubmitting: false,
@@ -378,7 +382,7 @@ function demoBanner() {
         <span>This is sample data to show you around. Nothing here is saved to your notebook.</span>
       </div>
       <div class="demo-banner-actions">
-        <button class="button primary" type="button" data-action="start-my-notebook">${icon("plus")}<span>Start my notebook</span></button>
+        <button class="button primary" type="button" data-action="build-notebook">${icon("plus")}<span>Build my notebook</span></button>
         <a class="text-button" href="#/signup" data-action="demo-signup">Sign up</a>
       </div>
     </div>`;
@@ -400,7 +404,7 @@ function nextStepActions(entry) {
 function viewToday() {
   const now = new Date();
   const hour = now.getHours();
-  const greeting = hour < 5 ? "Burning the midnight oil" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const greeting = timeGreeting(hour);
   const name = state.prefs.name.trim();
   const dateLine = now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   const head = viewHead({
@@ -1076,8 +1080,329 @@ function viewEntry(id) {
 }
 
 /* ==========================================================================
-   10b. Onboarding views: guided setup and sign-up
+   10b. Onboarding views: welcome, guided setup, and sign-up
    ========================================================================== */
+/* ---------- Welcome page (website edition, new visitors only) ----------
+   The front door for a brand-new visitor. It renders in front of the live demo (Demo_Mode stays on
+   behind it), so "Explore the demo" is a plain route change and the nav keeps working. Every preview
+   below is drawn in HTML/CSS from the same demo dataset the live demo uses, so the mockups stay
+   crisp at any size, follow the light/dark theme, and never drift from what the demo shows. */
+const WELCOME_TOUR = [
+  { key: "today", label: "Today", caption: "Today opens on your weekly goal, what is due next, and the pages you touched last." },
+  { key: "board", label: "Board", caption: "The Board lays out every application by stage. Drag a card along when something changes." },
+  { key: "notebook", label: "All pages", caption: "All pages is the table of contents: search notes and skills, filter by stage, open any page." },
+  { key: "insights", label: "Insights", caption: "Insights turns your history into response rates, a weekly rhythm, and the skills employers ask for." }
+];
+const WELCOME_FILTERS = ["ALL", "SAVED", "APPLIED", "INTERVIEW"];
+/* The "chaos" scraps are invented, like the demo companies. Each scrap is one application as it
+   really arrives (an email, a stray tab, a sticky note) and the stage it lands in once organized. */
+const WELCOME_SCRAPS = [
+  { kind: "tab", mess: "Northwind posting, closes the 28th?", company: "Northwind Robotics", stage: "SAVED" },
+  { kind: "email", mess: "Re: Your application to Lumen Analytics", company: "Lumen Analytics", stage: "APPLIED" },
+  { kind: "sticky", mess: "Harbor portfolio review Thu!!", company: "Harbor & Co.", stage: "INTERVIEW" },
+  { kind: "tab", mess: "tab #14: Quarry Labs SWE intern", company: "Quarry Labs", stage: "SAVED" },
+  { kind: "sticky", mess: "did I apply to Pinecrest? check email", company: "Pinecrest Bank", stage: "APPLIED" },
+  { kind: "email", mess: "Cedar Grove: technical round invite", company: "Cedar Grove Health", stage: "INTERVIEW" }
+];
+const WELCOME_SCRAP_COLUMNS = ["SAVED", "APPLIED", "INTERVIEW"];
+const WELCOME_CHAOS_CAPTION = {
+  false: "Before: an inbox, a pile of tabs, and sticky notes. Six applications, nowhere in particular.",
+  true: "After: the same six applications on one board, sorted by stage."
+};
+
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const timeGreeting = hour => hour < 5 ? "Burning the midnight oil" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+function welcomeMockCover(active) {
+  return `<div class="mock-cover">
+    <span class="mock-logo">${LOGO}</span>
+    ${WELCOME_TOUR.map(tab => `<span class="mock-nav${tab.key === active ? " on" : ""}">${icon(tab.key)}<b>${tab.label}</b></span>`).join("")}
+  </div>`;
+}
+
+function welcomeMockToday() {
+  const seed = DEMO_SEED.applications;
+  const stats = metrics(seed);
+  const now = new Date();
+  const bar = STAGES.filter(stage => stats.counts[stage]).map(stage => `<i class="st-${stage}" style="flex-grow:${stats.counts[stage]}"></i>`).join("");
+  const next = seed.filter(entry => entry.nextStepDate).sort((left, right) => left.nextStepDate.localeCompare(right.nextStepDate)).slice(0, 2);
+  return `
+    <p class="mock-eyebrow">${esc(now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}</p>
+    <p class="mock-title">${esc(timeGreeting(now.getHours()))}<span class="dot">.</span></p>
+    <div class="mock-split">
+      <div class="mock-card mock-strip"><p><b>${stats.open}</b> open applications</p><div class="mock-bar">${bar}</div></div>
+      <div class="mock-card mock-goal"><span class="mock-ring" style="--p:.6"><b>3</b></span><p>of 5 sent<br>this week</p></div>
+    </div>
+    <div class="mock-card">
+      <p class="mock-label">Next up</p>
+      ${next.map(entry => {
+        const days = daysUntil(entry.nextStepDate);
+        return `<div class="mock-line">${pill(entry.status)}<span><b>${esc(entry.nextStep)}</b><small>${esc(entry.company)} · in ${plural(days, "day")}</small></span></div>`;
+      }).join("")}
+    </div>`;
+}
+
+function welcomeMockBoard() {
+  const seed = DEMO_SEED.applications;
+  return `<div class="mock-columns">${PIPELINE.filter(stage => stage !== "REJECTED").map(stage => {
+    const entries = seed.filter(entry => entry.status === stage);
+    return `<div class="mock-column st-${stage}">
+      <p class="mock-column-head"><i></i>${LABELS[stage]}<span>${entries.length}</span></p>
+      ${entries.map(entry => `<div class="mock-card mock-mini"><small>${esc(entry.company)}</small><b>${esc(entry.role)}</b></div>`).join("")}
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function welcomeMockNotebook() {
+  const seed = DEMO_SEED.applications;
+  return `
+    <div class="mock-search">${icon("search")}<span>Search notes, skills, companies</span></div>
+    <div class="mock-toc">${seed.map(entry => `
+      <div class="mock-toc-row"><span><b>${esc(entry.company)}</b><small>${esc(entry.role)}</small></span>${pill(entry.status)}</div>`).join("")}
+    </div>`;
+}
+
+function welcomeMockInsights() {
+  const seed = DEMO_SEED.applications;
+  const stats = metrics(seed);
+  const skillCounts = new Map();
+  for (const entry of seed) for (const skill of entry.skills) skillCounts.set(skill, (skillCounts.get(skill) || 0) + 1);
+  const skills = [...skillCounts].sort((left, right) => right[1] - left[1]).slice(0, 4).map(([skill]) => skill);
+  // Eight decorative weeks of rhythm; the last bar is "this week", drawn in the accent colour.
+  const weeks = [2, 4, 3, 5, 6, 4, 7, 3];
+  return `
+    <div class="mock-stats">
+      <div class="mock-card"><b>${stats.responseRate}%</b><small>Response rate</small></div>
+      <div class="mock-card"><b>${stats.interviewRate}%</b><small>Interview rate</small></div>
+      <div class="mock-card"><b>${stats.sent}</b><small>Sent</small></div>
+    </div>
+    <div class="mock-card mock-chart">
+      <p class="mock-label">Weekly rhythm</p>
+      <div class="mock-bars"><span class="mock-goal-line"></span>${weeks.map((count, index) => `<i style="--h:${count / 7}"${index === weeks.length - 1 ? ' class="now"' : ""}></i>`).join("")}</div>
+    </div>
+    <p class="mock-skills">${skills.map(skill => `<span class="chip">${esc(skill)}</span>`).join("")}</p>`;
+}
+
+const WELCOME_MOCKS = { today: welcomeMockToday, board: welcomeMockBoard, notebook: welcomeMockNotebook, insights: welcomeMockInsights };
+
+function welcomeTour() {
+  const active = state.welcome.tab;
+  return `
+    <section class="welcome-section welcome-tour" aria-labelledby="welcome-tour-title">
+      <div class="welcome-section-head">
+        <p class="eyebrow">Take the tour</p>
+        <h2 id="welcome-tour-title">Four pages, one notebook<span class="dot">.</span></h2>
+      </div>
+      <div class="tour-tabs" role="tablist" aria-label="Product tour">
+        ${WELCOME_TOUR.map(tab => `<button class="tour-tab" type="button" role="tab" id="tour-tab-${tab.key}" aria-controls="tour-panel-${tab.key}"
+          aria-selected="${tab.key === active}" tabindex="${tab.key === active ? 0 : -1}" data-action="welcome-tab" data-tab="${tab.key}">${icon(tab.key)}<span>${tab.label}</span></button>`).join("")}
+      </div>
+      ${WELCOME_TOUR.map(tab => `
+        <div class="tour-panel" role="tabpanel" id="tour-panel-${tab.key}" aria-labelledby="tour-tab-${tab.key}" tabindex="0" data-panel="${tab.key}"${tab.key === active ? "" : " hidden"}>
+          <div class="mock" role="img" aria-label="Preview of the ${tab.label} page, filled with the demo notebook">
+            ${welcomeMockCover(tab.key)}
+            <div class="mock-page mock-${tab.key}" aria-hidden="true">${WELCOME_MOCKS[tab.key]()}</div>
+          </div>
+          <p class="tour-caption">${esc(tab.caption)}</p>
+        </div>`).join("")}
+    </section>`;
+}
+
+function welcomeBoardCards() {
+  return DEMO_SEED.applications.filter(entry => WELCOME_FILTERS.includes(entry.status));
+}
+
+function welcomeMiniBoard() {
+  const filter = state.welcome.filter;
+  const cards = welcomeBoardCards();
+  const count = stage => stage === "ALL" ? cards.length : cards.filter(entry => entry.status === stage).length;
+  const shown = count(filter);
+  return `
+    <section class="welcome-section welcome-board card" aria-labelledby="welcome-board-title">
+      <div class="welcome-section-head">
+        <p class="eyebrow">Try it</p>
+        <h2 id="welcome-board-title">Filter by stage<span class="dot">.</span></h2>
+      </div>
+      <div class="welcome-filters" role="group" aria-label="Show applications by stage">
+        ${WELCOME_FILTERS.map(stage => `<button class="welcome-filter${stage === "ALL" ? "" : ` st-${stage}`}" type="button" aria-pressed="${stage === filter}"
+          data-action="welcome-filter" data-stage="${stage}">${stage === "ALL" ? "All" : `<i></i>${LABELS[stage]}`}<span>${count(stage)}</span></button>`).join("")}
+      </div>
+      <p class="welcome-count" aria-live="polite">Showing <b data-welcome-count>${shown}</b> of ${plural(cards.length, "application")}</p>
+      <div class="welcome-cards">
+        ${cards.map(entry => `
+          <article class="welcome-card st-${entry.status}" data-stage="${entry.status}"${filter === "ALL" || filter === entry.status ? "" : " hidden"}>
+            ${pill(entry.status)}
+            <p class="welcome-card-company">${esc(entry.company)}</p>
+            <h3 class="welcome-card-role">${esc(entry.role)}</h3>
+            <p class="welcome-card-meta">${icon("pin")}${esc(entry.location)}</p>
+          </article>`).join("")}
+      </div>
+    </section>`;
+}
+
+function welcomeChaos() {
+  const organized = state.welcome.organized;
+  // Each scrap's resting place on the board: column by stage, row by order within that stage.
+  const rows = {};
+  return `
+    <section class="welcome-section welcome-chaos card" aria-labelledby="welcome-chaos-title">
+      <div class="welcome-section-head">
+        <p class="eyebrow">Before and after</p>
+        <h2 id="welcome-chaos-title">From scattered to sorted<span class="dot">.</span></h2>
+      </div>
+      <div class="chaos-switch" role="group" aria-label="Show the search as">
+        <button type="button" aria-pressed="${!organized}" data-action="welcome-chaos" data-organized="false">Chaos</button>
+        <button type="button" aria-pressed="${organized}" data-action="welcome-chaos" data-organized="true">Notebook</button>
+      </div>
+      <div class="chaos-stage${organized ? " is-organized" : ""}" data-chaos>
+        <div class="chaos-heads" aria-hidden="true">${WELCOME_SCRAP_COLUMNS.map(stage => `<span class="st-${stage}"><i></i>${LABELS[stage]}</span>`).join("")}</div>
+        ${WELCOME_SCRAPS.map((scrap, index) => {
+          const column = WELCOME_SCRAP_COLUMNS.indexOf(scrap.stage);
+          const row = rows[scrap.stage] = (rows[scrap.stage] ?? -1) + 1;
+          return `<div class="scrap scrap-${scrap.kind}" aria-hidden="true" style="--i:${index};--col:${column};--row:${row}">
+            <span class="scrap-mess">${esc(scrap.mess)}</span>
+            <span class="scrap-neat"><b>${esc(scrap.company)}</b>${pill(scrap.stage)}</span>
+          </div>`;
+        }).join("")}
+      </div>
+      <p class="chaos-caption" aria-live="polite" data-chaos-caption>${WELCOME_CHAOS_CAPTION[organized]}</p>
+    </section>`;
+}
+
+function viewWelcome() {
+  if (!canShowWelcome({ browserMode: BROWSER_MODE, demoActive: inDemo() })) return "";
+  const autoplay = shouldAutoplayTour({ reducedMotion: reducedMotion(), saveData: navigator.connection?.saveData === true });
+  const build = (label = "Build my notebook") => `<button class="button primary large" type="button" data-action="build-notebook">${icon("plus")}<span>${label}</span></button>`;
+  return `
+    <div class="welcome-page">
+      <section class="welcome-hero" aria-labelledby="welcome-title">
+        <div class="welcome-copy">
+          <p class="eyebrow welcome-eyebrow">My Internship Notebook</p>
+          <h1 class="welcome-title" id="welcome-title">Your internship search, on paper<span class="dot">.</span></h1>
+          <p class="welcome-sub">Save roles, move each one from Saved to Offer, and keep a ruled page of notes for every application, all in one notebook.</p>
+          <div class="welcome-cta">
+            ${build()}
+            <a class="button ghost large" href="#/today">${icon("compass")}<span>Explore the demo</span></a>
+          </div>
+          <p class="welcome-trust">${icon("lock")}<span>No sign-up needed. Private to your browser.</span></p>
+        </div>
+        <figure class="welcome-video">
+          <div class="tour-video-frame" data-video-frame>
+            <video class="tour-video" muted loop playsinline${autoplay ? " autoplay" : ""} preload="${autoplay ? "auto" : "metadata"}"
+              poster="media/demo-tour-poster.jpg" src="media/demo-tour.mp4"
+              aria-label="Screen recording of the notebook: Today, the Board, an application page, and Insights"></video>
+            <button class="tour-video-toggle" type="button" data-action="welcome-video" aria-label="Play the tour video">
+              <span class="when-paused">${icon("play")}</span><span class="when-playing">${icon("pause")}</span>
+            </button>
+          </div>
+          <figcaption><span class="tour-video-tag">18-second tour</span><span>Recorded in the demo notebook you can open right now.</span></figcaption>
+        </figure>
+      </section>
+
+      ${welcomeTour()}
+
+      <div class="welcome-pair">
+        ${welcomeMiniBoard()}
+        ${welcomeChaos()}
+      </div>
+
+      <section class="welcome-benefits" aria-label="Why a notebook">
+        <article class="card benefit">
+          <span class="benefit-mark">${icon("clock")}</span>
+          <h3>Never miss a deadline</h3>
+          <p>Deadlines and interview dates surface on Today and the Board before they sneak up on you.</p>
+        </article>
+        <article class="card benefit">
+          <span class="benefit-mark">${icon("notebook")}</span>
+          <h3>One page per application</h3>
+          <p>Notes, contacts, skills, and a dated timeline for every role, on its own ruled page.</p>
+        </article>
+        <article class="card benefit">
+          <span class="benefit-mark">${icon("lock")}</span>
+          <h3>Private, offline, installable</h3>
+          <p>Pages stay in this browser, keep working without a connection, and install like an app.</p>
+        </article>
+      </section>
+
+      <section class="welcome-final" aria-labelledby="welcome-final-title">
+        <h2 id="welcome-final-title">Start a fresh notebook<span class="dot">.</span></h2>
+        <p>Two minutes of setup. Add your target role and a few companies and the first pages are ready.</p>
+        <div class="welcome-cta">${build()}<a class="text-button" href="#/today">Or keep exploring the demo</a></div>
+      </section>
+    </div>`;
+}
+
+/* Welcome interactions. These update state.welcome (so a re-render shows the same choice) and then
+   patch the live DOM in place, which is what lets the swap, filter, and chaos morph animate. */
+function selectWelcomeTab(key, { focus = false } = {}) {
+  if (!WELCOME_MOCKS[key]) return;
+  state.welcome.tab = key;
+  $$("[data-action='welcome-tab']", viewRoot).forEach(tab => {
+    const selected = tab.dataset.tab === key;
+    tab.setAttribute("aria-selected", String(selected));
+    tab.tabIndex = selected ? 0 : -1;
+    if (selected && focus) tab.focus();
+  });
+  $$(".tour-panel", viewRoot).forEach(panel => {
+    const show = panel.dataset.panel === key;
+    if (show && panel.hidden) restartAnimation(panel, "is-entering");
+    panel.hidden = !show;
+  });
+}
+
+function restartAnimation(element, className) {
+  element.classList.remove(className);
+  void element.offsetWidth; // force a reflow so re-adding the class restarts the keyframes
+  element.classList.add(className);
+}
+
+function filterWelcomeBoard(stage) {
+  if (!WELCOME_FILTERS.includes(stage)) return;
+  state.welcome.filter = stage;
+  $$("[data-action='welcome-filter']", viewRoot).forEach(chip => chip.setAttribute("aria-pressed", String(chip.dataset.stage === stage)));
+  let shown = 0;
+  $$(".welcome-card", viewRoot).forEach(card => {
+    const visible = stage === "ALL" || card.dataset.stage === stage;
+    if (visible) { shown++; if (card.hidden) restartAnimation(card, "is-entering"); }
+    card.hidden = !visible;
+  });
+  const count = $("[data-welcome-count]", viewRoot);
+  if (count) { count.textContent = String(shown); restartAnimation(count, "is-popping"); }
+}
+
+function organizeWelcomeChaos(organized) {
+  state.welcome.organized = organized;
+  $$("[data-action='welcome-chaos']", viewRoot).forEach(button => button.setAttribute("aria-pressed", String((button.dataset.organized === "true") === organized)));
+  $("[data-chaos]", viewRoot)?.classList.toggle("is-organized", organized);
+  const caption = $("[data-chaos-caption]", viewRoot);
+  if (caption) caption.textContent = WELCOME_CHAOS_CAPTION[organized];
+}
+
+function toggleWelcomeVideo(button) {
+  const video = button.closest("[data-video-frame]")?.querySelector("video");
+  if (!video) return;
+  if (video.paused) video.play().catch(() => { if (video.error) markVideoFailed(video); });
+  else video.pause();
+}
+
+/** Keeps the custom play/pause button in step with the real playback state. */
+function syncWelcomeVideo(video) {
+  const frame = video.closest("[data-video-frame]");
+  if (!frame) return;
+  const playing = !video.paused;
+  frame.classList.toggle("is-playing", playing);
+  frame.querySelector(".tour-video-toggle")?.setAttribute("aria-label", playing ? "Pause the tour video" : "Play the tour video");
+}
+
+/** The video is a nice-to-have: if it cannot load, the poster and caption still stand on their own. */
+function markVideoFailed(video) {
+  const frame = video.closest("[data-video-frame]");
+  if (!frame) return;
+  frame.classList.add("is-failed");
+  const toggle = frame.querySelector(".tour-video-toggle");
+  if (toggle) toggle.hidden = true;
+}
+
 function viewSetup() {
   if (!BROWSER_MODE) return "";
   const form = state.setupForm;
@@ -1223,7 +1548,7 @@ async function completeSetup() {
    ========================================================================== */
 const viewRoot = $("#view");
 const page = $("#page");
-const renderers = { today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, signup: viewSignup };
+const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, signup: viewSignup };
 
 // The skip link targets #view directly with JS, not a "#view" hash change: every hash change
 // goes through the router below, and "view" isn't a route name, so letting the browser's default
@@ -1238,7 +1563,14 @@ $(".skip-link").addEventListener("click", event => {
 function parseRoute() {
   const [view, id] = window.location.hash.replace(/^#\/?/, "").split("/");
   if (view === "entry" && Number(id) > 0) return { view: "entry", id: Number(id) };
+  // The welcome page only exists in front of the demo; anyone else asking for it gets Today.
+  if (view === "welcome" && !canShowWelcome({ browserMode: BROWSER_MODE, demoActive: inDemo() })) return { view: "today", id: null };
   return { view: renderers[view] ? view : "today", id: null };
+}
+
+/** parseRoute() sends a #/welcome that may not render to Today; this makes the address bar agree. */
+function settleWelcomeHash() {
+  if (window.location.hash === "#/welcome" && state.route.view !== "welcome") window.history.replaceState(null, "", "#/today");
 }
 
 function render({ animate = false, keepScroll = true } = {}) {
@@ -1259,7 +1591,8 @@ function render({ animate = false, keepScroll = true } = {}) {
   }
   viewRoot.classList.toggle("animate", animate);
   const body = view === "entry" ? viewEntry(id) : renderers[view]();
-  viewRoot.innerHTML = inDemo() ? demoBanner() + body : body;
+  // The welcome page is the demo's front door and carries its own calls to action, so no banner.
+  viewRoot.innerHTML = inDemo() && view !== "welcome" ? demoBanner() + body : body;
   const entry = view === "entry" ? find(id) : null;
   const title = entry ? `${entry.company}` : VIEWS[view].title;
   document.title = `${title} · My Internship Notebook`;
@@ -1296,6 +1629,7 @@ async function navigate() {
   state.route = parseRoute();
   // Leaving the demo for setup or sign-up ends the demo so those screens and the real notebook show.
   if (inDemo() && (state.route.view === "setup" || state.route.view === "signup")) exitDemoMode();
+  settleWelcomeHash();
   if (previous.view !== state.route.view) endSelection(false);
   if (state.route.view === "entry" && previous.view !== "entry") {
     state.backRoute = `#/${previous.view === "entry" ? "board" : previous.view}`;
@@ -2181,6 +2515,12 @@ async function completeNextStep(id) {
 }
 
 const actions = {
+  // Phase B will point "Build my notebook" at the interactive builder; for now it is guided setup.
+  "build-notebook": () => startMyNotebook(),
+  "welcome-tab": target => selectWelcomeTab(target.dataset.tab),
+  "welcome-filter": target => filterWelcomeBoard(target.dataset.stage),
+  "welcome-chaos": target => organizeWelcomeChaos(target.dataset.organized === "true"),
+  "welcome-video": target => toggleWelcomeVideo(target),
   new: target => openNew(target.dataset.stage),
   "start-my-notebook": () => startMyNotebook(),
   "setup-submit": () => completeSetup(),
@@ -2408,6 +2748,7 @@ document.addEventListener("click", event => {
     }
     go(`#/entry/${id}`);
   }
+
 });
 
 /* ==========================================================================
@@ -2468,6 +2809,24 @@ viewRoot.addEventListener("pointerout", event => { if (event.target.dataset?.tip
 viewRoot.addEventListener("focusin", event => { if (event.target.dataset?.tip) showTip(event.target); });
 viewRoot.addEventListener("focusout", event => { if (event.target.dataset?.tip) chartTip.hidden = true; });
 page.addEventListener("scroll", () => { chartTip.hidden = true; }, { passive: true });
+
+// Welcome tour video: media events do not bubble, so listen in the capture phase.
+for (const type of ["play", "pause"]) {
+  viewRoot.addEventListener(type, event => { if (event.target.matches?.(".tour-video")) syncWelcomeVideo(event.target); }, true);
+}
+viewRoot.addEventListener("error", event => { if (event.target.matches?.(".tour-video")) markVideoFailed(event.target); }, true);
+// Welcome tour tabs follow the ARIA tabs pattern: arrows move and select, Home/End jump to the ends.
+viewRoot.addEventListener("keydown", event => {
+  const tab = event.target.closest?.("[data-action='welcome-tab']");
+  if (!tab) return;
+  const keys = WELCOME_TOUR.map(item => item.key);
+  const index = keys.indexOf(tab.dataset.tab);
+  const next = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: keys.length - 1 }[event.key];
+  if (next === undefined) return;
+  event.preventDefault();
+  event.stopPropagation(); // keep the global shortcuts below from also reacting to this key
+  selectWelcomeTab(keys[(next + keys.length) % keys.length], { focus: true });
+});
 
 /* ==========================================================================
    21. Keyboard shortcuts
@@ -2664,6 +3023,7 @@ async function load() {
     state.loaded = true;
     retryPendingDrafts();
     maybeEnterDemo();
+    settleWelcomeHash();
   } catch (error) {
     if (error instanceof StorageCorruptedError) state.corrupted = error;
     else state.loadError = error.message;
@@ -2672,14 +3032,20 @@ async function load() {
 }
 
 /** Decides first-run routing after a successful real-notebook read. A new visitor (browser edition,
- *  no existing work, not started) lands in the demo; everyone else keeps their real notebook. If the
- *  demo dataset cannot be built, fall back to the real (empty) notebook rather than a broken demo. */
+ *  no existing work, not started) lands on the welcome page in demo mode; everyone else keeps their
+ *  real notebook. If the demo dataset cannot be built, fall back to the real (empty) notebook. */
 function maybeEnterDemo() {
   if (state.demoMode) return;
   if (!BROWSER_MODE) return;
   const record = { applications: state.applications, recentlyDeleted: state.deleted };
   if (!isNewVisitor(record)) return;
   enterDemoMode(); // on failure this returns false and we simply stay on the real empty notebook
+  if (shouldLandOnWelcome({ browserMode: BROWSER_MODE, newVisitor: true, demoActive: inDemo(), hash: window.location.hash, launchIntent: openNewOnStart })) {
+    // replaceState, not go(): the welcome page IS the first page, so Back should leave the site
+    // rather than bounce to a Today screen the visitor never saw.
+    window.history.replaceState(null, "", "#/welcome");
+    state.route = parseRoute();
+  }
 }
 
 function hydrateStaticIcons() {
@@ -2709,10 +3075,11 @@ function updateStorageChip() {
 window.addEventListener("hashchange", navigate);
 window.addEventListener("pagehide", () => { if (!inDemo()) flushEntrySave(); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && !inDemo()) flushEntrySave(); });
-// Keep relative times ("2 min ago", "3 days left") fresh while the app stays open.
+// Keep relative times ("2 min ago", "3 days left") fresh while the app stays open. The welcome page
+// is skipped: it shows no relative times, and a re-render would restart its playing tour video.
 window.setInterval(() => {
   const typing = document.activeElement?.closest?.("#view input, #view textarea, #view select");
-  if (state.loaded && state.route.view !== "entry" && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
+  if (state.loaded && !["entry", "welcome"].includes(state.route.view) && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
 }, 60000);
 
 hydrateStaticIcons();
