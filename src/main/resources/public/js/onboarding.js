@@ -97,14 +97,9 @@ export function shouldAutoplayTour({ reducedMotion, saveData }) {
 
 /* ---------- Guided-setup validation ---------- */
 
-/**
- * Validates every guided-setup input before any write. Returns { ok: true, value } with the
- * cleaned fields, or { ok: false, field, message, value } naming the first invalid field while
- * preserving what the visitor entered (so the form can keep their input). Limits are the real
- * domain limits: name 1..40, target role 1..100, each company 1..80, up to 50 companies.
- */
-export function validateSetup(input) {
-  const raw = {
+/** Trims and type-checks raw setup input into the shape the validators and the commit expect. */
+function cleanSetupInput(input) {
+  return {
     name: typeof input?.name === "string" ? input.name.trim() : "",
     targetRole: typeof input?.targetRole === "string" ? input.targetRole.trim() : "",
     season: typeof input?.season === "string" ? input.season : "",
@@ -112,21 +107,39 @@ export function validateSetup(input) {
       ? input.targetCompanies.map(item => (typeof item === "string" ? item.trim() : "")).filter(Boolean)
       : []
   };
-  const fail = (field, message) => ({ ok: false, field, message, value: raw });
+}
 
-  if (!raw.name) return fail("name", "Enter your name.");
-  if (raw.name.length > NAME_LIMIT) return fail("name", `Name must be ${NAME_LIMIT} characters or fewer.`);
-  if (!raw.targetRole) return fail("targetRole", "Enter the role you're targeting.");
-  if (raw.targetRole.length > LIMITS.role) return fail("targetRole", `Target role must be ${LIMITS.role} characters or fewer.`);
-  if (!SEASONS.includes(raw.season)) return fail("season", "Choose a season.");
+/**
+ * Every invalid guided-setup field at once, as { field: message } in form order (name, targetRole,
+ * season, targetCompanies). Empty when the input is valid. The notebook builder shows all of these
+ * next to their fields; validateSetup below reports only the first. Limits are the real domain
+ * limits: name 1..40, target role 1..100, each company 1..80, up to 50 companies.
+ */
+export function setupFieldErrors(input) {
+  const raw = cleanSetupInput(input);
+  const errors = {};
+  if (!raw.name) errors.name = "Enter your name.";
+  else if (raw.name.length > NAME_LIMIT) errors.name = `Name must be ${NAME_LIMIT} characters or fewer.`;
+  if (!raw.targetRole) errors.targetRole = "Enter the role you're targeting.";
+  else if (raw.targetRole.length > LIMITS.role) errors.targetRole = `Target role must be ${LIMITS.role} characters or fewer.`;
+  if (!SEASONS.includes(raw.season)) errors.season = "Choose a season.";
   if (raw.targetCompanies.length > MAX_TARGET_COMPANIES) {
-    return fail("targetCompanies", `Add at most ${MAX_TARGET_COMPANIES} target companies.`);
+    errors.targetCompanies = `Add at most ${MAX_TARGET_COMPANIES} target companies.`;
+  } else if (raw.targetCompanies.some(company => company.length > LIMITS.company)) {
+    errors.targetCompanies = `Each company must be ${LIMITS.company} characters or fewer.`;
   }
-  for (const company of raw.targetCompanies) {
-    if (company.length > LIMITS.company) {
-      return fail("targetCompanies", `Each company must be ${LIMITS.company} characters or fewer.`);
-    }
-  }
+  return errors;
+}
+
+/**
+ * Validates every guided-setup input before any write. Returns { ok: true, value } with the
+ * cleaned fields, or { ok: false, field, message, value } naming the first invalid field while
+ * preserving what the visitor entered (so the form can keep their input).
+ */
+export function validateSetup(input) {
+  const raw = cleanSetupInput(input);
+  const [first] = Object.entries(setupFieldErrors(raw));
+  if (first) return { ok: false, field: first[0], message: first[1], value: raw };
   return { ok: true, value: raw };
 }
 
