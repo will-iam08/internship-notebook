@@ -232,7 +232,7 @@ kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-rad
   transition: transform .2s var(--ease);
   width: 56px;
 }
-.bottom-new:active { transform: scale(.94); }
+/* Press feedback for .bottom-new lives in the shared interaction layer at the end of this file. */
 .bottom-new .icon { height: 24px; width: 24px; }
 
 @media (min-width: 1024px) {
@@ -373,7 +373,8 @@ kbd { border: 1px solid var(--line-strong); border-bottom-width: 2px; border-rad
   white-space: nowrap;
 }
 .button:hover:not(:disabled) { border-color: var(--faint); transform: translateY(-1px); }
-.button:active:not(:disabled) { transform: translateY(0) scale(.98); }
+/* Press: the shared interaction layer adds translate + scale; this only drops the hover lift. */
+.button:active:not(:disabled) { transform: none; }
 .button:disabled { opacity: .45; }
 .button .icon { height: 17px; width: 17px; }
 .button.primary { background: var(--primary); border-color: var(--primary); color: var(--primary-ink); }
@@ -1886,3 +1887,70 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 .prep-note textarea { font-size: .88rem; min-height: 60px; }
 @media (max-width: 559px) { .prep-q { grid-template-columns: minmax(0, 1fr); } .prep-actions { justify-content: flex-start; } }
 .practice-card .prep-list { padding: 0; }
+
+/* ==========================================================================
+   Interaction feedback: one press, hover, and focus language for every control
+   ==========================================================================
+   Press uses the separate `translate` and `scale` properties rather than `transform`, on purpose:
+   - entrance animations (card-in, page-in, view-in) run with fill-mode both and keep holding
+     `transform: none` afterwards, which would silently cancel a pressed `transform`;
+   - they compose with transforms already in use (the card hover lift, the tilted cover label, the
+     centred video button) instead of replacing them.
+   Neither changes layout, so pressing never moves anything around it. Many controls set their own
+   `transition` shorthand, so this restates the full list (same 150-180ms range) at the end of the
+   stylesheet, where equal-specificity selectors win. :focus-visible outlines are left untouched. */
+:is(.button, .icon-button, .tab, .text-button, .link-button, .filter-chip, .board-stage-tab, .tour-tab, .welcome-filter,
+  .chaos-switch button, .segmented button, .agenda-item, .attention-item, .card-mini-button, .toc-row, .step, .build-option,
+  .build-chip, .filter-select, .goal-stepper button, .menu button, .skill-chip button, .news-item, .app-card, .cover-search,
+  .cover-label, .bottom-new, .prep-mark, .switch, .tour-video-toggle, .legend a, .mobile-brand, summary) {
+  transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, opacity .16s,
+    transform .18s var(--ease), translate .16s var(--ease), scale .16s var(--ease);
+}
+:is(.button, .icon-button, .tab, .text-button, .link-button, .filter-chip, .board-stage-tab, .tour-tab, .welcome-filter,
+  .chaos-switch button, .segmented button, .agenda-item, .attention-item, .card-mini-button, .toc-row, .step, .build-option,
+  .build-chip, .filter-select, .goal-stepper button, .menu button, .skill-chip button, .news-item, .app-card, .cover-search,
+  .cover-label, .prep-mark, .switch, .legend a, summary):active:not(:disabled, [aria-disabled="true"]) {
+  scale: .98;
+  translate: 0 1px;
+}
+/* Small, round targets read better with a slightly deeper press. */
+:is(.icon-button, .bottom-new, .tour-video-toggle, .card-mini-button, .goal-stepper button, .skill-chip button, .mobile-brand):active:not(:disabled) {
+  scale: .97;
+  translate: 0 1px;
+}
+/* Bare text links are inline, and transforms don't apply to inline boxes, so they dim instead. */
+a:not([class]) { text-decoration-color: color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 3px; transition: color .16s, opacity .16s, text-decoration-color .16s; }
+a:not([class]):active { opacity: .65; }
+
+/* Hover where it was missing, only on devices that really hover (no sticky hover after a tap). */
+@media (hover: hover) {
+  .filter-chip:hover:not([aria-pressed="true"]), .board-stage-tab:hover:not([aria-selected="true"]) { background: var(--wash-strong); border-color: var(--line-strong); }
+  .segmented button:hover:not([aria-pressed="true"]), .chaos-switch button:hover:not([aria-pressed="true"]) { background: var(--wash-strong); color: var(--ink); }
+  .bottom-new:hover { background: var(--primary-hover); box-shadow: var(--shadow-lg); }
+  .switch:hover:not(:disabled) .switch-knob { box-shadow: 0 0 0 4px var(--wash-strong); }
+  .link-button:hover { color: var(--ink); }
+  .mobile-brand:hover { opacity: .8; }
+  .news-check:hover, .prep-filter:hover { color: var(--ink); }
+  summary:hover { color: var(--ink); }
+  .prep-group > summary:hover { background: var(--wash-strong); }
+  a:not([class]):hover { text-decoration-color: currentColor; }
+}
+
+/* Reduced motion: colour changes stay (instant, via the global rule above); movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  :is(.button, .icon-button, .tab, .text-button, .link-button, .filter-chip, .board-stage-tab, .tour-tab, .welcome-filter,
+    .chaos-switch button, .segmented button, .agenda-item, .attention-item, .card-mini-button, .toc-row, .step, .build-option,
+    .build-chip, .filter-select, .goal-stepper button, .menu button, .skill-chip button, .news-item, .app-card, .cover-search,
+    .cover-label, .bottom-new, .prep-mark, .switch, .tour-video-toggle, .legend a, .mobile-brand, summary) {
+    transition-property: background-color, border-color, color, box-shadow, opacity;
+  }
+  :is(.button, .icon-button, .tab, .text-button, .link-button, .filter-chip, .board-stage-tab, .tour-tab, .welcome-filter,
+    .chaos-switch button, .segmented button, .agenda-item, .attention-item, .card-mini-button, .toc-row, .step, .build-option,
+    .build-chip, .filter-select, .goal-stepper button, .menu button, .skill-chip button, .news-item, .app-card, .cover-search,
+    .cover-label, .bottom-new, .prep-mark, .switch, .tour-video-toggle, .legend a, .mobile-brand, summary):active:not(:disabled, [aria-disabled="true"]) {
+    /* Same specificity as the press rules above, so this one (later) wins. */
+    scale: none;
+    translate: none;
+  }
+  .button:hover:not(:disabled), .app-card:hover, .cover-label:hover { transform: none; }
+}

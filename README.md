@@ -12,6 +12,7 @@ A private, installable web app for organizing internship applications, interview
 - **Latest internship openings:** a worldwide feed of recently posted internship and co-op roles on the Today page. Search role/company and location, filter by term, degree eligibility, and co-op status, and keep those choices after reopening. Save a role into the notebook with its details prefilled, or open its posting to apply. Already tracked postings link back to their notebook page. Pulled from the public [Pitt CSC & Simplify internship tracker](https://github.com/SimplifyJobs/Summer2027-Internships) by a scheduled workflow, not fetched live in your browser
 - **Board:** a Kanban pipeline (Saved, Applied, Interview, Offer, Rejected) with drag and drop, a quick "Move to" menu on every card, filtering, the full "Coming up" agenda of deadlines and next steps, and gentle nudges (roles closing soon, deadlines that passed, applications waiting 14+ days for a reply)
 - **Notebook pages:** open any application to edit every field with autosave: company, role, location, source, deadline, job posting link, contact, next step and date, skill tags, and long notes on ruled paper. Complete or reschedule next steps from Today, Board, or the page; completion keeps a dated record in Notes and can be undone. A timeline records each stage change
+- **Interview prep:** every application page has a question bank of 62 questions in four groups (behavioral, technical, internship logistics, and questions to ask them). Technical questions follow the role (software, data, design, product), and the stage decides what comes first: technical before an interview, logistics once there's an offer. Mark each question Practiced or Stuck, add a short note, filter to what's left, and watch a progress bar fill. Today shows three "Practice next" questions for the soonest interview, or for the latest open page when interviews is a focus area. Progress is stored with the page in this browser, comes along in every backup, and is listed in the Markdown export
 - **All pages:** a table-of-contents view with stage filters, starred pages, search across notes and skills, and sorting
 - **Insights:** response rate, interview rate, a weekly rhythm chart against your goal, a pipeline funnel, which sources lead to interviews, and the most requested skills
 - **Batch actions:** select several applications to move them together or send them to Recently Deleted
@@ -20,11 +21,13 @@ A private, installable web app for organizing internship applications, interview
 - **Installable and offline:** a web app manifest and service worker let it install to the Dock, desktop, or phone home screen and keep working without a connection
 - **Light and dark themes** that follow the device setting or a manual choice, checked against WCAG 2.2 AA contrast
 - **Your data, portable:** CSV export for spreadsheets, plus a JSON backup you can import on another device. Every imported field is validated the same way a typed one is (limits, calendar dates, and links: only `http(s)://` is ever accepted), the import is previewed before anything is written, and it can be undone as a batch
+- **Reminders and exports (`#/export`):** the website edition has no server, so it hands reminders to apps that can deliver them, and says so on the page. A calendar file (.ics) puts every upcoming deadline, interview, and follow-up into Google Calendar, Apple Calendar, or Outlook, with alerts a day and two hours before; those are real reminders on a phone or laptop. "Email me a digest" opens your own mail app with the week's deadlines, follow-ups, and interviews already written and addressed to you (the site never sends email, and the address stays in this browser). An optional notification lists anything due today or tomorrow, but only when the notebook is open in a tab. There is also a Markdown copy, a print stylesheet for Today, All pages, and a one-page summary (or Save as PDF), and the JSON backup
 - **Optional account sync:** Google sign-in or a verified email/password account can copy the browser notebook to a private Firestore document and sync later edits. The interface distinguishes waiting, syncing, errors, and confirmed saves, with the last confirmed save time. Notebook replacement previews both copies and downloads the device backup first; pending edits are preserved. Email accounts have recovery links; phone/SMS recovery is deliberately off to avoid paid-SMS abuse
 - **Account privacy controls:** a public privacy policy and deletion guide, plus in-app deletion of both the Firebase account and its cloud notebook
 - **Google/Android-friendly PWA:** job links can be shared into the installed app, and application deadlines or next steps can be downloaded as standard calendar events
 - **Autosave that doesn't lose work:** every edit is captured to this browser the instant it happens. If a save can't be confirmed yet (offline, storage briefly unavailable), it stays queued and retries automatically, or press Retry - it is never silently dropped. The save indicator says exactly what's true: Saving, Saved locally, Synced (server mode only), or Couldn't save
 - Responsive layout (sidebar on laptops, bottom tab bar on phones, stage tabs and a "Move to..." control on the Board on a touch screen), 44px touch targets, and motion that respects reduced-motion settings
+- Consistent interaction feedback: every button, chip, tab, card, list row, and link reacts on hover and gives a small press (1px down, 2% smaller) in 150-180 ms. Presses use transform only, so nothing around them moves, and reduced motion keeps the colour changes but drops the movement
 - Keyboard-friendly throughout: a real radiogroup with arrow-key support for picking a stage, a skip link, and focus that returns to where you were after a dialog closes
 
 The local app has **zero third-party runtime dependencies**: the backend is a Java HTTP API and the frontend is plain HTML, CSS, and JavaScript, split into small modules (`js/domain.js`, `js/storage.js`, `js/api.js`, `js/cloud.js`, `js/app.js`). The optional cloud feature loads the official Firebase web modules from Google's CDN only in the website edition. Development-only tooling (`node --test`, Playwright) lives in `package.json` and never ships to the browser.
@@ -100,6 +103,8 @@ The workflow's `actions/configure-pages@v5` step cannot change this setting itse
 
 ## Architecture
 
+The product rules (the zero-backend rule, what reminders really do, where interview prep data lives, and the demo-data rule) and the code conventions are in [docs/product-decisions.md](docs/product-decisions.md).
+
 ```text
 Browser UI (HTML/CSS/JavaScript, service worker for offline use)
       | fetch / JSON                 | optional verified account sync
@@ -132,3 +137,6 @@ ApplicationRepository ── data/applications.tsv
 2. Add a Spring Boot API, validation annotations, and JUnit tests.
 3. Rebuild the UI with React/TypeScript.
 4. Add live multi-device conflict detection while two signed-in copies are open at the same time.
+5. Send reminder emails and push notifications while the notebook is closed. Both need a server (a scheduler plus a mail or push service) and an account to deliver to; until then the calendar file is how reminders arrive.
+6. Let people change their focus areas from Settings, not only in the builder.
+7. Import applications from a CSV or spreadsheet, not just from a JSON backup.
