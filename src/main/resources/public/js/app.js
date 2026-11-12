@@ -11,7 +11,7 @@ import {
   STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
-  cleanSkills, cleanLink, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  cleanSkills, cleanLink, cleanInterview, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   previewImport
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
@@ -34,6 +34,7 @@ import {
   START_MODE_COPY, USE_CASE_COPY, FOCUS_COPY, buildNotebookPlan, validatePlan, cleanUseCases, cleanFocusAreas
 } from "./builder.js";
 import { entryCalendar } from "./calendar.js";
+import { QUESTION_GROUPS, questionsByGroup, questionsFor, interviewSummary, withQuestionStatus, withQuestionNote } from "./interview.js";
 import {
   upcomingActions, dueSoon, dueSoonMessage, buildIcs, buildMarkdownNotebook, buildEmailDigest, digestMailto, shortDate
 } from "./reminders.js";
@@ -117,6 +118,9 @@ const state = {
   welcome: { tab: "today", filter: "ALL", organized: false },
   setupForm: { name: "", targetRole: "", season: "", companies: "" },
   build: null, // the builder's answers and step; set from freshBuild() once it is defined below
+  prepOnlyToPractice: false, // the interview-prep filter, for this visit
+  prepOpen: {}, // entry id -> Set of open question groups, so re-renders keep them as left
+  scrollToPrep: false,
   setupError: null,
   setupSubmitting: false,
   loaded: false,
@@ -529,14 +533,17 @@ function viewToday() {
   // "This week" is a half-width card. When "Next up" has moved to the top, Recently edited takes
   // its place beside it; with nothing left to pair with (deadlines + minimal) it spans the row.
   const partner = focus.deadlines ? (focus.minimal ? "" : recentCard) : upcomingCard;
+  const practice = practiceCard(focus);
   const sections = [
     focus.deadlines ? upcomingCard : "",
     focus.interviews ? interviewsCard() : "",
+    focus.interviews ? practice : "",
     focus.responses ? responsesCard(stats) : "",
     focus.newsFirst ? news : "",
     strip,
     partner ? goalCard : goalCard.replace('class="card goal-card"', 'class="card goal-card focus-card"'),
     partner,
+    focus.interviews ? "" : practice,
     focus.newsFirst ? "" : news,
     focus.minimal || focus.deadlines ? "" : recentCard
   ];
@@ -1168,12 +1175,139 @@ function viewEntry(id) {
             <ol class="timeline">${timeline}</ol>
           </section>
         </div>
+        ${BROWSER_MODE ? prepCard(entry) : ""}
         <footer class="entry-foot">
           <span>Created ${esc(formatDateTime(entry.createdAt))} · Edited <span data-edited>${esc(timeAgo(entry.updatedAt))}</span></span>
           <button class="button small danger-soft" type="button" data-action="delete" data-id="${entry.id}">${icon("trash")}Move to Recently Deleted</button>
         </footer>
       </div>
     </article>`;
+}
+
+/* ---------- Interview prep (application page and Today, website edition) ----------
+   Progress is stored on the page's optional `interview` field and saved through the same draft and
+   autosave path as every other field, so it is local, undoable by editing, and part of every backup.
+   The Java server has no such field, so the Server Edition shows no prep UI. */
+function prepQuestion(entryId, question, record, { compact = false } = {}) {
+  const status = record?.status || "new";
+  const note = record?.note || "";
+  const mark = (value, iconName, label) => `<button class="prep-mark ${value}" type="button" data-action="prep-mark" data-id="${entryId}"
+    data-question="${question.id}" data-status="${value}" aria-pressed="${status === value}">${icon(iconName)}<span>${label}</span></button>`;
+  return `
+    <li class="prep-q${status === "new" ? "" : ` is-${status}`}" data-question="${question.id}">
+      <p class="prep-text" id="prep-text-${question.id}">${esc(question.text)}</p>
+      <div class="prep-actions" role="group" aria-labelledby="prep-text-${question.id}">
+        ${mark("practiced", "check", "Practiced")}${mark("stuck", "flag", "Stuck")}
+        ${compact ? "" : `<button class="text-button prep-note-toggle" type="button" data-action="prep-note" data-question="${question.id}"
+          aria-expanded="${Boolean(note)}" aria-controls="prep-note-${question.id}">${note ? "Note" : "Add note"}</button>`}
+      </div>
+      ${compact ? "" : `<label class="prep-note" id="prep-note-${question.id}"${note ? "" : " hidden"}><span class="sr-only">Note for: ${esc(question.text)}</span>
+        <textarea rows="2" maxlength="${INTERVIEW_NOTE_LIMIT}" data-prep-note="${question.id}" placeholder="The story you'll tell, or a fact to mention">${esc(note)}</textarea></label>`}
+    </li>`;
+}
+
+/** Which groups start open on a page: the one the stage leads with, unless the visitor chose. */
+function prepOpenGroups(entry) {
+  if (!state.prepOpen[entry.id]) state.prepOpen[entry.id] = new Set([questionsFor(entry, { limit: 1 })[0]?.group || "behavioral"]);
+  return state.prepOpen[entry.id];
+}
+
+function prepCard(entry) {
+  const progress = cleanInterview(entry.interview);
+  const groups = questionsByGroup(entry.role);
+  const summary = interviewSummary(entry);
+  const only = state.prepOnlyToPractice;
+  const open = prepOpenGroups(entry);
+  const statusOf = question => progress[question.id]?.status || "new";
+  return `
+    <section class="prep" id="prep" aria-labelledby="prep-title">
+      <div class="prep-head">
+        <div><p class="section-label" id="prep-title">Interview prep</p>
+          <p class="prep-sub">Practice out loud, then mark each question. Your progress stays with this page, in this browser.</p></div>
+        <label class="prep-filter"><input type="checkbox" data-prep-filter${only ? " checked" : ""} /><span>Only to practice</span></label>
+      </div>
+      <div class="prep-progress">
+        <div class="prep-bar" role="progressbar" aria-label="Questions practiced" aria-valuemin="0" aria-valuemax="${summary.total}"
+          aria-valuenow="${summary.practiced}" aria-valuetext="${esc(summary.text)}"><i style="width:${summary.percent}%"></i></div>
+        <p class="prep-summary">${esc(summary.text)}</p>
+      </div>
+      ${QUESTION_GROUPS.map(group => {
+        const questions = groups[group.id];
+        const shown = only ? questions.filter(question => statusOf(question) !== "practiced") : questions;
+        const done = questions.filter(question => statusOf(question) === "practiced").length;
+        return `
+        <details class="prep-group" data-group="${group.id}"${open.has(group.id) ? " open" : ""}>
+          <summary><span>${esc(group.label)}</span><span class="prep-count">${done} of ${questions.length}</span></summary>
+          <p class="prep-hint">${esc(group.hint)}</p>
+          ${shown.length ? `<ol class="prep-list">${shown.map(question => prepQuestion(entry.id, question, progress[question.id])).join("")}</ol>`
+            : `<p class="empty-note">${icon("check", "inline")} Every question here is practiced.</p>`}
+        </details>`;
+      }).join("")}
+    </section>`;
+}
+
+/** Re-draws the prep card in place (not the whole page), keeping focus on the control in use. */
+function refreshPrep(entry) {
+  const card = $("#prep");
+  if (!card) return;
+  const active = document.activeElement;
+  const key = active?.closest?.("#prep") ? { action: active.dataset.action, question: active.dataset.question, status: active.dataset.status, filter: active.matches("[data-prep-filter]") } : null;
+  card.outerHTML = prepCard(entry);
+  if (!key) return;
+  const selector = key.filter ? "#prep [data-prep-filter]"
+    : `#prep [data-action="${key.action}"][data-question="${key.question}"]${key.status ? `[data-status="${key.status}"]` : ""}`;
+  ($(selector) || $("#prep-title"))?.focus?.();
+}
+
+/** Marks a question for a page. On that page it goes through the autosave queue like any field;
+ *  from Today it saves straight through the active backend. */
+async function setPrepStatus(id, questionId, status) {
+  const entry = find(id);
+  if (!entry) return;
+  const onPage = state.route.view === "entry" && state.route.id === id;
+  const current = onPage ? draftValue(id, "interview", entry.interview) : entry.interview;
+  const next = withQuestionStatus(current, questionId, status);
+  const marked = next[questionId]?.status === status;
+  if (onPage) {
+    queueChange("interview", next, { immediate: true });
+    refreshPrep({ ...entry, interview: next });
+  } else {
+    try {
+      replaceApplications([await activeApi.update(id, { interview: next })]);
+      rerender();
+      $(".practice-card .prep-mark")?.focus();
+    } catch (error) { fail(error); return; }
+  }
+  announce(marked ? `Marked ${status}` : "Cleared");
+}
+
+/** The page "Practice next" draws from: the soonest interview, else (when the visitor asked for
+ *  interview help) the most recently edited open application. */
+function practiceTarget(focus) {
+  const byDate = (left, right) => (left.nextStepDate || "9999-12-31").localeCompare(right.nextStepDate || "9999-12-31");
+  const interviews = state.applications.filter(entry => entry.status === "INTERVIEW").sort(byDate);
+  if (interviews.length) return interviews[0];
+  if (!focus.interviews) return null;
+  const open = state.applications.filter(entry => entry.status === "APPLIED" || entry.status === "SAVED")
+    .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
+  return open[0] || null;
+}
+
+function practiceCard(focus) {
+  if (!BROWSER_MODE) return "";
+  const target = practiceTarget(focus);
+  if (!target) return "";
+  const progress = cleanInterview(target.interview);
+  const questions = questionsFor(target, { limit: 3, toPractice: true });
+  const summary = interviewSummary(target);
+  return `
+    <section class="card focus-card practice-card" aria-labelledby="practice-title">
+      <div class="card-head"><div><h2 class="card-title" id="practice-title">Practice next</h2>
+        <p class="card-note">For ${esc(target.company)} · ${esc(summary.text)}</p></div>
+        <button class="text-button" type="button" data-action="open-prep" data-id="${target.id}">All questions</button></div>
+      ${questions.length ? `<ol class="prep-list">${questions.map(question => prepQuestion(target.id, question, progress[question.id], { compact: true })).join("")}</ol>`
+        : `<p class="empty-note">${icon("check", "inline")} Every question for ${esc(target.company)} is practiced.</p>`}
+    </section>`;
 }
 
 /* ==========================================================================
@@ -2170,6 +2304,13 @@ async function navigate() {
   page.scrollTop = 0;
   window.scrollTo(0, 0);
   viewRoot.focus({ preventScroll: true });
+  // "All questions" on Today's Practice next card lands on the prep card. This runs here, after
+  // the view takes focus above, or that focus would immediately replace it.
+  if (state.route.view === "entry" && state.scrollToPrep) {
+    state.scrollToPrep = false;
+    const title = $("#prep-title");
+    if (title) { title.setAttribute("tabindex", "-1"); $("#prep").scrollIntoView({ block: "start" }); title.focus({ preventScroll: true }); }
+  }
   if (state.route.view === "entry" && state.rescheduleId === state.route.id) {
     state.rescheduleId = null;
     $('[data-field="nextStepDate"]')?.focus();
@@ -2854,6 +2995,10 @@ viewRoot.addEventListener("input", event => {
     refreshList(target);
   }
   if (input === "name") { state.prefs.name = target.value.slice(0, 40); savePrefs(); }
+  if (target.dataset.prepNote && state.route.view === "entry") {
+    const entry = find(state.route.id);
+    if (entry) queueChange("interview", withQuestionNote(draftValue(entry.id, "interview", entry.interview), target.dataset.prepNote, target.value));
+  }
   if (input === "digest-email") { state.prefs.digestEmail = target.value.trim().slice(0, 254); savePrefs(); updateDigestLink(); }
   if ((state.route.view === "setup" || state.route.view === "build") && target.name && target.name in state.setupForm) {
     state.setupForm[target.name] = target.value;
@@ -2888,6 +3033,11 @@ viewRoot.addEventListener("change", event => {
   if ((state.route.view === "setup" || state.route.view === "build") && target.name && target.name in state.setupForm) {
     state.setupForm[target.name] = target.value;
     if (state.route.view === "build") refreshBuildSummary();
+  }
+  if (target.matches("[data-prep-filter]") && state.route.view === "entry") {
+    state.prepOnlyToPractice = target.checked;
+    const entry = find(state.route.id);
+    if (entry) refreshPrep({ ...entry, interview: draftValue(entry.id, "interview", entry.interview) });
   }
   if (state.route.view === "build" && target.name === "startMode") state.build.startMode = target.value;
   if (state.route.view === "build" && (target.name === "useCase" || target.name === "focusArea")) changeBuildChip(target);
@@ -3237,6 +3387,15 @@ const actions = {
   "clear-filters": () => { state.filter = { query: "", stage: "ALL" }; rerender(); },
   "export-csv": () => exportCsv(),
   "export-json": () => exportJson(),
+  "prep-mark": target => setPrepStatus(Number(target.dataset.id), target.dataset.question, target.dataset.status),
+  "prep-note": target => {
+    const box = $(`#prep-note-${target.dataset.question}`);
+    if (!box) return;
+    box.hidden = !box.hidden;
+    target.setAttribute("aria-expanded", String(!box.hidden));
+    if (!box.hidden) box.querySelector("textarea")?.focus();
+  },
+  "open-prep": target => { state.scrollToPrep = true; go(`#/entry/${target.dataset.id}`); },
   "export-ics": () => exportIcs(),
   "export-md": () => exportMarkdown(),
   "print-notebook": () => window.print(),
@@ -3361,6 +3520,13 @@ for (const type of ["play", "pause"]) {
   viewRoot.addEventListener(type, event => { if (event.target.matches?.(".tour-video")) syncWelcomeVideo(event.target); }, true);
 }
 viewRoot.addEventListener("error", event => { if (event.target.matches?.(".tour-video")) markVideoFailed(event.target); }, true);
+// Interview prep groups remember being opened or closed; "toggle" does not bubble, so capture it.
+viewRoot.addEventListener("toggle", event => {
+  const group = event.target.closest?.(".prep-group");
+  if (!group || state.route.view !== "entry") return;
+  const open = state.prepOpen[state.route.id] ||= new Set();
+  if (group.open) open.add(group.dataset.group); else open.delete(group.dataset.group);
+}, true);
 // In the builder, Enter on an option card moves on, like Enter in a text field. Browsers do not
 // submit a form from a focused radio or checkbox on their own, and Space still toggles as usual.
 viewRoot.addEventListener("keydown", event => {

@@ -12,20 +12,25 @@ const site = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../_
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".css": "text/css", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".jpg": "image/jpeg", ".mp4": "video/mp4", ".webm": "video/webm" };
 export const ROUTE_FILES = process.env.PW_ROUTE_FILES === "1";
 
+/** Serves _site to a browser context in PW_ROUTE_FILES mode (a no-op otherwise). The fixture below
+ *  does this for the test's own context; call it for any extra context a test creates. */
+export async function routeSite(context, baseURL) {
+  if (!ROUTE_FILES) return;
+  await context.route(`${baseURL}/**`, async route => {
+    const { pathname } = new URL(route.request().url());
+    const file = path.join(site, pathname.endsWith("/") ? `${pathname}index.html` : pathname);
+    try {
+      const body = await readFile(file);
+      await route.fulfill({ status: 200, body, headers: { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-store" } });
+    } catch {
+      await route.fulfill({ status: 404, body: "Not found" });
+    }
+  });
+}
+
 export const test = base.extend({
   context: async ({ context, baseURL }, use) => {
-    if (ROUTE_FILES) {
-      await context.route(`${baseURL}/**`, async route => {
-        const { pathname } = new URL(route.request().url());
-        const file = path.join(site, pathname.endsWith("/") ? `${pathname}index.html` : pathname);
-        try {
-          const body = await readFile(file);
-          await route.fulfill({ status: 200, body, headers: { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-store" } });
-        } catch {
-          await route.fulfill({ status: 404, body: "Not found" });
-        }
-      });
-    }
+    await routeSite(context, baseURL);
     await use(context);
   }
 });

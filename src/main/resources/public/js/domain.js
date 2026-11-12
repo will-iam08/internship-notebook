@@ -132,6 +132,32 @@ export function cleanStage(value) {
 }
 
 /** Validates only the fields that are present, so one field can be saved at a time. */
+/* ---------- Interview prep (optional per-application field) ----------
+   { [questionId]: { status: "new" | "practiced" | "stuck", note?: string } }. Stored only when it
+   has content, so older pages, older backups, and the Java server's records never need it. */
+export const INTERVIEW_STATUSES = ["new", "practiced", "stuck"];
+export const INTERVIEW_NOTE_LIMIT = 280;
+export const INTERVIEW_KEY_LIMIT = 120;
+const QUESTION_ID = /^[a-z0-9][a-z0-9-]{0,47}$/; // also rules out "__proto__" and friends
+
+/** The clean form of an interview map: known statuses only, notes trimmed and capped, at most
+ *  INTERVIEW_KEY_LIMIT questions, and "new" entries without a note dropped (they are the default). */
+export function cleanInterview(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+  const clean = {};
+  let kept = 0;
+  for (const [id, raw] of Object.entries(value)) {
+    if (kept >= INTERVIEW_KEY_LIMIT) break;
+    if (!QUESTION_ID.test(id) || !raw || typeof raw !== "object") continue;
+    const status = INTERVIEW_STATUSES.includes(raw.status) ? raw.status : "new";
+    const note = typeof raw.note === "string" ? raw.note.trim().slice(0, INTERVIEW_NOTE_LIMIT) : "";
+    if (status === "new" && !note) continue;
+    clean[id] = note ? { status, note } : { status };
+    kept++;
+  }
+  return clean;
+}
+
 export function cleanChanges(changes, { creating = false } = {}) {
   const clean = {};
   const has = key => Object.prototype.hasOwnProperty.call(changes, key);
@@ -146,6 +172,7 @@ export function cleanChanges(changes, { creating = false } = {}) {
   if (has("skills")) clean.skills = cleanSkills(changes.skills);
   if (has("starred")) clean.starred = Boolean(changes.starred);
   if (has("status")) clean.status = cleanStage(changes.status || "SAVED");
+  if (has("interview")) clean.interview = cleanInterview(changes.interview);
   return clean;
 }
 
@@ -176,6 +203,8 @@ export function normalize(entry) {
     starred: entry.starred === true,
     history: history.length ? history : [{ status, at: createdAt }]
   };
+  const interview = cleanInterview(entry.interview);
+  if (Object.keys(interview).length) application.interview = interview;
   if (entry.deletedAt) application.deletedAt = entry.deletedAt;
   return application;
 }

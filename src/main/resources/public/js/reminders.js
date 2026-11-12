@@ -209,6 +209,14 @@ function mdBlock(value, limit) {
 const URL_ESCAPES = { "(": "%28", ")": "%29", "<": "%3C", ">": "%3E", " ": "%20" }; // encodeURIComponent keeps ( and )
 const mdUrl = url => String(url).replace(/[()<> ]/g, character => URL_ESCAPES[character]);
 
+/** "3 practiced, 1 stuck" from a page's optional interview map (no question text needed). */
+function interviewCounts(interview) {
+  const records = interview && typeof interview === "object" ? Object.values(interview) : [];
+  const practiced = records.filter(record => record?.status === "practiced").length;
+  const stuck = records.filter(record => record?.status === "stuck").length;
+  return practiced || stuck ? [practiced && `${practiced} practiced`, stuck && `${stuck} stuck`].filter(Boolean).join(", ") : "";
+}
+
 /**
  * A readable Markdown copy of the notebook: a title, a summary table, then one "##" section per
  * application with its stage, dates, contact, skills, next step, and notes. Every field is cut to
@@ -240,6 +248,7 @@ export function buildMarkdownNotebook(applications, prefs = {}, { now = new Date
       ["Source", mdInline(entry.source, LIMITS.source)],
       ["Contact", mdInline(entry.contact, LIMITS.contact)],
       ["Skills", (Array.isArray(entry.skills) ? entry.skills : []).slice(0, 12).map(skill => mdInline(skill, 40)).join(", ")],
+      ["Interview prep", interviewCounts(entry.interview)],
       ["Posting", /^https?:\/\//i.test(text(entry.link)) ? `[Open the posting](${mdUrl(text(entry.link).slice(0, LIMITS.link))})` : ""]
     ];
     for (const [label, value] of facts) if (value) lines.push(`- **${label}:** ${value}`);

@@ -903,6 +903,10 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 .recovery { max-width: 640px; margin-left: auto; margin-right: auto; }
 .recovery .empty-state { padding: 12px 4px 4px; }
 .view.animate .sheet-page { animation: page-in .5s var(--ease) both; }
+/* On a phone the sheet fills the width, so the sideways page-flip (translateX + rotate) pushes it
+   past the screen edge while it plays: a rotated box grows sideways with its height, and a long
+   page with interview prep stuck out ~6px, flashing a horizontal scroll. Enter vertically there. */
+@media (max-width: 759px) { .view.animate .sheet-page { animation-name: view-in; } }
 .sheet-page {
   background-color: var(--card);
   border: 1px solid var(--line);
@@ -1822,3 +1826,63 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
   .print-sheet th { font-size: 9pt; letter-spacing: .06em; text-transform: uppercase; }
   .print-sheet tr { break-inside: avoid; }
 }
+
+/* ---------- Interview prep (application page and Today) ---------- */
+.prep { border-top: 1px solid var(--rule); margin-top: 22px; padding-top: 18px; }
+.prep-head { align-items: flex-start; display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; }
+.prep-sub { color: var(--muted); font-size: .86rem; max-width: 56ch; }
+.prep-filter { align-items: center; cursor: pointer; display: inline-flex; font-size: .86rem; font-weight: 650; gap: 8px; min-height: 44px; }
+.prep-progress { align-items: center; display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 10px 0 12px; }
+.prep-bar { background: var(--track); border-radius: 99px; flex: 1 1 200px; height: 8px; overflow: hidden; }
+.prep-bar i { background: var(--st-offer); border-radius: 99px; display: block; height: 100%; transition: width .4s var(--ease); }
+.prep-summary { color: var(--ink-2); font-size: .86rem; font-weight: 650; }
+.prep-group { border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; overflow: hidden; }
+.prep-group > summary {
+  align-items: center;
+  background: var(--paper-2);
+  cursor: pointer;
+  display: flex;
+  font-weight: 700;
+  gap: 10px;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 48px;
+  padding: 10px 14px;
+}
+.prep-group > summary::-webkit-details-marker { display: none; }
+.prep-group > summary::before { border: solid var(--muted); border-width: 0 2px 2px 0; content: ""; height: 7px; transform: rotate(-45deg); transition: transform .18s var(--ease); width: 7px; }
+.prep-group[open] > summary::before { transform: rotate(45deg); }
+.prep-group > summary > span:first-child { flex: 1; }
+.prep-count { color: var(--muted); font-size: .8rem; font-weight: 650; }
+.prep-hint { color: var(--muted); font-size: .84rem; padding: 10px 14px 0; }
+.prep-group .empty-note { padding: 10px 14px 14px; }
+.prep-list { display: grid; list-style: none; margin: 0; padding: 4px 0; }
+.prep-group .prep-list { padding: 4px 14px 10px; }
+.prep-q { border-top: 1px dashed var(--line); display: grid; gap: 6px 12px; grid-template-columns: minmax(0, 1fr) auto; padding: 10px 0; }
+.prep-q:first-child { border-top: 0; }
+.prep-text { align-self: center; color: var(--ink); font-size: .92rem; }
+.prep-q.is-practiced .prep-text { color: var(--muted); }
+.prep-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.prep-mark {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 99px;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-size: .8rem;
+  font-weight: 650;
+  gap: 5px;
+  min-height: 44px;
+  padding: 6px 12px;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.prep-mark .icon { height: 15px; width: 15px; }
+.prep-mark:hover { border-color: var(--faint); }
+.prep-mark.practiced[aria-pressed="true"] { background: var(--st-offer-bg); border-color: var(--st-offer); color: var(--ink); }
+.prep-mark.stuck[aria-pressed="true"] { background: var(--st-interview-bg); border-color: var(--st-interview); color: var(--ink); }
+.prep-note-toggle { min-height: 44px; }
+.prep-note { grid-column: 1 / -1; }
+.prep-note textarea { font-size: .88rem; min-height: 60px; }
+@media (max-width: 559px) { .prep-q { grid-template-columns: minmax(0, 1fr); } .prep-actions { justify-content: flex-start; } }
+.practice-card .prep-list { padding: 0; }

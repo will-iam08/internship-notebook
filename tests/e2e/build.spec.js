@@ -116,9 +116,11 @@ test.describe("building a notebook", () => {
     await fillDetails(page);
     await create(page);
     await expect(page).toHaveURL(/#\/today$/);
+    // Interviews, then Practice next (its questions belong with the interviews), then Responses.
     const cards = page.locator(".today-grid > .card");
     await expect(cards.nth(0)).toHaveClass(/interviews-card/);
-    await expect(cards.nth(1)).toHaveClass(/responses-card/);
+    await expect(cards.nth(1)).toHaveClass(/practice-card/);
+    await expect(cards.nth(2)).toHaveClass(/responses-card/);
     await expect(page.locator(".interviews-card")).toContainText("First-round interview"); // the Interview example
     await expect(page.locator(".responses-card")).toContainText("response rate");
     await expect(page.locator(".recent-card")).toHaveCount(0);
