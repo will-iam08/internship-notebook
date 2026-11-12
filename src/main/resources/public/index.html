@@ -117,6 +117,8 @@
     <div class="selection-bar" id="selection-bar" role="toolbar" aria-label="Selected applications" hidden></div>
 
     <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <!-- Lives outside #view so a re-render never replaces it mid-announcement (see announce() in app.js). -->
+    <p class="sr-only" id="announcer" aria-live="polite"></p>
     <div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
     <div class="menu" id="menu" role="menu" hidden></div>
 

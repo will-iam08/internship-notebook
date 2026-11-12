@@ -29,6 +29,10 @@ import {
   validateSetup, buildStarterApplications
 } from "./onboarding.js";
 import { commitStarterNotebook } from "./notebook-commit.js";
+import {
+  START_MODES, USE_CASES, FOCUS_AREAS, MAX_USE_CASES, DEFAULT_START_MODE, DEFAULT_USE_CASES, DEFAULT_FOCUS_AREAS,
+  START_MODE_COPY, USE_CASE_COPY, FOCUS_COPY, buildNotebookPlan, validatePlan, cleanUseCases, cleanFocusAreas
+} from "./builder.js";
 import { entryCalendar } from "./calendar.js";
 import { icon, LOGO } from "./ui/icons.js";
 
@@ -45,6 +49,7 @@ const VIEWS = {
   settings: { title: "Settings", tab: "--tab-settings" },
   entry: { title: "Page", tab: "--tab-notebook" },
   setup: { title: "Set up your notebook", tab: "--tab-today" },
+  build: { title: "Build your notebook", tab: "--tab-today" },
   signup: { title: "Save your notebook", tab: "--tab-settings" }
 };
 
@@ -78,6 +83,8 @@ function readPrefs() {
     season: sanitizeSeason(saved.season),
     targetCompanies: sanitizeTargetCompanies(saved.targetCompanies),
     started: saved.started === true,
+    // What the visitor asked the notebook to do (set by the builder). Empty keeps the default Today.
+    focusAreas: cleanFocusAreas(saved.focusAreas),
     theme: theme === "light" || theme === "dark" ? theme : "system",
     sort: ["updated", "created", "deadline", "company"].includes(saved.sort) ? saved.sort : "updated",
     newsFilter: {
@@ -100,6 +107,7 @@ const state = {
   // Welcome page choices (tour tab, mini-board filter, chaos/notebook toggle) survive a re-render.
   welcome: { tab: "today", filter: "ALL", organized: false },
   setupForm: { name: "", targetRole: "", season: "", companies: "" },
+  build: null, // the builder's answers and step; set from freshBuild() once it is defined below
   setupError: null,
   setupSubmitting: false,
   loaded: false,
@@ -139,11 +147,11 @@ async function loadInternships() {
 }
 
 function savePrefs() {
-  const { goal, name, targetRole, season, targetCompanies, started, sort, newsFilter } = state.prefs;
+  const { goal, name, targetRole, season, targetCompanies, started, focusAreas, sort, newsFilter } = state.prefs;
   // storage.set returns false (it never throws) when the write is rejected, e.g. a full or blocked
   // store. Return that result so onboarding can report a failed preferences write honestly rather
   // than assuming it landed. The goal/theme mirrors are best-effort and do not change the result.
-  const saved = storage.set(KEYS.prefs, JSON.stringify({ goal, name, targetRole, season, targetCompanies, started, sort, newsFilter }));
+  const saved = storage.set(KEYS.prefs, JSON.stringify({ goal, name, targetRole, season, targetCompanies, started, focusAreas, sort, newsFilter }));
   storage.set(KEYS.goal, String(goal));
   storage.set(KEYS.theme, state.prefs.theme);
   return saved;
@@ -284,13 +292,12 @@ function demoBound(fn) {
   };
 }
 
-/** "Start my notebook": leave the demo and go to guided setup. Discards the in-memory demo copy and
- *  leaves the real notebook untouched. The started flag is NOT set here - only on successful setup
- *  completion - so a visitor who bails out of setup still sees the demo next time. */
+/** "Build my notebook": open the builder. The demo keeps running behind it and only ends when the
+ *  real notebook is created, so a visitor who backs out of the builder is still in the demo. The
+ *  started flag is set only on a successful create, so leaving early changes nothing. */
 function startMyNotebook() {
   if (!BROWSER_MODE) return;
-  exitDemoMode();
-  go("#/setup");
+  go("#/build");
 }
 
 /* ==========================================================================
@@ -414,8 +421,12 @@ function viewToday() {
     actions: newButton()
   });
 
+  // Focus areas from the builder rearrange Today (see todayFocus); none keeps the default layout.
+  const focus = todayFocus();
   if (!state.applications.length) {
+    const news = focus.showNews ? newsCard() : "";
     return `${head}
+      ${focus.newsFirst ? news : ""}
       <section class="card welcome">
         <div class="sticky-note" aria-hidden="true">Tip: press <b>N</b> anywhere to start a new page.</div>
         <p class="eyebrow">Welcome</p>
@@ -433,7 +444,7 @@ function viewToday() {
           <a class="button ghost" href="#/settings">${icon("install")}<span>Install as an app</span></a>
         </div>
       </section>
-      ${newsCard()}`;
+      ${focus.newsFirst ? "" : news}`;
   }
 
   const stats = metrics(state.applications);
@@ -480,9 +491,9 @@ function viewToday() {
       </div>
     </section>`;
 
-  const upcoming = agendaItems(state.applications).slice(0, 3);
+  const upcoming = agendaItems(state.applications).slice(0, focus.deadlines ? 5 : 3);
   const upcomingCard = `
-    <section class="card upcoming-card" aria-labelledby="upcoming-title">
+    <section class="card upcoming-card${focus.deadlines ? " focus-card" : ""}" aria-labelledby="upcoming-title">
       <div class="card-head"><div><h2 class="card-title" id="upcoming-title">Next up</h2><p class="card-note">Your soonest deadlines and next steps</p></div></div>
       ${upcoming.length ? `<div class="agenda-items">${upcoming.map(item => {
           const days = daysUntil(item.date);
@@ -505,7 +516,81 @@ function viewToday() {
       <div class="recent-list">${recent.map((entry, index) => appCard(entry, index, { compact: true })).join("")}</div>
     </section>`;
 
-  return `${head}<div class="today-grid">${strip}${goalCard}${upcomingCard}${newsCard()}${recentCard}</div>`;
+  const news = focus.showNews ? newsCard() : "";
+  // "This week" is a half-width card. When "Next up" has moved to the top, Recently edited takes
+  // its place beside it; with nothing left to pair with (deadlines + minimal) it spans the row.
+  const partner = focus.deadlines ? (focus.minimal ? "" : recentCard) : upcomingCard;
+  const sections = [
+    focus.deadlines ? upcomingCard : "",
+    focus.interviews ? interviewsCard() : "",
+    focus.responses ? responsesCard(stats) : "",
+    focus.newsFirst ? news : "",
+    strip,
+    partner ? goalCard : goalCard.replace('class="card goal-card"', 'class="card goal-card focus-card"'),
+    partner,
+    focus.newsFirst ? "" : news,
+    focus.minimal || focus.deadlines ? "" : recentCard
+  ];
+  return `${head}<div class="today-grid">${sections.join("")}</div>`;
+}
+
+/**
+ * How Today is arranged for the saved focus areas. With none set (every notebook made before the
+ * builder) this is exactly the original layout. Each area moves its card to the top:
+ * - deadlines: "Next up" leads, full width, with five items instead of three
+ * - interviews: an Interviews card of interview-stage pages and their next steps
+ * - responses: a Responses card with the response rate and who is still waiting
+ * - openings: the latest-openings feed moves up, right after the cards above
+ * - minimal: drops the optional parts (the openings feed and Recently edited), unless openings
+ *   was also chosen, in which case the feed stays because it was asked for
+ */
+function todayFocus() {
+  const areas = new Set(state.prefs.focusAreas);
+  return {
+    deadlines: areas.has("deadlines"),
+    interviews: areas.has("interviews"),
+    responses: areas.has("responses"),
+    minimal: areas.has("minimal"),
+    newsFirst: areas.has("openings"),
+    showNews: areas.has("openings") || !areas.has("minimal")
+  };
+}
+
+function interviewsCard() {
+  const interviews = state.applications.filter(entry => entry.status === "INTERVIEW")
+    .sort((left, right) => (left.nextStepDate || "9999-12-31").localeCompare(right.nextStepDate || "9999-12-31"));
+  return `
+    <section class="card focus-card interviews-card" aria-labelledby="interviews-title">
+      <div class="card-head"><div><h2 class="card-title" id="interviews-title">Interviews</h2><p class="card-note">Interview-stage pages and what comes next</p></div>
+        <a class="text-button" href="#/board">Board</a></div>
+      ${interviews.length ? `<div class="agenda-items">${interviews.map(entry => {
+          const days = entry.nextStepDate ? daysUntil(entry.nextStepDate) : null;
+          const when = days === null ? "No date yet" : days < 0 ? "Overdue" : days === 0 ? "Today" : days === 1 ? "Tomorrow" : formatDay(entry.nextStepDate, { weekday: "short" });
+          return `
+          <div class="agenda-row"><button class="agenda-item" type="button" data-open="${entry.id}">
+            <span class="agenda-kind st-INTERVIEW">${icon("flag")}</span>
+            <span class="agenda-text"><strong>${esc(entry.nextStep || `Prepare for ${entry.company}`)}</strong>
+            <span>${esc(when)} · ${esc(entry.company)} · ${esc(entry.role)}</span></span>
+          </button>${entry.nextStep ? nextStepActions(entry) : ""}</div>`;
+        }).join("")}</div>`
+      : `<p class="empty-note">No interviews yet. When a page moves to Interview, it shows up here with its next step.</p>`}
+    </section>`;
+}
+
+function responsesCard(stats) {
+  const waiting = state.applications.filter(entry => entry.status === "APPLIED").length;
+  const figure = (value, label) => `<div class="response-figure"><strong>${value}</strong><span>${label}</span></div>`;
+  return `
+    <section class="card focus-card responses-card" aria-labelledby="responses-title">
+      <div class="card-head"><div><h2 class="card-title" id="responses-title">Responses</h2><p class="card-note">How many applications have heard back</p></div>
+        <a class="text-button" href="#/insights">Insights</a></div>
+      <div class="response-figures">
+        ${figure(`${stats.responseRate}%`, "response rate")}
+        ${figure(stats.sent, stats.sent === 1 ? "application sent" : "applications sent")}
+        ${figure(waiting, "waiting to hear back")}
+        ${figure(`${stats.interviewRate}%`, "reached an interview")}
+      </div>
+    </section>`;
 }
 
 function agendaCard() {
@@ -1406,32 +1491,294 @@ function markVideoFailed(video) {
 
 function viewSetup() {
   if (!BROWSER_MODE) return "";
-  const form = state.setupForm;
   const error = state.setupError;
-  const seasonOptions = ["", ...SEASONS].map(value =>
-    `<option value="${esc(value)}" ${form.season === value ? "selected" : ""}>${value ? esc(value) : "Choose a season"}</option>`).join("");
-  const fieldError = field => error && error.field === field ? `<p class="field-error" role="alert">${esc(error.message)}</p>` : "";
   return `
     ${viewHead({ eyebrow: "Welcome", title: "Set up your notebook<span class=\"dot\">.</span>", sub: "A few details so your notebook starts with your search in mind. Nothing is saved until you finish." })}
     <section class="card setup-card">
       <form id="setup-form" novalidate>
-        <label class="setup-field"><span>Your name</span>
-          <input type="text" name="name" maxlength="40" value="${esc(form.name)}" placeholder="e.g. Jordan" autocomplete="given-name" />
-          ${fieldError("name")}</label>
-        <label class="setup-field"><span>Target role</span>
-          <input type="text" name="targetRole" maxlength="${LIMITS.role}" value="${esc(form.targetRole)}" placeholder="e.g. Software Engineering Intern" />
-          ${fieldError("targetRole")}</label>
-        <label class="setup-field"><span>Season</span>
-          <select name="season">${seasonOptions}</select>
-          ${fieldError("season")}</label>
-        <label class="setup-field"><span>Target companies <small>(optional, comma separated)</small></span>
-          <input type="text" name="companies" value="${esc(form.companies)}" placeholder="e.g. Northwind, Lumen, Harbor" />
-          ${fieldError("targetCompanies")}</label>
+        ${setupFields({ form: state.setupForm, errorFor: field => (error && error.field === field ? error.message : "") })}
         <div class="view-actions">
           <button class="button primary" type="submit" data-action="setup-submit" ${state.setupSubmitting ? "disabled" : ""}>${icon("check")}<span>Create my notebook</span></button>
         </div>
       </form>
     </section>`;
+}
+
+/* ---------- Notebook builder (#/build, website edition) ----------
+   A three-step questionnaire in front of guided setup's fields: how to start, what it is for, and
+   what it should do. The answers live in state.build (choices) and state.setupForm (the same name,
+   role, season, and companies fields setup uses), so Back/Next and re-renders keep everything.
+   builder.js turns the answers into a plan; finishBuild hands that plan to createRealNotebook, the
+   same commit path as guided setup. The demo keeps running behind the wizard until Create. */
+const BUILD_STEPS = [
+  { short: "Start", title: "How do you want to build your notebook?", sub: "You can change anything later." },
+  { short: "Purpose", title: "What are you using it for?", sub: `Pick one or two.` },
+  { short: "Focus", title: "What should it do for you?", sub: "Pick as many as you like, then add a few details." }
+];
+const START_MODE_ICONS = { template: "notebook", scratch: "file", import: "upload" };
+const freshBuild = () => ({
+  step: 1,
+  startMode: DEFAULT_START_MODE,
+  useCases: [...DEFAULT_USE_CASES],
+  focusAreas: [...DEFAULT_FOCUS_AREAS],
+  errors: {},
+  note: "",
+  submitting: false,
+  prefilled: false
+});
+state.build = freshBuild();
+
+/** The builder's answers in the shape builder.js expects. Companies only matter for a template:
+ *  "start empty" and "import" create no pages, so the field is hidden and ignored there. */
+function buildAnswers() {
+  const form = state.setupForm;
+  return {
+    startMode: state.build.startMode,
+    useCases: state.build.useCases,
+    focusAreas: state.build.focusAreas,
+    name: form.name,
+    targetRole: form.targetRole,
+    season: form.season,
+    targetCompanies: state.build.startMode === "template" ? form.companies.split(",").map(item => item.trim()).filter(Boolean) : []
+  };
+}
+
+/** Name, target role, season, and companies: one set of fields shared by setup and the builder. */
+function setupFields({ form, errorFor, withCompanies = true }) {
+  const seasonOptions = ["", ...SEASONS].map(value =>
+    `<option value="${esc(value)}" ${form.season === value ? "selected" : ""}>${value ? esc(value) : "Choose a season"}</option>`).join("");
+  const field = (name, label, control) => {
+    const message = errorFor(name);
+    return `<label class="setup-field"><span>${label}</span>${control(message ? ` aria-invalid="true" aria-describedby="error-${name}"` : "")}
+      ${message ? `<p class="field-error" id="error-${name}" role="alert">${esc(message)}</p>` : ""}</label>`;
+  };
+  return [
+    field("name", "Your name", attrs => `<input type="text" name="name" maxlength="40" value="${esc(form.name)}" placeholder="e.g. Jordan" autocomplete="given-name"${attrs} />`),
+    field("targetRole", "Target role", attrs => `<input type="text" name="targetRole" maxlength="${LIMITS.role}" value="${esc(form.targetRole)}" placeholder="e.g. Software Engineering Intern"${attrs} />`),
+    field("season", "Season", attrs => `<select name="season"${attrs}>${seasonOptions}</select>`),
+    withCompanies ? field("targetCompanies", "Target companies <small>(optional, comma separated)</small>", attrs =>
+      `<input type="text" name="companies" value="${esc(form.companies)}" placeholder="e.g. Northwind, Lumen, Harbor"${attrs} />`) : ""
+  ].join("");
+}
+
+/** One checkbox "chip" with a title and a one-line explanation. A real checkbox underneath, so
+ *  Space toggles it and screen readers hear "checkbox, checked". */
+function buildChip(name, value, copy, checked) {
+  return `<label class="build-chip">
+    <input type="checkbox" name="${name}" value="${value}"${checked ? " checked" : ""} />
+    <span class="build-chip-box" aria-hidden="true">${icon("check")}</span>
+    <span class="build-chip-text"><strong>${esc(copy.label)}</strong><small>${esc(copy.hint)}</small></span>
+  </label>`;
+}
+
+function groupError(field) {
+  const message = state.build.errors[field];
+  return message ? `<p class="field-error" id="error-${field}" role="alert">${esc(message)}</p>` : "";
+}
+
+function buildSummary() {
+  const plan = buildNotebookPlan(buildAnswers());
+  return `
+    <section class="build-summary" aria-labelledby="build-summary-title" data-build-summary>
+      <p class="eyebrow">Review</p>
+      <h3 id="build-summary-title">Here's what you'll get</h3>
+      <p class="build-summary-head">${esc(plan.summary.headline)}</p>
+      ${plan.applications.length ? `<ul class="build-pages" aria-label="Starter pages">${plan.applications.map(entry => `
+        <li>${pill(entry.status)}<span><b>${esc(entry.company)}</b><small>${esc(entry.role)}</small></span></li>`).join("")}</ul>` : ""}
+      <ul class="build-bullets">${plan.summary.bullets.map(line => `<li>${icon("check")}<span>${esc(line)}</span></li>`).join("")}</ul>
+    </section>`;
+}
+
+function viewBuild() {
+  if (!BROWSER_MODE) return "";
+  const build = state.build;
+  if (!build.prefilled) {
+    // Prefill once from saved preferences (a visitor who started setup before, or set a name).
+    build.prefilled = true;
+    const form = state.setupForm;
+    if (!form.name) form.name = state.prefs.name;
+    if (!form.targetRole) form.targetRole = state.prefs.targetRole;
+    if (!form.season) form.season = state.prefs.season;
+    if (!form.companies) form.companies = state.prefs.targetCompanies.join(", ");
+    if (state.prefs.focusAreas.length) build.focusAreas = [...state.prefs.focusAreas];
+  }
+  const step = build.step;
+  const current = BUILD_STEPS[step - 1];
+  const progress = `
+    <div class="build-progress">
+      <p class="build-count">Step ${step} of ${BUILD_STEPS.length}</p>
+      <ol class="build-track" aria-label="Progress">${BUILD_STEPS.map((item, index) => {
+        const number = index + 1;
+        const status = number < step ? "done" : number === step ? "current" : "";
+        return `<li class="${status}"${number === step ? ' aria-current="step"' : ""}><span class="build-dot">${number < step ? icon("check") : number}</span><span class="build-label">${item.short}<span class="sr-only">${number < step ? ", done" : ""}</span></span></li>`;
+      }).join("")}</ol>
+    </div>`;
+
+  let body = "";
+  if (step === 1) {
+    body = `
+      <fieldset class="build-options" aria-labelledby="build-step-title"${build.errors.startMode ? ' aria-describedby="error-startMode"' : ""}>
+        ${START_MODES.map(mode => `
+          <label class="build-option">
+            <input type="radio" name="startMode" value="${mode}"${build.startMode === mode ? " checked" : ""} />
+            <span class="build-option-mark" aria-hidden="true">${icon(START_MODE_ICONS[mode])}</span>
+            <span class="build-option-text"><strong>${esc(START_MODE_COPY[mode].label)}</strong><small>${esc(START_MODE_COPY[mode].hint)}</small></span>
+          </label>`).join("")}
+      </fieldset>
+      ${groupError("startMode")}`;
+  } else if (step === 2) {
+    body = `
+      <fieldset class="build-chips" aria-labelledby="build-step-title" aria-describedby="build-use-limit${build.errors.useCases ? " error-useCases" : ""}">
+        ${USE_CASES.map(useCase => buildChip("useCase", useCase, USE_CASE_COPY[useCase], build.useCases.includes(useCase))).join("")}
+      </fieldset>
+      <p class="build-note" id="build-use-limit">${build.note ? esc(build.note) : `Up to ${MAX_USE_CASES}. ${build.useCases.length} chosen.`}</p>
+      ${groupError("useCases")}`;
+  } else {
+    body = `
+      <fieldset class="build-chips build-focus" aria-labelledby="build-step-title"${build.errors.focusAreas ? ' aria-describedby="error-focusAreas"' : ""}>
+        ${FOCUS_AREAS.map(area => buildChip("focusArea", area, FOCUS_COPY[area], build.focusAreas.includes(area))).join("")}
+      </fieldset>
+      ${groupError("focusAreas")}
+      <div class="build-details">
+        <div class="build-fields">${setupFields({ form: state.setupForm, errorFor: field => build.errors[field], withCompanies: build.startMode === "template" })}</div>
+        ${buildSummary()}
+      </div>
+      ${build.errors.form ? `<p class="field-error" role="alert">${esc(build.errors.form)}</p>` : ""}`;
+  }
+
+  const last = step === BUILD_STEPS.length;
+  return `
+    ${viewHead({ eyebrow: "Build your notebook", title: "Make it yours<span class=\"dot\">.</span>", sub: "Three quick questions. Nothing is saved until you press Create." })}
+    <form id="build-form" class="card build-card" novalidate>
+      ${progress}
+      <div class="build-step" data-step="${step}">
+        <h2 class="build-title" id="build-step-title" tabindex="-1">${esc(current.title)}</h2>
+        <p class="build-sub">${esc(current.sub)}</p>
+        ${body}
+      </div>
+      <div class="build-nav">
+        ${step > 1
+          ? `<button class="button ghost" type="button" data-action="build-back">${icon("back")}<span>Back</span></button>`
+          : inDemo() ? `<a class="text-button build-later" href="#/today">Not now, back to the demo</a>` : "<span></span>"}
+        <button class="button primary" type="submit" ${build.submitting ? "disabled" : ""}>${last
+          ? `${icon("check")}<span>${build.submitting ? "Creating…" : "Create my notebook"}</span>`
+          : `<span>Next</span>${icon("forward")}`}</button>
+      </div>
+    </form>`;
+}
+
+/** Copies the live text fields into state.setupForm (they are also mirrored on input). */
+function syncBuildForm() {
+  const live = $("#build-form");
+  if (!live) return;
+  for (const name of ["name", "targetRole", "season", "companies"]) {
+    if (live.elements[name]) state.setupForm[name] = live.elements[name].value;
+  }
+}
+
+/** Announces through the persistent #announcer. Clearing first makes a repeated message speak again. */
+function announce(message) {
+  const region = $("#announcer");
+  if (!region) return;
+  region.textContent = "";
+  window.setTimeout(() => { region.textContent = message; }, 30);
+}
+
+function showBuildStep(step) {
+  state.build.step = clamp(step, 1, BUILD_STEPS.length);
+  state.build.note = "";
+  rerender();
+  // Focus the new question so keyboard and screen-reader users start at the top of the step; the
+  // announcer adds where they are ("Step 2 of 3") without repeating the question.
+  $("#build-step-title")?.focus();
+  announce(`Step ${state.build.step} of ${BUILD_STEPS.length}`);
+}
+
+/** Next: checks only the current step's choice, so a visitor is never blocked by a later field. */
+function nextBuildStep() {
+  syncBuildForm();
+  const { errors } = validatePlan(buildAnswers());
+  const field = state.build.step === 1 ? "startMode" : "useCases";
+  if (errors[field]) {
+    state.build.errors = { [field]: errors[field] };
+    rerender();
+    $("#build-step-title")?.focus();
+    return;
+  }
+  state.build.errors = {};
+  showBuildStep(state.build.step + 1);
+}
+
+function refreshBuildSummary() {
+  const summary = $("[data-build-summary]");
+  if (summary) summary.outerHTML = buildSummary();
+}
+
+/** A checkbox chip changed. Use cases stop at MAX_USE_CASES: the extra tick is undone and the note
+ *  under the chips says why, rather than silently disabling the other options. */
+function changeBuildChip(input) {
+  const key = input.name === "useCase" ? "useCases" : "focusAreas";
+  const list = state.build[key].filter(value => value !== input.value);
+  if (input.checked) list.push(input.value);
+  if (key === "useCases" && list.length > MAX_USE_CASES) {
+    input.checked = false;
+    state.build.note = `You can pick up to ${MAX_USE_CASES}. Unselect one to choose this.`;
+  } else {
+    state.build[key] = key === "useCases" ? cleanUseCases(list) : cleanFocusAreas(list);
+    state.build.note = "";
+    delete state.build.errors[key];
+  }
+  if (key === "useCases") {
+    const note = $("#build-use-limit");
+    if (note) note.textContent = state.build.note || `Up to ${MAX_USE_CASES}. ${state.build.useCases.length} chosen.`;
+    if (state.build.note) announce(state.build.note);
+  } else {
+    refreshBuildSummary();
+  }
+}
+
+const BUILD_STEP_OF_FIELD = { startMode: 1, useCases: 2 };
+
+async function finishBuild() {
+  if (!BROWSER_MODE || state.build.submitting) return; // one-shot latch against double submit
+  syncBuildForm();
+  const answers = buildAnswers();
+  const check = validatePlan(answers);
+  if (!check.ok) {
+    state.build.errors = check.errors;
+    const [first] = Object.keys(check.errors);
+    state.build.step = BUILD_STEP_OF_FIELD[first] || 3;
+    rerender();
+    const target = $(`#build-form [aria-invalid="true"]`) || $("#build-step-title");
+    target?.focus();
+    announce(`Check ${plural(Object.keys(check.errors).length, "field")} before creating your notebook.`);
+    return;
+  }
+  const plan = buildNotebookPlan(answers);
+  state.build.errors = {};
+  state.build.submitting = true;
+  rerender();
+  try {
+    const { weeklyGoal, ...prefs } = plan.prefs;
+    const { status } = await createRealNotebook({ applications: plan.applications, prefs: { ...prefs, goal: weeklyGoal } });
+    state.build = freshBuild();
+    if (status === "existing") return;
+    go("#/today");
+    if (plan.openImport) {
+      // The picker usually opens straight away; the toast's button covers browsers that only allow it
+      // during a click (the click that started this has passed through a few awaits by now).
+      toast("Your notebook is ready. Choose your backup file to import it.", { action: "Choose file", run: () => $("#import-file").click() });
+      $("#import-file").click();
+    } else {
+      toast("Your notebook is ready.");
+    }
+  } catch (error) {
+    state.prefs.started = false;
+    state.build.submitting = false;
+    state.build.errors = { form: "Your notebook could not be created on this browser. Storage may be full or blocked." };
+    rerender();
+    toast(`Your notebook was not created: ${error.message}`, { error: true });
+  }
 }
 
 function viewSignup() {
@@ -1469,6 +1816,37 @@ function viewSignup() {
    localStorage has no multi-key transaction, so the notebook write and the prefs write are separate
    ordered writes: the started flag gates on the notebook write specifically, a catch cannot roll
    back a write that already landed, and we never roll back or overwrite data another tab wrote. */
+/**
+ * The one path from onboarding to a real notebook, used by guided setup and the builder, in the
+ * order described above: re-check for existing work, commit the pages as one batch, save the
+ * preferences, and set started only after the commit. Then leave the demo (if it is still running
+ * behind the builder) and load the real notebook. Returns { status: "created" | "existing" }; a
+ * failed notebook commit throws before any preference changes.
+ */
+async function createRealNotebook({ applications, prefs }) {
+  // (2) Never overwrite a notebook that appeared meanwhile (direct link, or another tab).
+  const existing = browserApi.read();
+  if (hasExistingWork(existing, readDrafts())) {
+    toast("You already have a notebook on this browser. Opening it.");
+    if (inDemo()) exitDemoMode();
+    go("#/today");
+    await load();
+    return { status: "existing" };
+  }
+  // (3) Commit the notebook as ONE write through the real backend.
+  await commitStarterNotebook(browserApi, applications);
+  // (4) Persist the preferences (separate write; honest about failure), (5) started only now.
+  Object.assign(state.prefs, prefs, { started: true });
+  if (!savePrefs()) {
+    // The notebook committed but preferences could not be saved. Do not roll back the notebook (a
+    // catch cannot undo a landed write, and the notebook is the thing worth keeping). Say so.
+    toast("Your notebook was created, but your preferences could not be saved on this browser.", { error: true });
+  }
+  if (inDemo()) exitDemoMode();
+  await load(); // the real notebook (started is set, so no demo)
+  return { status: "created" };
+}
+
 async function completeSetup() {
   if (!BROWSER_MODE) return;
   if (state.setupSubmitting) return; // one-shot latch against double submit
@@ -1495,41 +1873,11 @@ async function completeSetup() {
   state.setupSubmitting = true;
   rerender();
   try {
-    // (2) Re-check for existing work immediately before writing. If a real notebook now exists
-    //     (direct link, or another tab wrote data), never overwrite it - route to it instead.
-    const existing = browserApi.read();
-    if (hasExistingWork(existing, readDrafts())) {
-      state.setupSubmitting = false;
-      toast("You already have a notebook on this browser. Opening it.");
-      go("#/today");
-      await load();
-      return;
-    }
-
-    // (3) Commit the notebook as ONE write through the real backend.
     const starters = buildStarterApplications({ targetRole: result.value.targetRole, targetCompanies: result.value.targetCompanies });
-    // Shared with the builder: adds only pages not already present (stable company + role identity)
-    // and, with nothing to add, writes the current notebook back so a started notebook exists.
-    await commitStarterNotebook(browserApi, starters);
-
-    // (4) Persist the new preferences (separate write; honest about failure).
-    state.prefs.name = result.value.name;
-    state.prefs.targetRole = result.value.targetRole;
-    state.prefs.season = result.value.season;
-    state.prefs.targetCompanies = result.value.targetCompanies;
-    // (5) Set the started flag only AFTER the notebook commit above succeeded.
-    state.prefs.started = true;
-    const prefsSaved = savePrefs();
-    if (!prefsSaved) {
-      // The notebook committed but preferences could not be saved. Do not roll back the notebook
-      // (a catch cannot undo a landed write, and the notebook is the thing worth keeping). Surface
-      // the preferences failure honestly; the started flag reflects the committed notebook.
-      toast("Your notebook was created, but your preferences could not be saved on this browser.", { error: true });
-    }
-
+    const { name, targetRole, season, targetCompanies } = result.value;
+    const { status } = await createRealNotebook({ applications: starters, prefs: { name, targetRole, season, targetCompanies } });
     state.setupSubmitting = false;
-    await load(); // load the real notebook (started flag now set, so no demo)
-    go("#/signup");
+    if (status === "created") go("#/signup");
   } catch (error) {
     // The notebook commit failed: leave real storage unchanged, do not set the started flag, and say so.
     state.prefs.started = false;
@@ -1545,7 +1893,7 @@ async function completeSetup() {
    ========================================================================== */
 const viewRoot = $("#view");
 const page = $("#page");
-const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, signup: viewSignup };
+const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup };
 
 // The skip link targets #view directly with JS, not a "#view" hash change: every hash change
 // goes through the router below, and "view" isn't a route name, so letting the browser's default
@@ -1562,6 +1910,7 @@ function parseRoute() {
   if (view === "entry" && Number(id) > 0) return { view: "entry", id: Number(id) };
   // The welcome page only exists in front of the demo; anyone else asking for it gets Today.
   if (view === "welcome" && !canShowWelcome({ browserMode: BROWSER_MODE, demoActive: inDemo() })) return { view: "today", id: null };
+  if (view === "build" && !BROWSER_MODE) return { view: "today", id: null }; // a browser-notebook feature only
   return { view: renderers[view] ? view : "today", id: null };
 }
 
@@ -1588,8 +1937,8 @@ function render({ animate = false, keepScroll = true } = {}) {
   }
   viewRoot.classList.toggle("animate", animate);
   const body = view === "entry" ? viewEntry(id) : renderers[view]();
-  // The welcome page is the demo's front door and carries its own calls to action, so no banner.
-  viewRoot.innerHTML = inDemo() && view !== "welcome" ? demoBanner() + body : body;
+  // The welcome page and the builder carry their own calls to action, so no demo banner on them.
+  viewRoot.innerHTML = inDemo() && view !== "welcome" && view !== "build" ? demoBanner() + body : body;
   const entry = view === "entry" ? find(id) : null;
   const title = entry ? `${entry.company}` : VIEWS[view].title;
   document.title = `${title} · My Internship Notebook`;
@@ -2320,8 +2669,9 @@ viewRoot.addEventListener("input", event => {
     refreshList(target);
   }
   if (input === "name") { state.prefs.name = target.value.slice(0, 40); savePrefs(); }
-  if (state.route.view === "setup" && target.name && target.name in state.setupForm) {
+  if ((state.route.view === "setup" || state.route.view === "build") && target.name && target.name in state.setupForm) {
     state.setupForm[target.name] = target.value;
+    if (state.route.view === "build") refreshBuildSummary();
   }
 });
 
@@ -2349,9 +2699,12 @@ viewRoot.addEventListener("change", event => {
   if (target.dataset.select) { toggleSelected(Number(target.dataset.select), target.checked); return; }
   if (target.dataset.input === "sort") { state.prefs.sort = target.value; savePrefs(); rerender(); }
   if (target.dataset.input === "news-coop") { state.prefs.newsFilter.coopOnly = target.checked; savePrefs(); rerender(); }
-  if (state.route.view === "setup" && target.name && target.name in state.setupForm) {
+  if ((state.route.view === "setup" || state.route.view === "build") && target.name && target.name in state.setupForm) {
     state.setupForm[target.name] = target.value;
+    if (state.route.view === "build") refreshBuildSummary();
   }
+  if (state.route.view === "build" && target.name === "startMode") state.build.startMode = target.value;
+  if (state.route.view === "build" && (target.name === "useCase" || target.name === "focusArea")) changeBuildChip(target);
 });
 
 viewRoot.addEventListener("keydown", event => {
@@ -2379,6 +2732,11 @@ viewRoot.addEventListener("keydown", event => {
 
 viewRoot.addEventListener("submit", event => {
   if (event.target.id === "setup-form") { event.preventDefault(); completeSetup(); return; }
+  if (event.target.id === "build-form") {
+    event.preventDefault();
+    if (state.build.step < BUILD_STEPS.length) nextBuildStep(); else finishBuild();
+    return;
+  }
   if (event.target.id === "signup-email") { event.preventDefault(); actions["signup-email-create"](); return; }
 });
 
@@ -2512,8 +2870,8 @@ async function completeNextStep(id) {
 }
 
 const actions = {
-  // Phase B will point "Build my notebook" at the interactive builder; for now it is guided setup.
   "build-notebook": () => startMyNotebook(),
+  "build-back": () => { syncBuildForm(); state.build.errors = {}; showBuildStep(state.build.step - 1); },
   "welcome-tab": target => selectWelcomeTab(target.dataset.tab),
   "welcome-filter": target => filterWelcomeBoard(target.dataset.stage),
   "welcome-chaos": target => organizeWelcomeChaos(target.dataset.organized === "true"),
@@ -2812,6 +3170,13 @@ for (const type of ["play", "pause"]) {
   viewRoot.addEventListener(type, event => { if (event.target.matches?.(".tour-video")) syncWelcomeVideo(event.target); }, true);
 }
 viewRoot.addEventListener("error", event => { if (event.target.matches?.(".tour-video")) markVideoFailed(event.target); }, true);
+// In the builder, Enter on an option card moves on, like Enter in a text field. Browsers do not
+// submit a form from a focused radio or checkbox on their own, and Space still toggles as usual.
+viewRoot.addEventListener("keydown", event => {
+  if (event.key !== "Enter" || !event.target.matches?.('#build-form input[type="radio"], #build-form input[type="checkbox"]')) return;
+  event.preventDefault();
+  $("#build-form").requestSubmit();
+});
 // Welcome tour tabs follow the ARIA tabs pattern: arrows move and select, Home/End jump to the ends.
 viewRoot.addEventListener("keydown", event => {
   const tab = event.target.closest?.("[data-action='welcome-tab']");
@@ -3073,10 +3438,11 @@ window.addEventListener("hashchange", navigate);
 window.addEventListener("pagehide", () => { if (!inDemo()) flushEntrySave(); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && !inDemo()) flushEntrySave(); });
 // Keep relative times ("2 min ago", "3 days left") fresh while the app stays open. The welcome page
-// is skipped: it shows no relative times, and a re-render would restart its playing tour video.
+// and the builder are skipped: neither shows relative times, and a re-render would restart the tour
+// video or pull focus off the builder's buttons.
 window.setInterval(() => {
   const typing = document.activeElement?.closest?.("#view input, #view textarea, #view select");
-  if (state.loaded && !["entry", "welcome"].includes(state.route.view) && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
+  if (state.loaded && !["entry", "welcome", "build"].includes(state.route.view) && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
 }, 60000);
 
 hydrateStaticIcons();
