@@ -249,23 +249,24 @@ test.describe("calls to action", () => {
     await expect(banner.getByRole("link", { name: "Sign up" })).toHaveAttribute("href", "#/signup");
   });
 
-  test("Build my notebook leaves the demo for guided setup", async ({ page }) => {
+  test("Build my notebook opens the builder, with the demo still running behind it", async ({ page }) => {
     await page.getByRole("button", { name: "Build my notebook" }).first().click();
-    await expect(page).toHaveURL(/#\/setup$/);
-    await expect(page.locator(".setup-card")).toBeVisible();
-    await expect(page.locator(".demo-banner")).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/build$/);
+    await expect(page.locator("#build-form")).toBeVisible();
+    await expect(page.locator(".demo-banner")).toHaveCount(0); // the builder has its own actions
+    await expect(page.getByRole("link", { name: "Not now, back to the demo" })).toBeVisible();
   });
 
-  test("the closing Build my notebook button goes to setup too", async ({ page }) => {
+  test("the closing Build my notebook button opens the builder too", async ({ page }) => {
     await page.locator(".welcome-final").getByRole("button", { name: "Build my notebook" }).click();
-    await expect(page).toHaveURL(/#\/setup$/);
+    await expect(page).toHaveURL(/#\/build$/);
   });
 
-  test("the demo banner's Build my notebook goes to setup", async ({ page }) => {
+  test("the demo banner's Build my notebook opens the builder", async ({ page }) => {
     await page.getByRole("link", { name: "Explore the demo", exact: true }).click();
     await page.locator(".demo-banner").getByRole("button", { name: "Build my notebook" }).click();
-    await expect(page).toHaveURL(/#\/setup$/);
-    await expect(page.locator(".demo-banner")).toHaveCount(0);
+    await expect(page).toHaveURL(/#\/build$/);
+    await expect(page.locator("#build-form")).toBeVisible();
   });
 });
 

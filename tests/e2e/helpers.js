@@ -76,6 +76,17 @@ export async function openWelcome(page) {
   await page.locator("#view .welcome-page").waitFor();
 }
 
+/** Opens the notebook builder (#/build) as a new visitor, with the demo running behind it. */
+export async function openBuilder(page) {
+  await page.goto("/#/build", { waitUntil: "domcontentloaded" });
+  await page.locator("#build-form").waitFor();
+}
+
+/** Reads the saved preferences straight from browser storage. */
+export async function savedPrefs(page) {
+  return page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null"), PREFS_KEY);
+}
+
 /** Opens the app at a route and waits until the notebook has loaded. */
 export async function openApp(page, route = "#/today") {
   await page.goto(`/${route}`);
