@@ -144,3 +144,34 @@ export function buildStarterApplications({ targetRole, targetCompanies }) {
     status: "SAVED"
   }));
 }
+
+/**
+ * The stable identity of a starter page: its company and role, trimmed and case-folded. Setup and
+ * the builder create pages from what the visitor typed, so "the same page" means the same company
+ * and role. (Backup import keys on createdAt as well, which is right for restoring a backup but
+ * makes every fresh starter look new, because its createdAt is "now".)
+ */
+export function starterKey(entry) {
+  const fold = value => (typeof value === "string" ? value.trim().toLowerCase() : "");
+  return `${fold(entry?.company)}\u0000${fold(entry?.role)}`;
+}
+
+/**
+ * Drops starters already in the notebook (active or Recently Deleted) and repeats within the list
+ * itself, so re-submitting setup, or typing "Northwind, northwind", never creates duplicate pages.
+ * Returns new objects in their original order; inputs are not mutated.
+ */
+export function withoutExistingStarters(starters, record) {
+  const seen = new Set([
+    ...(Array.isArray(record?.applications) ? record.applications : []),
+    ...(Array.isArray(record?.recentlyDeleted) ? record.recentlyDeleted : [])
+  ].map(starterKey));
+  const fresh = [];
+  for (const starter of Array.isArray(starters) ? starters : []) {
+    const key = starterKey(starter);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    fresh.push({ ...starter });
+  }
+  return fresh;
+}

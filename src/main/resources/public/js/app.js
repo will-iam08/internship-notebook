@@ -28,6 +28,7 @@ import {
   sanitizeTargetRole, sanitizeSeason, sanitizeTargetCompanies,
   validateSetup, buildStarterApplications
 } from "./onboarding.js";
+import { commitStarterNotebook } from "./notebook-commit.js";
 import { entryCalendar } from "./calendar.js";
 import { icon, LOGO } from "./ui/icons.js";
 
@@ -1507,13 +1508,9 @@ async function completeSetup() {
 
     // (3) Commit the notebook as ONE write through the real backend.
     const starters = buildStarterApplications({ targetRole: result.value.targetRole, targetCompanies: result.value.targetCompanies });
-    if (starters.length) {
-      await browserApi.importBackup(starters, []);
-    } else {
-      // importBackup writes nothing for an empty list, so a no-company setup writes an empty notebook
-      // once, explicitly, so the visitor still ends with a real (started) notebook.
-      browserApi.write({ applications: [], recentlyDeleted: [], nextId: 1 });
-    }
+    // Shared with the builder: adds only pages not already present (stable company + role identity)
+    // and, with nothing to add, writes the current notebook back so a started notebook exists.
+    await commitStarterNotebook(browserApi, starters);
 
     // (4) Persist the new preferences (separate write; honest about failure).
     state.prefs.name = result.value.name;

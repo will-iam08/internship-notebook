@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import { beforeEach, test } from "node:test";
 import { browserApi, setBrowserWriteListener } from "../../src/main/resources/public/js/api.js";
 import { KEYS } from "../../src/main/resources/public/js/storage.js";
-import { validateSetup, buildStarterApplications } from "../../src/main/resources/public/js/onboarding.js";
+import { validateSetup, buildStarterApplications, starterKey, withoutExistingStarters } from "../../src/main/resources/public/js/onboarding.js";
+import { commitStarterNotebook } from "../../src/main/resources/public/js/notebook-commit.js";
 
 class MemoryStorage {
   #map = new Map();
@@ -19,15 +20,14 @@ class MemoryStorage {
 }
 beforeEach(() => { globalThis.localStorage = new MemoryStorage(); setBrowserWriteListener(null); });
 
-// Mirror app.js completeSetup's commit sequence against the real browserApi, without the DOM.
+// app.js completeSetup's sequence without the DOM: validate, then the same shared commit it calls.
 async function commitSetup(input, { started = { value: false } } = {}) {
   const companies = input.companies.split(",").map(s => s.trim()).filter(Boolean);
   const result = validateSetup({ name: input.name, targetRole: input.targetRole, season: input.season, targetCompanies: companies });
   if (!result.ok) return { ok: false, error: result };
   const starters = buildStarterApplications({ targetRole: result.value.targetRole, targetCompanies: result.value.targetCompanies });
   try {
-    if (starters.length) await browserApi.importBackup(starters, []);
-    else browserApi.write({ applications: [], recentlyDeleted: [], nextId: 1 });
+    await commitStarterNotebook(browserApi, starters);
   } catch (error) {
     return { ok: false, committed: false, error };
   }
@@ -77,9 +77,27 @@ test("zero-company setup writes an empty notebook once and still starts the note
 test("re-submitting the same setup does not duplicate starter pages", async () => {
   const input = { name: "Jordan", targetRole: "SWE Intern", season: "Fall", companies: "Northwind, Lumen" };
   await commitSetup(input);
-  await commitSetup(input); // importBackup de-dups by company/role/createdAt fingerprint
+  // Let the clock move on. Starters get createdAt = now, so a createdAt-based identity (what backup
+  // import uses) sees the second submit as new pages; this wait made that bug fail every time.
+  await new Promise(resolve => setTimeout(resolve, 5));
+  await commitSetup(input);
   const record = browserApi.read();
   assert.equal(record.applications.length, 2, "duplicate submit must not duplicate starter applications");
+  assert.deepEqual(record.applications.map(a => a.company).sort(), ["Lumen", "Northwind"]);
+});
+test("starter identity is company + role, ignoring case and spacing, so repeats in one list collapse", () => {
+  assert.equal(starterKey({ company: " Northwind ", role: "SWE Intern" }), starterKey({ company: "northwind", role: "swe intern " }));
+  assert.notEqual(starterKey({ company: "Northwind", role: "SWE Intern" }), starterKey({ company: "Northwind", role: "Data Intern" }));
+  const starters = buildStarterApplications({ targetRole: "SWE Intern", targetCompanies: ["Northwind", "northwind", "Lumen"] });
+  const existing = { applications: [{ company: "LUMEN", role: "swe intern" }], recentlyDeleted: [] };
+  const fresh = withoutExistingStarters(starters, existing);
+  assert.deepEqual(fresh.map(entry => entry.company), ["Northwind"]);
+  assert.notEqual(fresh[0], starters[0], "returns copies, never the caller's objects");
+});
+test("a no-company submit over an existing notebook keeps every page (never writes an empty notebook)", async () => {
+  await commitSetup({ name: "Jordan", targetRole: "SWE Intern", season: "Fall", companies: "Northwind, Lumen" });
+  await commitSetup({ name: "Jordan", targetRole: "SWE Intern", season: "Fall", companies: "" });
+  assert.equal(browserApi.read().applications.length, 2);
 });
 
 test("a notebook-write failure leaves the started flag unset and real storage unchanged", async () => {
