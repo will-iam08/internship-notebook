@@ -65,6 +65,17 @@ export async function savedNotebook(page) {
   return page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null"), DATA_KEY);
 }
 
+/**
+ * Opens the site the way a brand-new visitor does (no hash) and waits for the welcome page. With
+ * no seeded data and no started flag, the website edition lands on #/welcome in front of the demo.
+ */
+export async function openWelcome(page) {
+  // Wait for the DOM, not the window "load" event: load also waits for the tour video, which a test
+  // may deliberately hold open (WebKit counts a pending autoplay video toward "load").
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.locator("#view .welcome-page").waitFor();
+}
+
 /** Opens the app at a route and waits until the notebook has loaded. */
 export async function openApp(page, route = "#/today") {
   await page.goto(`/${route}`);
