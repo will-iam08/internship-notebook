@@ -1749,3 +1749,76 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 @media (min-width: 760px) { .response-figures { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .response-figure strong { display: block; font: 700 1.9rem/1 var(--sans); letter-spacing: -.03em; margin-bottom: 4px; }
 .response-figure span { color: var(--muted); font-size: .82rem; font-weight: 600; }
+
+/* ---------- Reminders and exports (#/export) ---------- */
+.export-list { display: grid; gap: 16px; max-width: 820px; }
+.export-card { align-items: start; display: grid; gap: 16px; grid-template-columns: auto minmax(0, 1fr); }
+.export-mark { background: var(--accent-soft); border-radius: 10px; color: var(--accent-ink); display: grid; height: 40px; place-items: center; width: 40px; }
+.export-body > p { color: var(--ink-2); font-size: .92rem; margin-top: 4px; max-width: 62ch; }
+.export-note { color: var(--muted); font-size: .84rem; margin-top: 8px; }
+.export-actions { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.export-actions .button { min-height: 44px; }
+.export-actions > .export-note { flex-basis: 100%; margin-top: 0; }
+.export-actions > .export-note:empty { display: none; }
+.export-email { flex: 1 1 240px; margin-bottom: 0; max-width: 340px; }
+.export-email input { min-height: 44px; }
+.button.is-disabled { cursor: not-allowed; opacity: .45; }
+.export-preview { flex-basis: 100%; }
+.export-preview summary { align-items: center; border-radius: 8px; color: var(--ink-2); cursor: pointer; display: inline-flex; font-size: .86rem; font-weight: 650; min-height: 44px; }
+.export-preview pre {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink-2);
+  font: .8rem/1.5 var(--mono);
+  margin: 6px 0 0;
+  max-height: 320px;
+  overflow: auto;
+  padding: 12px 14px;
+  white-space: pre-wrap;
+}
+.export-switch { align-items: center; display: flex; flex-wrap: wrap; gap: 10px; }
+.export-actions:has(.export-switch) { display: block; }
+@media (max-width: 479px) { .export-card { grid-template-columns: minmax(0, 1fr); } }
+
+/* An on/off switch: a real button with role="switch", so its name and state are announced. */
+.switch { align-items: center; background: none; border: 0; border-radius: 10px; color: var(--ink); display: inline-flex; font-weight: 650; gap: 10px; min-height: 44px; padding: 4px 6px 4px 0; }
+.switch:disabled { opacity: .5; }
+.switch-knob { background: var(--line-strong); border-radius: 99px; flex: none; height: 26px; position: relative; transition: background .2s; width: 44px; }
+.switch-knob::after { background: #fff; border-radius: 50%; box-shadow: var(--shadow-sm); content: ""; height: 20px; left: 3px; position: absolute; top: 3px; transition: transform .2s var(--ease); width: 20px; }
+.switch[aria-checked="true"] .switch-knob { background: var(--good); }
+.switch[aria-checked="true"] .switch-knob::after { transform: translateX(18px); }
+.print-sheet { display: none; }
+
+/* ---------- Print: Today, All pages, and the export sheet on plain paper ----------
+   Paper colours in either theme, no dot grid or shadows, and none of the on-screen controls. */
+@media print {
+  :root, :root[data-theme="dark"] {
+    color-scheme: light;
+    --paper: #fff; --paper-2: #fff; --card: #fff; --desk: #fff;
+    --ink: #111; --ink-2: #2b2b2b; --muted: #454545; --faint: #555;
+    --line: #c8c8c8; --line-strong: #9a9a9a; --rule: #c8c8c8; --dot: transparent;
+    --wash: transparent; --wash-strong: #eee; --accent-ink: #8a3415;
+  }
+  html, body { background: #fff !important; }
+  .page { background-image: none; }
+  .view { max-width: none; padding: 0; }
+  .view.animate > * { animation: none !important; }
+  .card { box-shadow: none; break-inside: avoid; }
+  a { color: inherit; text-decoration: none; }
+  .demo-banner, .view-actions, .filters, .toolbar, .toc-footer, .news-card, .goal-stepper button,
+  .card-head .text-button, .star, .toc-updated, #entry-next-actions, [data-action="complete-next"], [data-action="reschedule-next"] { display: none !important; }
+  .today-grid { display: block; }
+  .today-grid > * { margin-bottom: 12px; }
+  .toc-row { break-inside: avoid; }
+  /* The export page prints its sheet instead of its buttons. */
+  .export-page > :not(.print-sheet) { display: none !important; }
+  .print-sheet { color: #111; display: block !important; font: 11pt/1.45 var(--sans); }
+  .print-sheet h1 { font: 600 20pt/1.1 var(--serif); margin-bottom: 4pt; }
+  .print-sheet h2 { border-bottom: 1px solid #999; font: 600 13pt var(--serif); margin: 16pt 0 6pt; padding-bottom: 3pt; }
+  .print-sheet ul { margin: 0; padding-left: 16pt; }
+  .print-sheet table { border-collapse: collapse; width: 100%; }
+  .print-sheet th, .print-sheet td { border-bottom: 1px solid #ccc; padding: 4pt 6pt 4pt 0; text-align: left; vertical-align: top; }
+  .print-sheet th { font-size: 9pt; letter-spacing: .06em; text-transform: uppercase; }
+  .print-sheet tr { break-inside: avoid; }
+}

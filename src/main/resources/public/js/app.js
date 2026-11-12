@@ -34,6 +34,9 @@ import {
   START_MODE_COPY, USE_CASE_COPY, FOCUS_COPY, buildNotebookPlan, validatePlan, cleanUseCases, cleanFocusAreas
 } from "./builder.js";
 import { entryCalendar } from "./calendar.js";
+import {
+  upcomingActions, dueSoon, dueSoonMessage, buildIcs, buildMarkdownNotebook, buildEmailDigest, digestMailto, shortDate
+} from "./reminders.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -50,6 +53,7 @@ const VIEWS = {
   entry: { title: "Page", tab: "--tab-notebook" },
   setup: { title: "Set up your notebook", tab: "--tab-today" },
   build: { title: "Build your notebook", tab: "--tab-today" },
+  export: { title: "Reminders and exports", tab: "--tab-settings" },
   signup: { title: "Save your notebook", tab: "--tab-settings" }
 };
 
@@ -85,6 +89,11 @@ function readPrefs() {
     started: saved.started === true,
     // What the visitor asked the notebook to do (set by the builder). Empty keeps the default Today.
     focusAreas: cleanFocusAreas(saved.focusAreas),
+    // Reminders and exports: the visitor's own address for the self-addressed digest (kept only in
+    // this browser), the opt-in due-soon notification, and the day it last ran (once a day at most).
+    digestEmail: typeof saved.digestEmail === "string" ? saved.digestEmail.trim().slice(0, 254) : "",
+    dueSoonAlerts: saved.dueSoonAlerts === true,
+    lastDueAlert: typeof saved.lastDueAlert === "string" && /^\d{4}-\d{2}-\d{2}$/.test(saved.lastDueAlert) ? saved.lastDueAlert : "",
     theme: theme === "light" || theme === "dark" ? theme : "system",
     sort: ["updated", "created", "deadline", "company"].includes(saved.sort) ? saved.sort : "updated",
     newsFilter: {
@@ -147,11 +156,11 @@ async function loadInternships() {
 }
 
 function savePrefs() {
-  const { goal, name, targetRole, season, targetCompanies, started, focusAreas, sort, newsFilter } = state.prefs;
+  const { goal, name, targetRole, season, targetCompanies, started, focusAreas, digestEmail, dueSoonAlerts, lastDueAlert, sort, newsFilter } = state.prefs;
   // storage.set returns false (it never throws) when the write is rejected, e.g. a full or blocked
   // store. Return that result so onboarding can report a failed preferences write honestly rather
   // than assuming it landed. The goal/theme mirrors are best-effort and do not change the result.
-  const saved = storage.set(KEYS.prefs, JSON.stringify({ goal, name, targetRole, season, targetCompanies, started, focusAreas, sort, newsFilter }));
+  const saved = storage.set(KEYS.prefs, JSON.stringify({ goal, name, targetRole, season, targetCompanies, started, focusAreas, digestEmail, dueSoonAlerts, lastDueAlert, sort, newsFilter }));
   storage.set(KEYS.goal, String(goal));
   storage.set(KEYS.theme, state.prefs.theme);
   return saved;
@@ -1030,6 +1039,8 @@ function viewSettings() {
           </div></div>
         <div class="setting-row"><div><strong>Spreadsheet</strong><p>Export a CSV you can open in Excel, Numbers, or Google Sheets.</p></div>
           <button class="button ghost" type="button" data-action="export-csv">${icon("file")}Export CSV</button></div>
+        ${BROWSER_MODE ? `<div class="setting-row"><div><strong>Reminders and exports</strong><p>A calendar file with real reminders, a Markdown copy, a printable sheet, and a weekly digest you email to yourself.</p></div>
+          <a class="button ghost" href="#/export">${icon("calendar")}<span>Open</span></a></div>` : ""}
       </section>
 
       <section class="card">
@@ -1163,6 +1174,180 @@ function viewEntry(id) {
         </footer>
       </div>
     </article>`;
+}
+
+/* ==========================================================================
+   10a. Reminders and exports (#/export, website edition)
+   ==========================================================================
+   The site has no server, so this page hands reminders to apps that can deliver them: a calendar
+   file, a Markdown copy, a printable sheet, and a digest the visitor emails to themselves from their
+   own mail app. The copy says plainly what the site cannot do (send email, run in the background).
+   The one in-site reminder is a notification shown when the notebook is opened, if allowed. */
+function notificationPermission() {
+  return "Notification" in window ? Notification.permission : "unsupported";
+}
+
+function exportCard({ iconName, title, copy, note = "", actions }) {
+  return `
+    <section class="card export-card">
+      <span class="export-mark" aria-hidden="true">${icon(iconName)}</span>
+      <div class="export-body">
+        <h2 class="card-title">${title}</h2>
+        <p>${copy}</p>
+        ${note ? `<p class="export-note">${note}</p>` : ""}
+        <div class="export-actions">${actions}</div>
+      </div>
+    </section>`;
+}
+
+function dueAlertsControl() {
+  const permission = notificationPermission();
+  const on = state.prefs.dueSoonAlerts && permission === "granted";
+  const status = permission === "unsupported" ? "This browser doesn't support notifications."
+    : permission === "denied" ? "Notifications are blocked for this site. Allow them in your browser's site settings, then turn this on."
+    : on ? "On. Checked once a day, when you open the notebook."
+    : "Off. Your browser will ask for permission when you turn it on.";
+  return `
+    <div class="export-switch">
+      <button class="switch" type="button" role="switch" aria-checked="${on}" data-action="toggle-due-alerts" aria-describedby="due-alerts-status"
+        ${permission === "unsupported" ? "disabled" : ""}><span class="switch-knob" aria-hidden="true"></span><span>Due-soon notification</span></button>
+      ${on ? `<button class="button small ghost" type="button" data-action="check-due-now">Check now</button>` : ""}
+    </div>
+    <p class="export-note" id="due-alerts-status">${status}</p>`;
+}
+
+function printSheet() {
+  const now = new Date();
+  const pages = [...state.applications].sort((left, right) => STAGES.indexOf(left.status) - STAGES.indexOf(right.status) || left.company.localeCompare(right.company));
+  const coming = state.applications.flatMap(entry => upcomingActions(entry, { now }).map(action => ({ ...action, entry })))
+    .sort((left, right) => left.at - right.at).slice(0, 20);
+  return `
+    <section class="print-sheet" aria-hidden="true">
+      <h1>${esc(state.prefs.name ? `${state.prefs.name}'s internship notebook` : "My internship notebook")}</h1>
+      <p>Printed ${esc(now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }))} · ${plural(pages.length, "application")}</p>
+      ${coming.length ? `<h2>Coming up</h2><ul>${coming.map(item => `<li><b>${esc(shortDate(item.at))}</b> ${esc(item.label)} (${esc(item.entry.role)})</li>`).join("")}</ul>` : ""}
+      <h2>All applications</h2>
+      <table><thead><tr><th>Company</th><th>Role</th><th>Stage</th><th>Deadline</th><th>Next step</th></tr></thead><tbody>
+        ${pages.map(entry => `<tr><td>${esc(entry.company)}</td><td>${esc(entry.role)}</td><td>${LABELS[entry.status]}</td><td>${esc(entry.deadline)}</td>
+          <td>${esc([entry.nextStep, entry.nextStepDate].filter(Boolean).join(", "))}</td></tr>`).join("")}
+      </tbody></table>
+    </section>`;
+}
+
+function viewExport() {
+  if (!BROWSER_MODE) return "";
+  const now = new Date();
+  const events = state.applications.reduce((total, entry) => total + upcomingActions(entry, { now }).length, 0);
+  const digest = buildEmailDigest(state.applications, state.prefs, { now });
+  const mailto = digestMailto({ to: state.prefs.digestEmail, digest });
+  const empty = !state.applications.length;
+  return `
+    <div class="export-page">
+      ${viewHead({ eyebrow: "Never miss it", title: "Reminders and exports<span class=\"dot\">.</span>",
+        sub: "This notebook lives in your browser, with no server behind it. It can't send email or remind you while it's closed, so these hand the job to apps that can." })}
+      <div class="export-list">
+        ${exportCard({ iconName: "calendar", title: "Calendar file (.ics)",
+          copy: "Adds every upcoming deadline, interview, and follow-up to Google Calendar, Apple Calendar, or Outlook, with an alert the day before and two hours before. These are real reminders on your phone and computer.",
+          note: events ? `${plural(events, "upcoming event")}. Download a fresh file after you change dates.` : "Nothing dated yet. Add a deadline or a next-step date to a page first.",
+          actions: `<button class="button primary" type="button" data-action="export-ics" ${events ? "" : "disabled"}>${icon("download")}<span>Download calendar file</span></button>` })}
+        ${exportCard({ iconName: "mail", title: "Email me a digest",
+          copy: "Opens your own mail app with this week's deadlines, follow-ups, and interviews written out and addressed to you. You press Send. This site can't send email, and your address stays in this browser.",
+          actions: `
+            <label class="setup-field export-email"><span>Your email</span>
+              <input type="email" data-input="digest-email" value="${esc(state.prefs.digestEmail)}" placeholder="you@example.com" autocomplete="email" maxlength="254" /></label>
+            <a class="button${mailto ? "" : " is-disabled"}" data-digest-link ${mailto ? `href="${esc(mailto)}"` : 'aria-disabled="true"'}>${icon("mail")}<span>Open in my mail app</span></a>
+            <p class="export-note" data-digest-hint>${mailto ? "" : "Enter your email to fill in the To line."}</p>
+            <details class="export-preview"><summary>Preview the digest</summary><pre>${esc(`Subject: ${digest.subject}\n\n${digest.body}`)}</pre></details>` })}
+        ${exportCard({ iconName: "alert", title: "Reminders while the notebook is open",
+          copy: "When you open the notebook, show a notification for anything due today or tomorrow. It only works while this site is open in a tab. For reminders that always arrive, use the calendar file.",
+          actions: dueAlertsControl() })}
+        ${exportCard({ iconName: "file", title: "Markdown copy",
+          copy: "Every page as readable text, with a summary table at the top. Good for a notes app like Obsidian or Notion, or any text editor.",
+          actions: `<button class="button" type="button" data-action="export-md" ${empty ? "disabled" : ""}>${icon("download")}<span>Download Markdown</span></button>` })}
+        ${exportCard({ iconName: "notebook", title: "Print or save as PDF",
+          copy: "A clean paper copy of what's coming up and every application. Choose Save as PDF in the print dialog to keep a file. Today and All pages also print neatly on their own.",
+          actions: `<button class="button" type="button" data-action="print-notebook" ${empty ? "disabled" : ""}>${icon("file")}<span>Print</span></button>` })}
+        ${exportCard({ iconName: "download", title: "Backup file (.json)",
+          copy: "Everything, including history, in one file. Restore it on another device or browser from Settings.",
+          actions: `<button class="button" type="button" data-action="export-json">${icon("download")}<span>Download backup</span></button>` })}
+      </div>
+      ${printSheet()}
+    </div>`;
+}
+
+/** Keeps the digest link in step with the email field as the visitor types. */
+function updateDigestLink() {
+  const link = $("[data-digest-link]");
+  if (!link) return;
+  const href = digestMailto({ to: state.prefs.digestEmail, digest: buildEmailDigest(state.applications, state.prefs) });
+  if (href) { link.setAttribute("href", href); link.removeAttribute("aria-disabled"); link.classList.remove("is-disabled"); }
+  else { link.removeAttribute("href"); link.setAttribute("aria-disabled", "true"); link.classList.add("is-disabled"); }
+  const hint = $("[data-digest-hint]");
+  if (hint) hint.textContent = href ? "" : "Enter your email to fill in the To line.";
+}
+
+function exportIcs() {
+  const calendar = buildIcs(state.applications, { calendarName: "Internship notebook" });
+  if (!calendar.includes("BEGIN:VEVENT")) { toast("Add a deadline or next-step date first."); return; }
+  download(`internship-notebook-reminders-${dayKey()}.ics`, calendar, "text/calendar;charset=utf-8");
+  toast("Calendar file downloaded. Open it to add the reminders to your calendar.");
+}
+
+function exportMarkdown() {
+  if (!state.applications.length) { toast("Nothing to export yet"); return; }
+  download(`internship-notebook-${dayKey()}.md`, buildMarkdownNotebook(state.applications, state.prefs), "text/markdown;charset=utf-8");
+  toast("Markdown downloaded");
+}
+
+/** Shows one notification. `new Notification` is the simple path; Android Chrome only allows it
+ *  through the service worker registration, so fall back to that. */
+async function showNotice(title, body) {
+  const options = { body, tag: "due-soon", icon: "icon-192.png" };
+  try {
+    const notice = new Notification(title, options);
+    notice.onclick = () => { window.focus(); go("#/today"); notice.close(); };
+    return true;
+  } catch {
+    try {
+      const registration = await navigator.serviceWorker?.getRegistration();
+      if (!registration) return false;
+      await registration.showNotification(title, options);
+      return true;
+    } catch { return false; }
+  }
+}
+
+/** The on-load "due soon" check: only for a real notebook, only with permission, and at most once
+ *  a day unless asked directly ("Check now"). It runs only while the tab is open, by design. */
+async function checkDueSoon({ force = false } = {}) {
+  if (!BROWSER_MODE || inDemo() || !state.loaded || !state.prefs.dueSoonAlerts || notificationPermission() !== "granted") return;
+  const today = dayKey();
+  if (!force && state.prefs.lastDueAlert === today) return;
+  const message = dueSoonMessage(dueSoon(state.applications));
+  state.prefs.lastDueAlert = today;
+  savePrefs();
+  if (message) await showNotice(message.title, message.body);
+  else if (force) toast("Nothing is due today or tomorrow.");
+}
+
+async function toggleDueAlerts() {
+  if (state.prefs.dueSoonAlerts && notificationPermission() === "granted") {
+    state.prefs.dueSoonAlerts = false;
+    savePrefs();
+    rerender();
+    return;
+  }
+  let permission = notificationPermission();
+  if (permission === "default") permission = await Notification.requestPermission().catch(() => "denied");
+  if (permission !== "granted") {
+    rerender();
+    toast("Notifications weren't allowed, so this stays off. The calendar file still gives you reminders.");
+    return;
+  }
+  state.prefs.dueSoonAlerts = true;
+  savePrefs();
+  rerender();
+  await checkDueSoon({ force: true });
 }
 
 /* ==========================================================================
@@ -1893,7 +2078,7 @@ async function completeSetup() {
    ========================================================================== */
 const viewRoot = $("#view");
 const page = $("#page");
-const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup };
+const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup, export: viewExport };
 
 // The skip link targets #view directly with JS, not a "#view" hash change: every hash change
 // goes through the router below, and "view" isn't a route name, so letting the browser's default
@@ -1910,7 +2095,7 @@ function parseRoute() {
   if (view === "entry" && Number(id) > 0) return { view: "entry", id: Number(id) };
   // The welcome page only exists in front of the demo; anyone else asking for it gets Today.
   if (view === "welcome" && !canShowWelcome({ browserMode: BROWSER_MODE, demoActive: inDemo() })) return { view: "today", id: null };
-  if (view === "build" && !BROWSER_MODE) return { view: "today", id: null }; // a browser-notebook feature only
+  if ((view === "build" || view === "export") && !BROWSER_MODE) return { view: "today", id: null }; // browser-notebook features only
   return { view: renderers[view] ? view : "today", id: null };
 }
 
@@ -1945,7 +2130,7 @@ function render({ animate = false, keepScroll = true } = {}) {
   $("#mobile-title").textContent = title;
   // An open application page is still a page of "All pages", so that tab stays highlighted
   // instead of every tab looking unselected while you are reading or editing an entry.
-  const navKey = view === "entry" ? "notebook" : view;
+  const navKey = view === "entry" ? "notebook" : view === "export" ? "settings" : view;
   $$("[data-nav]").forEach(link => {
     if (link.dataset.nav === navKey) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -2669,6 +2854,7 @@ viewRoot.addEventListener("input", event => {
     refreshList(target);
   }
   if (input === "name") { state.prefs.name = target.value.slice(0, 40); savePrefs(); }
+  if (input === "digest-email") { state.prefs.digestEmail = target.value.trim().slice(0, 254); savePrefs(); updateDigestLink(); }
   if ((state.route.view === "setup" || state.route.view === "build") && target.name && target.name in state.setupForm) {
     state.setupForm[target.name] = target.value;
     if (state.route.view === "build") refreshBuildSummary();
@@ -3051,6 +3237,11 @@ const actions = {
   "clear-filters": () => { state.filter = { query: "", stage: "ALL" }; rerender(); },
   "export-csv": () => exportCsv(),
   "export-json": () => exportJson(),
+  "export-ics": () => exportIcs(),
+  "export-md": () => exportMarkdown(),
+  "print-notebook": () => window.print(),
+  "toggle-due-alerts": () => toggleDueAlerts(),
+  "check-due-now": () => checkDueSoon({ force: true }),
   "import-json": () => $("#import-file").click(),
   install: () => promptInstall(),
   reload: () => load(),
@@ -3455,6 +3646,7 @@ const openNewOnStart = window.location.hash === "#/new" || sharedOnStart;
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
 load().then(async () => {
+  checkDueSoon(); // opt-in, real notebook only, once a day, and only because the tab is open
   if (openNewOnStart && state.loaded) openNew("SAVED", sharedOnStart ? {
     role: (shared.get("title") || "").slice(0, LIMITS.role),
     link: (shared.get("url") || "").slice(0, LIMITS.link),
