@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   cleanChanges, cleanLink, cleanSkills, cleanStage, cleanText, cleanDate,
-  normalize, withStatus, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  normalize, withStatus, collapseHistory, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   isValidDate, dayKey
 } from "../../src/main/resources/public/js/domain.js";
 
@@ -173,4 +173,33 @@ test("compareBy company sorts alphabetically", () => {
   const a = normalize({ id: 1, company: "Zeta", role: "R" });
   const b = normalize({ id: 2, company: "Alpha", role: "R" });
   assert.deepEqual([a, b].sort(compareBy("company")).map(e => e.company), ["Alpha", "Zeta"]);
+});
+
+test("history never records a repeat of the last stage", () => {
+  const at = n => `2026-03-0${n}T12:00:00.000Z`;
+  const base = normalize({ id: 1, company: "A", role: "R", status: "SAVED", createdAt: at(1) });
+  // Setting the stage it already has is a no-op: same object, no new entry, no new updatedAt.
+  assert.equal(withStatus(base, "SAVED", at(2)), base);
+  // Every real change is one entry, including a quick move back and forth.
+  const flipped = withStatus(withStatus(withStatus(base, "APPLIED", at(2)), "SAVED", at(3)), "APPLIED", at(4));
+  assert.deepEqual(flipped.history.map(change => change.status), ["SAVED", "APPLIED", "SAVED", "APPLIED"]);
+  // A record whose stage and history disagree (older data) gains no repeat when it moves.
+  const odd = { ...base, status: "INTERVIEW", history: [{ status: "SAVED", at: at(1) }, { status: "APPLIED", at: at(2) }] };
+  assert.deepEqual(withStatus(odd, "APPLIED", at(3)).history.map(change => change.status), ["SAVED", "APPLIED"]);
+});
+
+test("consecutive duplicates collapse to the first, in history and on load", () => {
+  const history = [
+    { status: "SAVED", at: "2026-03-01T12:00:00.000Z" }, { status: "APPLIED", at: "2026-03-02T12:00:00.000Z" },
+    { status: "APPLIED", at: "2026-03-02T12:00:30.000Z" }, { status: "SAVED", at: "2026-03-03T12:00:00.000Z" },
+    { status: "SAVED", at: "2026-03-03T12:00:05.000Z" }, { status: "APPLIED", at: "2026-03-04T12:00:00.000Z" }
+  ];
+  const collapsed = collapseHistory(history);
+  assert.deepEqual(collapsed.map(change => change.at), [history[0].at, history[1].at, history[3].at, history[5].at]);
+  assert.deepEqual(collapseHistory([]), []);
+  assert.deepEqual(collapseHistory(undefined), []);
+  assert.equal(history.length, 6, "the input is not changed");
+  const loaded = normalize({ id: 2, company: "B", role: "R", status: "APPLIED", history });
+  assert.deepEqual(loaded.history, collapsed, "a saved page with repeats loads without them");
+  assert.deepEqual(normalize(loaded).history, collapsed, "and normalizing again changes nothing");
 });

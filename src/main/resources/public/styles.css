@@ -76,30 +76,33 @@
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --desk: #0c0f13;
-  --cover: #141b23;
-  --cover-ink: #ebe6db;
-  --cover-muted: #8e9aa6;
-  --cover-hover: rgba(255, 255, 255, .06);
-  --paper: #171b21;
-  --paper-2: #1c2128;
-  --card: #1f252d;
-  --ink: #ece7dc;
-  --ink-2: #cfc9bd;
-  --muted: #9aa3ab;
-  /* Lightened from the original pass to clear WCAG AA on --paper-2 (was 3.56:1). */
-  --faint: #8a939c;
-  --line: #2c343d;
-  --line-strong: #3a434d;
-  --rule: #28313a;
-  --dot: #262c34;
-  --margin-line: #6a3c3c;
-  --wash: rgba(255, 255, 255, .035);
-  --wash-strong: rgba(255, 255, 255, .07);
+  /* "Night paper": the light theme's warm paper and navy cloth cover, dimmed, rather than a
+     neutral grey, so dark mode still reads as the same notebook. Text contrast (WCAG AA) on the
+     darkest and lightest backgrounds here (--paper, --paper-2, --card):
+     --ink 12.8-14.3:1, --ink-2 9.9-11.0:1, --muted 6.6-7.4:1, --faint (placeholders) 5.5-6.2:1. */
+  --desk: #110f0c;
+  --cover: #18222d;
+  --cover-ink: #efe6d6;
+  --cover-muted: #9fb0bd;
+  --cover-hover: rgba(255, 240, 220, .07);
+  --paper: #1b1814;
+  --paper-2: #221e19;
+  --card: #26221c;
+  --ink: #efe6d6;
+  --ink-2: #d6cbb8;
+  --muted: #b3a690;
+  --faint: #a39782;
+  --line: #37302a;
+  --line-strong: #4a4138;
+  --rule: #332c25;
+  --dot: #2e2822;
+  --margin-line: #6e3f34;
+  --wash: rgba(255, 236, 210, .04);
+  --wash-strong: rgba(255, 236, 210, .08);
 
-  --primary: #e8e1d3;
-  --primary-hover: #fffaf0;
-  --primary-ink: #151a20;
+  --primary: #efe6d6;
+  --primary-hover: #fff8ec;
+  --primary-ink: #1b1814;
   --accent: #f08a63;
   --accent-soft: rgba(240, 138, 99, .16);
   /* Already 6.3:1+ as text in dark mode, so --accent-ink can just reuse --accent here. */
@@ -999,13 +1002,12 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
    once the grid actually has 2+ explicit columns - left unscoped, "span 2" on a 1-column grid
    makes grid-auto-flow: dense invent an implicit second column and pack everything else into it,
    silently undoing the single-column layout this rule exists for. */
-.details { display: grid; gap: 4px 18px; grid-auto-flow: row dense; grid-template-columns: minmax(0, 1fr); margin-bottom: 26px; }
-@media (min-width: 560px) { .details { grid-template-columns: repeat(2, minmax(0, 1fr)); } .details .wide { grid-column: span 2; } }
-@media (min-width: 900px) { .details { gap: 4px 26px; grid-template-columns: repeat(3, minmax(0, 1fr)); } .details .wide-lg { grid-column: span 2; } }
+.entry-fields { display: grid; gap: 4px 22px; grid-auto-flow: row dense; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 560px) { .entry-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } .entry-fields .wide { grid-column: span 2; } }
 .line-field { border-bottom: 1px solid var(--rule); display: grid; gap: 0; padding: 6px 0 2px; position: relative; }
 .line-field:focus-within { border-bottom-color: var(--focus); }
-.line-field > span { align-items: center; color: var(--muted); display: flex; font-size: .68rem; font-weight: 750; gap: 5px; letter-spacing: .08em; text-transform: uppercase; }
-.line-field > span .icon { height: 13px; width: 13px; }
+.line-field > span, .line-field > .line-label { align-items: center; color: var(--muted); display: flex; font-size: .68rem; font-weight: 750; gap: 5px; letter-spacing: .08em; text-transform: uppercase; }
+.line-field > span .icon, .line-field > .line-label .icon { height: 13px; width: 13px; }
 .line-field input { background: transparent; border: 0; border-radius: 0; box-shadow: none; padding: 5px 0 7px; }
 .line-field input:focus { box-shadow: none; }
 .line-field .open-link { bottom: 6px; position: absolute; right: -6px; }
@@ -1150,7 +1152,9 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 
 /* ---------- Toasts ---------- */
 .toasts { bottom: calc(84px + env(safe-area-inset-bottom)); display: grid; gap: 8px; justify-items: center; left: 12px; pointer-events: none; position: fixed; right: 12px; z-index: 80; }
-@media (min-width: 1024px) { .toasts { bottom: 28px; } }
+/* One slot: above the tab bar on phones; in the bottom-right corner on a laptop, inside the page's
+   bottom padding, so it sits beside the content rather than over the middle of the page. */
+@media (min-width: 1024px) { .toasts { bottom: 24px; justify-items: end; left: auto; right: 24px; width: min(420px, calc(100vw - 320px)); } }
 body.selecting .toasts { bottom: calc(150px + env(safe-area-inset-bottom)); }
 @media (min-width: 1024px) { body.selecting .toasts { bottom: 96px; } }
 .toast {
@@ -1169,6 +1173,9 @@ body.selecting .toasts { bottom: calc(150px + env(safe-area-inset-bottom)); }
   pointer-events: auto;
 }
 .toast.leaving { animation: fade-out .25s ease both; }
+.toast.is-updated { animation: toast-swap .22s var(--ease) both; }
+.toast-text { flex: 1; min-width: 0; }
+.toast button { flex: none; min-height: 36px; }
 .toast.error { background: var(--danger); color: #fff; }
 .toast button { background: rgba(255, 255, 255, .12); border: 0; border-radius: 8px; color: inherit; font-weight: 700; padding: 6px 10px; }
 [data-theme="dark"] .toast button { background: rgba(0, 0, 0, .1); }
@@ -1233,6 +1240,7 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 @media (min-width: 1024px) { @keyframes rise-in { from { opacity: 0; transform: translate(-50%, 12px); } to { opacity: 1; transform: translate(-50%, 0); } } .toast { animation-name: toast-in; } }
 @keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes fade-out { to { opacity: 0; transform: translateY(6px); } }
+@keyframes toast-swap { from { opacity: .55; } to { opacity: 1; } }
 @keyframes modal-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes menu-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } to { opacity: 1; transform: none; } }
@@ -1954,3 +1962,42 @@ a:not([class]):active { opacity: .65; }
   }
   .button:hover:not(:disabled), .app-card:hover, .cover-label:hover { transform: none; }
 }
+
+
+/* ---------- Application page: grouped layout ----------
+   Header (company, role, stage), then three groups on the paper card (the role, dates, notes),
+   with the timeline as a quiet rail beside them on a laptop and under them on a phone. */
+.entry-head .stepper { margin: 14px 0 0; }
+.steps.is-rejected .step { opacity: .55; }
+.entry-rejected { align-items: center; color: var(--ink-2); display: flex; flex-wrap: wrap; font-size: .88rem; gap: 6px 10px; margin-top: 12px; }
+.entry-rejected .text-button { min-height: 44px; }
+.entry-body { display: grid; gap: 8px 36px; }
+@media (min-width: 900px) { .entry-body { align-items: start; grid-template-columns: minmax(0, 1fr) 220px; } }
+.entry-main { display: grid; gap: 26px; min-width: 0; }
+.entry-group > .section-label { font-family: var(--sans); margin-bottom: 6px; }
+.entry-group #entry-next-actions:not(:empty) { margin-top: 10px; }
+.field-caption { color: var(--muted); font-size: .68rem; font-weight: 750; letter-spacing: .08em; margin: 4px 0 6px; text-transform: uppercase; }
+.entry-group .skills-editor { margin-bottom: 14px; }
+.entry-rail { border-top: 1px solid var(--rule); padding-top: 18px; }
+@media (min-width: 900px) { .entry-rail { border-left: 1px solid var(--rule); border-top: 0; padding: 0 0 0 20px; position: sticky; top: 24px; } }
+.entry-rail .timeline { max-height: 340px; overflow-y: auto; overscroll-behavior: contain; padding-right: 4px; }
+.entry-rail .timeline strong { color: var(--ink-2); font-size: .84rem; font-weight: 650; }
+.entry-rail .timeline time { color: var(--muted); display: block; font-size: .76rem; }
+.entry-rail .timeline:focus-visible { outline-offset: 4px; }
+
+/* Date fields: the native date input (keyboard, picker, and locale come from the browser) with a
+   visible placeholder while empty and a clear button once set. color-scheme on :root already makes
+   the picker dark in dark mode; it is restated here because some engines read it per element. */
+.date-control { align-items: center; display: flex; gap: 4px; min-height: 44px; position: relative; }
+.date-control input[type="date"] { color-scheme: inherit; flex: 1; min-height: 40px; min-width: 0; }
+:root[data-theme="dark"] .date-control input[type="date"] { color-scheme: dark; }
+.date-control input::-webkit-calendar-picker-indicator { cursor: pointer; opacity: .7; }
+.date-control input::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+.date-placeholder { color: var(--faint); font-size: .95rem; left: 0; pointer-events: none; position: absolute; top: 50%; transform: translateY(-50%); }
+/* Empty and not being edited: show our placeholder in place of the browser's "mm/dd/yyyy". */
+.date-field:not(.has-value):not(:focus-within) input[type="date"] { color: transparent; }
+.date-field:not(.has-value):not(:focus-within) input[type="date"]::-webkit-datetime-edit { color: transparent; }
+.date-field.has-value .date-placeholder, .date-field:focus-within .date-placeholder { visibility: hidden; }
+.date-clear { color: var(--muted); flex: none; visibility: hidden; }
+.date-field.has-value .date-clear { visibility: visible; }
+.date-clear .icon { height: 16px; width: 16px; }

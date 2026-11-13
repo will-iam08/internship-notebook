@@ -27,7 +27,7 @@ test("entry details are single-column below 560px and the title never breaks lay
   await page.setViewportSize({ width: 320, height: 860 });
   await seedNotebook(page);
   await openApp(page, "#/entry/1");
-  const columns = await page.locator(".details").evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+  const columns = await page.locator(".entry-fields").first().evaluate(el => getComputedStyle(el).gridTemplateColumns.split(" ").length);
   expect(columns).toBe(1);
 });
 

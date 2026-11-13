@@ -11,7 +11,7 @@ import {
   STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
-  cleanSkills, cleanLink, cleanInterview, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  cleanSkills, cleanLink, cleanInterview, collapseHistory, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   previewImport
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
@@ -321,7 +321,7 @@ function resolvedTheme() { return state.prefs.theme === "system" ? (darkQuery.ma
 function applyTheme() {
   const theme = resolvedTheme();
   document.documentElement.dataset.theme = theme;
-  $$('meta[name="theme-color"]').forEach(meta => meta.setAttribute("content", theme === "dark" ? "#111418" : "#f3eee4"));
+  $$('meta[name="theme-color"]').forEach(meta => meta.setAttribute("content", theme === "dark" ? "#14110d" : "#f3eee4"));
   const iconName = state.prefs.theme === "system" ? "system" : theme === "dark" ? "moon" : "sun";
   $$("[data-theme-icon]").forEach(element => { element.innerHTML = icon(iconName); });
   $$(".cover-theme").forEach(button => button.setAttribute("title", `Theme: ${themeLabel()} (click to change)`));
@@ -1125,10 +1125,25 @@ function viewEntry(id) {
       <input type="${type}" data-field="${name}" value="${esc(entry[name])}" maxlength="${LIMITS[name] || ""}" placeholder="${esc(placeholder)}" ${extra} />
       ${name === "link" && entry.link ? `<a class="icon-button open-link" href="${esc(entry.link)}" target="_blank" rel="noopener noreferrer" aria-label="Open job posting">${icon("external")}</a>` : ""}
     </label>`;
-  const timeline = [...entry.history].reverse().map((change, index, list) => {
+  // A date is a native date input (keyboard, picker, and locale handled by the browser) with a
+  // visible placeholder while empty and a clear button once set. The label is a separate element
+  // so the clear button is not inside it.
+  const dateField = (name, label, iconName, placeholder) => `
+    <div class="line-field date-field${entry[name] ? " has-value" : ""}">
+      <label class="line-label" for="entry-${name}">${icon(iconName)}${label}</label>
+      <div class="date-control">
+        <input type="date" id="entry-${name}" data-field="${name}" value="${esc(entry[name])}" />
+        <span class="date-placeholder" aria-hidden="true">${placeholder}</span>
+        <button class="icon-button date-clear" type="button" data-action="clear-date" data-clear="${name}" aria-label="Clear ${label.toLowerCase()}">${icon("x")}</button>
+      </div>
+    </div>`;
+  const history = collapseHistory(entry.history);
+  const timeline = [...history].reverse().map((change, index, list) => {
     const first = index === list.length - 1;
-    return `<li class="st-${change.status}"><strong>${first ? `Added as ${LABELS[change.status]}` : `Moved to ${LABELS[change.status]}`}</strong><span>${esc(formatDateTime(change.at))}</span></li>`;
+    return `<li class="st-${change.status}"><strong>${first ? `Added as ${LABELS[change.status]}` : `Moved to ${LABELS[change.status]}`}</strong>
+      <time datetime="${esc(change.at)}" title="${esc(formatDateTime(change.at))}">${esc(timeAgo(change.at))}</time></li>`;
   }).join("");
+  const rejected = entry.status === "REJECTED";
   return `
     <article class="entry" data-entry="${entry.id}">
       <nav class="entry-nav" aria-label="Page actions">
@@ -1145,35 +1160,47 @@ function viewEntry(id) {
           <input class="entry-company" id="entry-company" data-field="company" value="${esc(entry.company)}" maxlength="${LIMITS.company}" required />
           <label class="sr-only" for="entry-role">Role</label>
           <input class="entry-role" id="entry-role" data-field="role" value="${esc(entry.role)}" maxlength="${LIMITS.role}" required />
+          <div class="stepper" role="group" aria-label="Stage">
+            <div class="steps${rejected ? " is-rejected" : ""}">${steps}</div>
+          </div>
+          ${rejected ? `<p class="entry-rejected">${pill("REJECTED")}<span>This application was rejected.</span>
+            <button class="text-button" type="button" data-action="set-status" data-stage="${beforeRejection}">Reopen as ${LABELS[beforeRejection]}</button></p>` : ""}
         </header>
-        <div class="stepper" role="group" aria-label="Stage">
-          <div class="steps">${steps}</div>
-          <button class="button small ghost reject-toggle" type="button" data-action="set-status" data-stage="${entry.status === "REJECTED" ? beforeRejection : "REJECTED"}" aria-pressed="${entry.status === "REJECTED"}">${entry.status === "REJECTED" ? "Rejected · undo" : "Mark rejected"}</button>
-        </div>
-        <div class="details">
-          ${field("location", "Location", "pin", { placeholder: "City or Remote" })}
-          ${field("source", "Found on", "globe", { placeholder: "LinkedIn, referral…", extra: 'list="source-options"' })}
-          ${field("deadline", "Deadline", "clock", { type: "date" })}
-          ${field("link", "Job posting", "link", { type: "url", placeholder: "Paste the link", extra: 'inputmode="url"', size: "wide" })}
-          ${field("contact", "Contact", "user", { placeholder: "Recruiter, referral…" })}
-          ${field("nextStep", "Next step", "flag", { placeholder: "e.g. Technical interview", size: "wide-lg" })}
-          ${field("nextStepDate", "Next step date", "calendar", { type: "date" })}
-        </div>
-        <div id="entry-next-actions">${nextStepActions(entry)}</div>
-        <p class="section-label">Skills</p>
-        <div class="skills-editor" id="skills-editor">
-          ${entry.skills.map(skill => `<span class="skill-chip">${esc(skill)}<button type="button" data-action="remove-skill" data-skill="${esc(skill)}" aria-label="Remove ${esc(skill)}">${icon("x")}</button></span>`).join("")}
-          <input type="text" id="skill-input" placeholder="${entry.skills.length ? "Add another…" : "Add skills, press Enter"}" aria-label="Add a skill" maxlength="40" />
-        </div>
-        <div class="entry-grid">
-          <section>
-            <p class="section-label"><label for="entry-notes">Notes</label></p>
-            <textarea class="notes-area" id="entry-notes" data-field="notes" maxlength="${LIMITS.notes}" placeholder="Interview prep, questions to ask, people you met, how it went…">${esc(entry.notes)}</textarea>
-          </section>
-          <section>
-            <p class="section-label">Timeline</p>
-            <ol class="timeline">${timeline}</ol>
-          </section>
+        <div class="entry-body">
+          <div class="entry-main">
+            <section class="entry-group" aria-labelledby="group-role">
+              <h2 class="section-label" id="group-role">The role</h2>
+              <div class="entry-fields">
+                ${field("location", "Location", "pin", { placeholder: "City or Remote" })}
+                ${field("source", "Found on", "globe", { placeholder: "LinkedIn, referral…", extra: 'list="source-options"' })}
+                ${field("link", "Job posting", "link", { type: "url", placeholder: "Paste the link", extra: 'inputmode="url"' })}
+                ${field("contact", "Contact", "user", { placeholder: "Recruiter, referral…" })}
+              </div>
+            </section>
+            <section class="entry-group" aria-labelledby="group-dates">
+              <h2 class="section-label" id="group-dates">Dates</h2>
+              <div class="entry-fields">
+                ${dateField("deadline", "Deadline", "clock", "Set a deadline")}
+                ${dateField("nextStepDate", "Next step date", "calendar", "Set a date")}
+                ${field("nextStep", "Next step", "flag", { placeholder: "e.g. Technical interview", size: "wide" })}
+              </div>
+              <div id="entry-next-actions">${nextStepActions(entry)}</div>
+            </section>
+            <section class="entry-group" aria-labelledby="group-notes">
+              <h2 class="section-label" id="group-notes">Notes</h2>
+              <p class="field-caption" id="skills-caption">Skills</p>
+              <div class="skills-editor" id="skills-editor" role="group" aria-labelledby="skills-caption">
+                ${entry.skills.map(skill => `<span class="skill-chip">${esc(skill)}<button type="button" data-action="remove-skill" data-skill="${esc(skill)}" aria-label="Remove ${esc(skill)}">${icon("x")}</button></span>`).join("")}
+                <input type="text" id="skill-input" placeholder="${entry.skills.length ? "Add another…" : "Add skills, press Enter"}" aria-label="Add a skill" maxlength="40" />
+              </div>
+              <label class="sr-only" for="entry-notes">Notes</label>
+              <textarea class="notes-area" id="entry-notes" data-field="notes" maxlength="${LIMITS.notes}" placeholder="Interview prep, questions to ask, people you met, how it went…">${esc(entry.notes)}</textarea>
+            </section>
+          </div>
+          <aside class="entry-rail" aria-labelledby="timeline-title">
+            <h2 class="section-label" id="timeline-title">Timeline</h2>
+            <ol class="timeline" tabindex="0" aria-labelledby="timeline-title">${timeline}</ol>
+          </aside>
         </div>
         ${BROWSER_MODE ? prepCard(entry) : ""}
         <footer class="entry-foot">
@@ -2333,40 +2360,62 @@ function updateCounts() {
    ========================================================================== */
 const toasts = $("#toasts");
 /**
- * A toast with an Undo (or Retry) action gets a longer 10s timer instead of ~5s, since deciding
- * whether to undo something and then pressing a small button takes longer than reading a plain
- * status message - and the timer pauses entirely while the toast is hovered or has keyboard
- * focus, so a screen-reader or keyboard user who has landed on the Undo button never has it
- * disappear out from under them while they're still using it (WCAG 2.2.1, Timing Adjustable).
+ * One toast slot. A new message replaces the one showing (text, action, and timer) instead of
+ * stacking, so quick changes never pile up over the page, and the slot keeps its place so nothing
+ * shifts. Plain messages stay about 4 seconds; one with an Undo or Retry button, or an error, stays
+ * 6 seconds. The timer pauses while the toast is hovered or holds keyboard focus, so nobody loses
+ * the Undo button while reaching for it (WCAG 2.2.1, Timing Adjustable). #toasts is a polite live
+ * region, so each new message is announced once.
+ * Errors merge: when a second error arrives within two seconds of the first (one failure often
+ * reports twice, e.g. "couldn't save locally" and then the save itself failing), the first, more
+ * specific message stays and only the newer action (such as Retry) is taken.
  */
+let toastTimer = null;
 function toast(message, { action, run, error = false, duration } = {}) {
-  const element = document.createElement("div");
-  element.className = `toast${error ? " error" : ""}`;
-  element.innerHTML = `<span>${esc(message)}</span>`;
-  let timer = null;
-  const dismiss = () => {
-    if (!element.isConnected) return;
-    window.clearTimeout(timer);
-    element.classList.add("leaving");
-    window.setTimeout(() => element.remove(), 240);
-  };
-  const totalMs = duration ?? (action ? 10000 : error ? 7000 : 5200);
-  const arm = () => { timer = window.setTimeout(dismiss, totalMs); };
-  const disarm = () => window.clearTimeout(timer);
+  let element = toasts.querySelector(".toast:not(.leaving)");
+  toasts.querySelectorAll(".toast.leaving").forEach(old => old.remove());
+  const replacing = Boolean(element);
+  if (!element) {
+    element = document.createElement("div");
+    element.className = "toast";
+    const pause = () => window.clearTimeout(toastTimer);
+    const resume = () => { if (!element.matches(":hover, :focus-within")) armToast(element); };
+    element.addEventListener("pointerenter", pause);
+    element.addEventListener("pointerleave", resume);
+    element.addEventListener("focusin", pause);
+    element.addEventListener("focusout", event => { if (!element.contains(event.relatedTarget)) resume(); });
+    toasts.append(element);
+  }
+  // Keep focus in the slot if it was on the old button, so a keyboard user isn't dropped.
+  const hadFocus = element.contains(document.activeElement);
+  if (error && replacing && element.classList.contains("error") && Date.now() - Number(element.dataset.at) < 2000) {
+    message = element.querySelector(".toast-text")?.textContent || message;
+  }
+  element.dataset.at = String(Date.now());
+  element.classList.toggle("error", error);
+  element.innerHTML = `<span class="toast-text">${esc(message)}</span>`;
   if (action) {
     const button = document.createElement("button");
     button.type = "button";
     button.textContent = action;
-    button.addEventListener("click", () => { dismiss(); run?.(); });
+    button.addEventListener("click", () => { dismissToast(element); run?.(); });
     element.append(button);
+    if (hadFocus) button.focus();
   }
-  element.addEventListener("pointerenter", disarm);
-  element.addEventListener("pointerleave", arm);
-  element.addEventListener("focusin", disarm);
-  element.addEventListener("focusout", arm);
-  toasts.append(element);
-  while (toasts.children.length > 3) toasts.firstElementChild.remove();
-  arm();
+  if (replacing) { element.classList.remove("is-updated"); void element.offsetWidth; element.classList.add("is-updated"); }
+  element.dataset.duration = String(duration ?? (action || error ? 6000 : 4000));
+  if (!element.matches(":hover, :focus-within")) armToast(element);
+  else window.clearTimeout(toastTimer);
+}
+function armToast(element) {
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => dismissToast(element), Number(element.dataset.duration) || 4000);
+}
+function dismissToast(element) {
+  if (!element.isConnected || element.classList.contains("leaving")) return;
+  window.clearTimeout(toastTimer);
+  element.classList.add("leaving");
+  window.setTimeout(() => element.remove(), 240);
 }
 const fail = error => toast(error?.message || "Something went wrong.", { error: true });
 
@@ -2474,6 +2523,31 @@ function cardMenu(anchor, entry) {
 /* ==========================================================================
    13. Actions (every change goes through the api, then updates local state)
    ========================================================================== */
+/**
+ * Changes one page's stage from its own page. Clicks are queued one after another, and each one
+ * re-reads the page when its turn comes, so fast clicking never sends a stale change and choosing
+ * the stage the page already has does nothing (no save, no history entry, no toast).
+ */
+let stageChain = Promise.resolve();
+function setEntryStatus(id, stage) {
+  stageChain = stageChain.then(async () => {
+    await flushEntrySave();
+    const entry = find(id);
+    if (!entry || entry.status === stage) return;
+    try {
+      replaceApplications([await activeApi.update(id, { status: stage })]);
+      rerender();
+      toast(`Moved to ${LABELS[stage]}`, { action: "Undo", run: demoBound(() => undoStatus([[id, entry.status]])) });
+    } catch (error) { fail(error); }
+  });
+  return stageChain;
+}
+
+/** Shows or hides a date field's placeholder and clear button to match its value. */
+function syncDateField(input) {
+  input.closest(".date-field")?.classList.toggle("has-value", Boolean(input.value));
+}
+
 async function changeStatus(ids, stage, { undoable = true } = {}) {
   const previous = ids.map(id => [id, find(id)?.status]);
   try {
@@ -2983,7 +3057,8 @@ viewRoot.addEventListener("input", event => {
   const target = event.target;
   if (target.dataset.field && state.route.view === "entry") {
     if (target.tagName === "TEXTAREA") autosize(target);
-    if (target.type !== "date") queueChange(target.dataset.field, target.value);
+    if (target.type === "date") syncDateField(target);
+    else queueChange(target.dataset.field, target.value);
     return;
   }
   const input = target.dataset.input;
@@ -3018,6 +3093,7 @@ function refreshList(input) {
 viewRoot.addEventListener("change", event => {
   const target = event.target;
   if (target.dataset.field && state.route.view === "entry") {
+    if (target.type === "date") syncDateField(target);
     const entry = find(state.route.id);
     if ((target.dataset.field === "company" || target.dataset.field === "role") && !target.value.trim() && entry) {
       target.value = entry[target.dataset.field];
@@ -3347,6 +3423,10 @@ const actions = {
     if (!entry) return;
     openMenu(target, [
       ...(entry.link ? [{ label: "Open job posting", icon: "external", run: () => window.open(entry.link, "_blank", "noopener,noreferrer") }] : []),
+      entry.status === "REJECTED"
+        ? { label: `Reopen as ${LABELS[[...entry.history].reverse().find(change => change.status !== "REJECTED")?.status || "APPLIED"]}`, icon: "restore",
+          run: () => setEntryStatus(entry.id, [...entry.history].reverse().find(change => change.status !== "REJECTED")?.status || "APPLIED") }
+        : { label: "Mark rejected", icon: "x", run: () => setEntryStatus(entry.id, "REJECTED") },
       { label: "Duplicate page", icon: "copy", run: () => duplicate(entry) },
       { label: "Copy as text", icon: "file", run: () => copySummary(entry) },
       ...((entry.deadline || entry.nextStepDate) ? [{ label: "Add dates to calendar", icon: "calendar", run: () => exportCalendar(entry) }] : []),
@@ -3355,16 +3435,14 @@ const actions = {
     ]);
   },
   "toggle-star": target => toggleStar(Number(target.dataset.id)),
-  "set-status": async target => {
-    await flushEntrySave();
-    const id = state.route.id;
-    const entry = find(id);
-    if (!entry || entry.status === target.dataset.stage) return;
-    try {
-      replaceApplications([await activeApi.update(id, { status: target.dataset.stage })]);
-      rerender();
-      toast(`Moved to ${LABELS[target.dataset.stage]}`, { action: "Undo", run: demoBound(() => undoStatus([[id, entry.status]])) });
-    } catch (error) { fail(error); }
+  "set-status": target => setEntryStatus(state.route.id, target.dataset.stage),
+  "clear-date": target => {
+    const input = $(`#entry-${target.dataset.clear}`);
+    if (!input || !input.value) return;
+    input.value = "";
+    syncDateField(input);
+    queueChange(target.dataset.clear, "", { immediate: true });
+    input.focus();
   },
   "remove-skill": target => saveSkills(skills => skills.filter(skill => skill !== target.dataset.skill)),
   delete: target => removeApplications([Number(target.dataset.id)]),

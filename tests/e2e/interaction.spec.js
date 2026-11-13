@@ -78,31 +78,35 @@ test("reduced motion declares no transform, translate, or scale transition", asy
   expect(still?.translate).toBe("none");
 });
 
-/** Holds the mouse down on an element and reads its computed press, plus a neighbour's position. */
-async function pressAndMeasure(page, locator, neighbour) {
+/** The pressed scale and vertical offset, rounded so sub-pixel transition noise doesn't matter. */
+const readPress = locator => locator.evaluate(element => {
+  const style = getComputedStyle(element);
+  const round = value => (value === "none" ? "none" : String(Math.round(Number.parseFloat(value) * 100) / 100));
+  const translateY = style.translate === "none" ? "none" : `${Math.round(Number.parseFloat(style.translate.split(" ")[1] ?? "0"))}px`;
+  return { scale: round(style.scale), translate: translateY };
+});
+
+/** Holds the mouse down on an element until its press settles at `expected` (polled, so a busy
+ *  machine can't catch it mid-transition), and reports how far a neighbour moved meanwhile. */
+async function pressAndMeasure(page, locator, neighbour, expected) {
   const box = await locator.boundingBox();
   const before = await neighbour.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
-  await page.waitForTimeout(250); // let the 160ms press transition finish
-  const pressed = await locator.evaluate(element => ({ scale: getComputedStyle(element).scale, translate: getComputedStyle(element).translate }));
+  await expect.poll(() => readPress(locator), { timeout: 5000 }).toEqual(expected);
   const during = await neighbour.boundingBox();
   await page.mouse.up();
-  return { pressed, shifted: Math.abs(during.x - before.x) + Math.abs(during.y - before.y) };
+  return Math.abs(during.x - before.x) + Math.abs(during.y - before.y);
 }
 
 test("pressing a control scales it down without moving anything around it", async ({ page }) => {
   await seedNotebook(page);
   await openApp(page, "#/notebook");
   const chips = page.locator(".filter-chip");
-  const chip = await pressAndMeasure(page, chips.nth(1), chips.nth(2));
-  expect(chip.pressed).toEqual({ scale: "0.98", translate: "0px 1px" });
-  expect(chip.shifted).toBe(0);
+  expect(await pressAndMeasure(page, chips.nth(1), chips.nth(2), { scale: "0.98", translate: "1px" })).toBe(0);
   // A list row, whose entrance animation holds `transform: none`, still presses.
   const rows = page.locator(".toc-row");
-  const row = await pressAndMeasure(page, rows.first(), rows.nth(1));
-  expect(row.pressed.scale).toBe("0.98");
-  expect(row.shifted).toBe(0);
+  expect(await pressAndMeasure(page, rows.first(), rows.nth(1), { scale: "0.98", translate: "1px" })).toBe(0);
 });
 
 test.describe("with reduced motion", () => {
@@ -111,9 +115,7 @@ test.describe("with reduced motion", () => {
     await seedNotebook(page);
     await openApp(page, "#/notebook");
     const chips = page.locator(".filter-chip");
-    const chip = await pressAndMeasure(page, chips.nth(1), chips.nth(2));
-    expect(chip.pressed).toEqual({ scale: "none", translate: "none" });
-    expect(chip.shifted).toBe(0);
+    expect(await pressAndMeasure(page, chips.nth(1), chips.nth(2), { scale: "none", translate: "none" })).toBe(0);
   });
 });
 

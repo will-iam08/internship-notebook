@@ -201,7 +201,7 @@ export function normalize(entry) {
     nextStep: text(entry.nextStep),
     nextStepDate: isValidDate(text(entry.nextStepDate)) ? entry.nextStepDate : "",
     starred: entry.starred === true,
-    history: history.length ? history : [{ status, at: createdAt }]
+    history: history.length ? collapseHistory(history) : [{ status, at: createdAt }]
   };
   const interview = cleanInterview(entry.interview);
   if (Object.keys(interview).length) application.interview = interview;
@@ -209,9 +209,28 @@ export function normalize(entry) {
   return application;
 }
 
+/**
+ * A stage history without repeats in a row: "Applied, Applied" becomes the first "Applied". Older
+ * saves, imports, and server records can contain such repeats; they say nothing new, so the
+ * timeline and the numbers worked out from history ignore them. Order and timestamps are kept.
+ */
+export function collapseHistory(history) {
+  const out = [];
+  for (const change of Array.isArray(history) ? history : []) {
+    if (!out.length || out[out.length - 1].status !== change.status) out.push(change);
+  }
+  return out;
+}
+
+/**
+ * The recording rule for a stage change: setting the stage a page already has changes nothing,
+ * and history only gains an entry when the stage really changes, never a repeat of the last one.
+ */
 export function withStatus(application, status, at) {
   if (application.status === status) return application;
-  return { ...application, status, updatedAt: at, history: [...application.history, { status, at }] };
+  const history = collapseHistory(application.history);
+  const changed = history.length && history[history.length - 1].status === status ? history : [...history, { status, at }];
+  return { ...application, status, updatedAt: at, history: changed };
 }
 
 /* ---------- Derived numbers (all computed from the entries themselves) ---------- */
