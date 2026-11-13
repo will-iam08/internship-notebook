@@ -73,6 +73,7 @@ export const browserApi = {
     const now = new Date().toISOString();
     let updated = { ...data.applications[index], ...fields, updatedAt: now };
     if (updated.interview && !Object.keys(updated.interview).length) delete updated.interview; // cleared prep is no field at all
+    if (updated.mock && !updated.mock.length) delete updated.mock;
     if (status) updated = withStatus(updated, status, now);
     data.applications[index] = updated;
     this.write(data);
@@ -157,8 +158,8 @@ export const serverApi = {
     return response.status === 204 ? null : response.json();
   },
   body(fields) {
-    // Interview prep is a website-edition feature; the Java server has no such field.
-    const { interview, ...payload } = fields;
+    // Interview prep and practice history belong to the website edition.
+    const { interview, mock, ...payload } = fields;
     if (Array.isArray(payload.skills)) payload.skills = payload.skills.join(", ");
     return JSON.stringify(payload);
   },
@@ -191,7 +192,10 @@ export const serverApi = {
   async importBackup(applications, recentlyDeleted = []) {
     const serialize = raw => {
       const { entry } = sanitizeImportedEntry({ ...raw, id: 1 });
-      if (entry) delete entry.interview; // not stored by the Java server
+      if (entry) {
+        delete entry.interview; // not stored by the Java server
+        delete entry.mock;
+      }
       return entry && {
         ...entry,
         skills: entry.skills.join(", "),
