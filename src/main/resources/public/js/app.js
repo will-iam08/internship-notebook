@@ -35,6 +35,7 @@ import { QUESTION_GROUPS, questionsByGroup, questionsFor, interviewSummary, with
 import {
   upcomingActions, dueSoon, dueSoonMessage, buildIcs, buildMarkdownNotebook, buildEmailDigest, digestMailto, shortDate
 } from "./reminders.js";
+import { REGIONS, matchesRegion, regionCounts } from "./listings.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -97,6 +98,7 @@ function readPrefs() {
     newsFilter: {
       term: typeof filters.term === "string" ? filters.term.slice(0, 80) : "ALL",
       degree: ["Junior", "Intermediate", "Senior"].includes(filters.degree) ? filters.degree : "ALL",
+      region: REGIONS.includes(filters.region) ? filters.region : "ALL",
       coopOnly: filters.coopOnly === true,
       location: typeof filters.location === "string" ? filters.location.slice(0, 120) : "",
       keywords: typeof filters.keywords === "string" ? filters.keywords.slice(0, 120) : ""
@@ -136,7 +138,7 @@ const state = {
   prefs: readPrefs(),
   installPrompt: null,
   dragId: null,
-  internships: { listings: [], generatedAt: "", source: "" }
+  internships: { listings: [], generatedAt: "", source: "", sources: [] }
 };
 
 async function loadInternships() {
@@ -147,7 +149,8 @@ async function loadInternships() {
     state.internships = {
       listings: Array.isArray(data.listings) ? data.listings : [],
       generatedAt: typeof data.generatedAt === "string" ? data.generatedAt : "",
-      source: typeof data.source === "string" ? data.source : ""
+      source: typeof data.source === "string" ? data.source : "",
+      sources: Array.isArray(data.sources) ? data.sources.filter(source => source && typeof source.name === "string" && /^https:\/\//.test(source.url ?? "")) : []
     };
   } catch {
     // Offline, or the feed hasn't been generated yet: Today just omits the section below.
@@ -677,6 +680,16 @@ function postingKey(link) {
   } catch { return ""; }
 }
 
+const REGION_PHRASES = { ALL: "worldwide", Canada: "in Canada", "United States": "in the United States", Remote: "remote", International: "outside Canada and the US" };
+const SOURCE_LABELS = { "canadian-tech-internships": "Canadian Tech Internships", simplify: "Pitt CSC / Simplify" };
+/** Credits the lists the feed was built from, linking back to each one. */
+function feedSources(feed) {
+  const sources = feed.sources.length ? feed.sources
+    : feed.source ? [{ name: "Pitt CSC & Simplify", url: feed.source }] : [];
+  if (!sources.length) return "";
+  const links = sources.map(source => `<a href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">${esc(source.name)}</a>`);
+  return `<p class="card-note" style="margin-top:10px">${sources.length > 1 ? "Sources" : "Source"}: ${links.join(" and ")} on GitHub</p>`;
+}
 function newsCard() {
   const feed = state.internships;
   const filters = state.prefs.newsFilter;
@@ -692,18 +705,26 @@ function newsCard() {
 
   const location = filters.location.trim().toLowerCase();
   const keywords = filters.keywords.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  const rows = safeRows.filter(listing =>
+  // Region chips count what the other filters leave, so each count is what a click would show.
+  const otherwiseShown = safeRows.filter(listing =>
     (filters.term === "ALL" || (listing.terms || []).includes(filters.term))
-    && (filters.degree === "ALL" || listing.experienceLevel === filters.degree)
+    // A listing with no degree information (the Canadian list has none) is "unspecified".
+    && (filters.degree === "ALL" || (listing.experienceLevel || "Junior") === filters.degree)
     && (!filters.coopOnly || listing.isCoop)
-    && (!location || listing.location.toLowerCase().includes(location))
+    && (!location || String(listing.location || "").toLowerCase().includes(location))
     && keywords.every(word => `${listing.company} ${listing.role}`.toLowerCase().includes(word))
   );
+  const rows = otherwiseShown.filter(listing => matchesRegion(listing, filters.region));
+  const regionTotals = regionCounts(otherwiseShown);
 
   const modeClass = { Remote: "remote", Hybrid: "hybrid", "In-person": "onsite" };
   const termLabel = filters.term === "ALL" ? "All terms" : filters.term;
   const degreeLabel = filters.degree === "ALL" ? "Any degree eligibility" : EXPERIENCE_LEVELS.find(([value]) => value === filters.degree)?.[1] || "Any degree eligibility";
+  const regionChips = [["ALL", "All"], ...REGIONS.map(region => [region, region])];
   const filterBar = safeRows.length ? `
+    <div class="filters news-regions" role="group" aria-label="Filter openings by region">
+      ${regionChips.map(([value, label]) => `<button class="filter-chip" type="button" data-action="news-region" data-region="${esc(value)}" aria-pressed="${filters.region === value}">${esc(label)} <b>${regionTotals[value]}</b></button>`).join("")}
+    </div>
     <div class="news-filters">
       <button class="filter-select" type="button" data-action="news-term-menu" aria-haspopup="menu">${esc(termLabel)}</button>
       <button class="filter-select" type="button" data-action="news-degree-menu" aria-haspopup="menu">${esc(degreeLabel)}</button>
@@ -718,7 +739,7 @@ function newsCard() {
   return `
     <section class="card news-card" aria-labelledby="news-title">
       <div class="card-head"><div><h2 class="card-title" id="news-title">${icon("sparkle")} Latest internship openings</h2>
-        <p class="card-note">${safeRows.length ? `${plural(rows.length, "role")} shown, worldwide${feed.generatedAt ? ` · updated ${esc(timeAgo(feed.generatedAt))}` : ""}` : "A feed of recently posted internship roles"}</p></div>
+        <p class="card-note">${safeRows.length ? `${plural(rows.length, "role")} shown, ${REGION_PHRASES[filters.region] || "worldwide"}${feed.generatedAt ? ` · updated ${esc(timeAgo(feed.generatedAt))}` : ""}` : "A feed of recently posted internship roles"}</p></div>
       </div>
       ${filterBar}
       ${rows.length ? `<ul class="news-list">${rows.map(listing => `
@@ -737,7 +758,7 @@ function newsCard() {
           </div>
         </li>`).join("")}</ul>`
         : `<p class="empty-note">${safeRows.length ? "No roles match these filters." : "No fresh listings right now. Check back soon."}</p>`}
-      ${feed.source ? `<p class="card-note" style="margin-top:10px">Source: <a href="${esc(feed.source)}" target="_blank" rel="noopener noreferrer">Pitt CSC &amp; Simplify on GitHub</a></p>` : ""}
+      ${feedSources(feed)}
     </section>`;
 }
 
@@ -3343,14 +3364,21 @@ const actions = {
       if (tracked) { go(`#/entry/${tracked.id}`); return; }
       openNew("SAVED", {
         company: String(listing.company).slice(0, LIMITS.company), role: String(listing.role).slice(0, LIMITS.role),
-        location: String(listing.location || "").slice(0, LIMITS.location), link, source: "Pitt CSC / Simplify"
+        location: String(listing.location || "").slice(0, LIMITS.location), link, source: SOURCE_LABELS[listing.source] || SOURCE_LABELS.simplify
       });
       newPostingLink = postingKey(link);
     } catch (error) { fail(error); }
   },
   "news-clear": () => {
-    state.prefs.newsFilter = { term: "ALL", degree: "ALL", coopOnly: false, location: "", keywords: "" };
+    state.prefs.newsFilter = { term: "ALL", degree: "ALL", region: "ALL", coopOnly: false, location: "", keywords: "" };
     savePrefs(); rerender();
+  },
+  "news-region": target => {
+    const region = target.dataset.region;
+    state.prefs.newsFilter.region = REGIONS.includes(region) ? region : "ALL";
+    savePrefs(); rerender();
+    // The chips are re-drawn, so keep keyboard focus on the one just chosen.
+    $(`[data-action="news-region"][data-region="${state.prefs.newsFilter.region}"]`)?.focus({ preventScroll: true });
   },
   "news-term-menu": target => {
     const current = state.prefs.newsFilter.term;
