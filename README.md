@@ -22,15 +22,15 @@ A private, installable web app for organizing internship applications, interview
 - **Light and dark themes** that follow the device setting or a manual choice, checked against WCAG 2.2 AA contrast
 - **Your data, portable:** CSV export for spreadsheets, plus a JSON backup you can import on another device. Every imported field is validated the same way a typed one is (limits, calendar dates, and links: only `http(s)://` is ever accepted), the import is previewed before anything is written, and it can be undone as a batch
 - **Reminders and exports (`#/export`):** the website edition has no server, so it hands reminders to apps that can deliver them, and says so on the page. A calendar file (.ics) puts every upcoming deadline, interview, and follow-up into Google Calendar, Apple Calendar, or Outlook, with alerts a day and two hours before; those are real reminders on a phone or laptop. "Email me a digest" opens your own mail app with the week's deadlines, follow-ups, and interviews already written and addressed to you (the site never sends email, and the address stays in this browser). An optional notification lists anything due today or tomorrow, but only when the notebook is open in a tab. There is also a Markdown copy, a print stylesheet for Today, All pages, and a one-page summary (or Save as PDF), and the JSON backup
-- **Optional account sync:** Google sign-in or a verified email/password account can copy the browser notebook to a private Firestore document and sync later edits. The interface distinguishes waiting, syncing, errors, and confirmed saves, with the last confirmed save time. Notebook replacement previews both copies and downloads the device backup first; pending edits are preserved. Email accounts have recovery links; phone/SMS recovery is deliberately off to avoid paid-SMS abuse
-- **Account privacy controls:** a public privacy policy and deletion guide, plus in-app deletion of both the Firebase account and its cloud notebook
+- **Optional cloud sync:** when the owner configures Supabase, Settings offers email/password sign-in and a manual Sync now button. The newer whole notebook wins by edit timestamp; local-only use remains the default. Sessions stay in memory and notebook storage stays in the existing browser key. See [Supabase setup](supabase/README.md)
+- **Account privacy:** a public privacy policy and deletion guide explain browser storage and optional cloud data
 - **Google/Android-friendly PWA:** job links can be shared into the installed app, and application deadlines or next steps can be downloaded as standard calendar events
 - **Autosave that doesn't lose work:** every edit is captured to this browser the instant it happens. If a save can't be confirmed yet (offline, storage briefly unavailable), it stays queued and retries automatically, or press Retry - it is never silently dropped. The save indicator says exactly what's true: Saving, Saved locally, Synced (server mode only), or Couldn't save
 - Responsive layout (sidebar on laptops, bottom tab bar on phones, stage tabs and a "Move to..." control on the Board on a touch screen), 44px touch targets, and motion that respects reduced-motion settings
 - Consistent interaction feedback: every button, chip, tab, card, list row, and link reacts on hover and gives a small press (1px down, 2% smaller) in 150-180 ms. Presses use transform only, so nothing around them moves, and reduced motion keeps the colour changes but drops the movement
 - Keyboard-friendly throughout: a real radiogroup with arrow-key support for picking a stage, a skip link, and focus that returns to where you were after a dialog closes
 
-The local app has **zero third-party runtime dependencies**: the backend is a Java HTTP API and the frontend is plain HTML, CSS, and JavaScript, split into small modules (`js/domain.js`, `js/storage.js`, `js/api.js`, `js/cloud.js`, `js/app.js`). The optional cloud feature loads the official Firebase web modules from Google's CDN only in the website edition. Development-only tooling (`node --test`, Playwright) lives in `package.json` and never ships to the browser.
+The local app has **zero third-party runtime dependencies**: the backend is a Java HTTP API and the frontend is plain HTML, CSS, and JavaScript, split into small modules (`js/domain.js`, `js/storage.js`, `js/api.js`, `js/cloud.js`, `js/app.js`). Optional Supabase sync uses plain `fetch` to Auth and PostgREST, with no SDK or third-party runtime scripts. Development-only tooling (`node --test`, Playwright) lives in `package.json` and never ships to the browser.
 
 ## What it demonstrates
 
@@ -83,11 +83,11 @@ npm test                     # all three
 
 The same interface also runs as a browser-only website. The GitHub Pages workflow (and the Render static site) build `src/main/resources/public` with `scripts/build-site.mjs`, which sets `window.NOTEBOOK_STORAGE_MODE = "browser"` in `site-mode.js`.
 
-In that mode each person's entries start in their own browser profile's storage. Nothing is uploaded unless they open **Settings**, sign in, verify the email address when needed, and explicitly choose which notebook copy to use. While sync is on, Firebase Authentication controls account access and Firestore rules allow a verified user to access only `notebooks/{their uid}`. After that first choice, sync can resume on the same browser: a last-synced fingerprint selects the only changed copy, while diverged local and cloud copies pause for the user to choose. Anyone who can use the same unlocked browser profile can still see its local notebook, and local storage is not encrypted by this app, so use a separate profile on a shared device.
+In that mode each person's entries start in their own browser profile's storage. Cloud sync is disabled unless the owner fills in `src/main/resources/public/runtime-config.js`. To enable it, create a Supabase project, run `supabase/schema.sql`, enable email sign-in, create a user, and paste the Project URL and public anon key. Follow [the full setup guide](supabase/README.md), then rebuild the site.
 
-Firebase encrypts stored data and network traffic using its managed infrastructure, but this is recoverable account security—not user-only end-to-end encryption. An app-layer encrypted design that also survives a forgotten password would need a trusted key-wrapping backend (for example Cloud Functions plus KMS) and is intentionally not claimed here. Backup files also contain the notebook in readable form, so keep them somewhere you trust.
+A visitor chooses **Settings → Cloud sync**, signs in, and presses **Sync now** to upload or download the newer whole notebook. Sign-in alone sends no notebook data; there is no background sync. Row Level Security restricts reads and writes to the signed-in owner's row. The database rejects stale concurrent writes. Timestamps depend on device clocks; keep backups when working on multiple copies. Reloading or session expiry requires signing in again. Existing Firebase accounts and cloud copies are not migrated; use a JSON backup to move a notebook.
 
-Browser storage is separated by origin, not URL path. The production app uses the dedicated `internshipnotebook.app` origin, so its browser-local notebook is isolated from other GitHub Pages projects. Anyone who can use the same unlocked browser profile can still see that profile's local notebook. See `docs/cross-device-sync-proposal.md` for the sync design.
+The cloud copy is readable by the Supabase project owner; it is not end-to-end encrypted. Backup files also contain readable notebook data. Anyone using the same unlocked browser profile can see its local notebook, so use a separate profile on a shared device. Browser storage is separated by origin, not URL path; production uses the dedicated `internshipnotebook.app` origin.
 
 The Java API is a single-user development server. It binds only to the loopback interface, rejects cross-site browser requests and non-JSON writes, caps ordinary request bodies at 64 KiB and backup imports at 5 MiB, and sends restrictive browser security headers. Backup import preserves active and recently deleted pages, original timestamps and stage history, and saves the whole batch atomically. An unreadable local storage row stops startup with the original file intact for recovery. The server still has no accounts or per-user database rows, so it must not be exposed as a public shared backend.
 
@@ -107,8 +107,8 @@ The product rules (the zero-backend rule, what reminders really do, where interv
 
 ```text
 Browser UI (HTML/CSS/JavaScript, service worker for offline use)
-      | fetch / JSON                 | optional verified account sync
-Java HTTP server                     Firebase Auth + Firestore
+      | fetch / JSON                 | optional manual account sync
+Java HTTP server                     Supabase Auth + PostgREST (fetch)
       |
 ApplicationRepository ── data/applications.tsv
 ```

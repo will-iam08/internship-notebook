@@ -9,8 +9,8 @@ response rate, interview rate, and weekly activity against a personal goal. The 
 shows a filterable worldwide feed of public internship and co-op listings, refreshed daily from
 the Pitt CSC and Simplify internship tracker.
 
-Entries start in the visitor's own browser. Optional Google or verified-email sign-in can sync
-the notebook to a private Firebase document restricted to that user's ID. The app has no ads and
+Entries start in the visitor's own browser. When the owner configures Supabase, optional
+email/password sign-in and manual sync copy the newer whole notebook to that user's private row. The app has no ads and
 does not use notebook content for marketing. JSON backup export/import remains available.
 
 The source code is plain HTML, CSS, and JavaScript with no third-party runtime dependencies

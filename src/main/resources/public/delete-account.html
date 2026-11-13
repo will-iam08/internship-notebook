@@ -11,14 +11,9 @@
 <body><main>
   <p class="eyebrow">My Internship Notebook</p>
   <h1>Delete your account</h1>
-  <p>You can permanently delete your cloud account and cloud notebook from inside the web app.</p>
-  <ol>
-    <li>Open Settings and sign in to the account you want to delete.</li>
-    <li>Under <strong>Account &amp; cloud sync</strong>, choose <strong>Delete account</strong>.</li>
-    <li>Confirm your identity and the permanent deletion.</li>
-  </ol>
-  <p>This deletes the Firebase Authentication account and the Firestore notebook stored under its user ID. It does not erase notebooks stored locally in your browsers; clear this site's browser data on each device to remove those copies.</p>
-  <p>If you cannot sign in, use <strong>Forgot password?</strong> in Settings first. For another deletion problem, open an issue in the <a href="https://github.com/will-iam08/internship-notebook/issues">project issue tracker</a> without including passwords or notebook contents.</p>
+  <p>Local-only use has no account. To remove your local notebook, clear this site's browser data on each device. Download a backup first if you want to keep a copy.</p>
+  <p>If the site owner has configured Supabase cloud sync, signing out leaves your cloud notebook intact. Ask the site owner to remove your account and cloud data through their private support channel. Do not post account details or notebook contents in the public issue tracker.</p>
+  <p>For the site owner: open Supabase Dashboard → Authentication → Users, select the account, and delete it. The notebook row is deleted automatically with the account. This leaves copies stored in browsers intact.</p>
   <a class="button" href="./#/settings">Open Settings</a>
 </main></body>
 </html>
