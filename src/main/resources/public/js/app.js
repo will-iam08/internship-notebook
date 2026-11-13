@@ -24,7 +24,7 @@ import {
 import { DEMO_SEED, buildDemoDataset } from "./demo.js";
 import {
   SEASONS, hasExistingWork, isNewVisitor as isNewVisitorPure,
-  canShowWelcome, shouldLandOnWelcome, shouldAutoplayTour,
+  canShowWelcome, shouldLandOnWelcome,
   sanitizeTargetRole, sanitizeSeason, sanitizeTargetCompanies,
   validateSetup, buildStarterApplications
 } from "./onboarding.js";
@@ -115,7 +115,7 @@ const state = {
   realApplications: null,
   realDeleted: null,
   // Welcome page choices (tour tab, mini-board filter, chaos/notebook toggle) survive a re-render.
-  welcome: { tab: "today", filter: "ALL", organized: false },
+  welcome: { tab: "today", filter: "ALL", organized: false, closerOpen: false },
   setupForm: { name: "", targetRole: "", season: "", companies: "" },
   build: null, // the builder's answers and step; set from freshBuild() once it is defined below
   prepOnlyToPractice: false, // the interview-prep filter, for this visit
@@ -1545,12 +1545,24 @@ const WELCOME_CHAOS_CAPTION = {
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const timeGreeting = hour => hour < 5 ? "Burning the midnight oil" : hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
+/* Each tour preview is a small working notebook: its sidebar switches the tour like the tabs above,
+   and its cards and rows are real links into the demo, which is already running behind this page.
+   Purely decorative parts (bars, the progress ring) are hidden from screen readers. */
+const WELCOME_ROUTES = { today: "#/today", board: "#/board", notebook: "#/notebook", insights: "#/insights" };
+const WELCOME_DEMO_LABEL = { today: "Open Today in the demo", board: "Open the Board in the demo", notebook: "Open All pages in the demo", insights: "Open Insights in the demo" };
+
 function welcomeMockCover(active) {
-  return `<div class="mock-cover">
-    <span class="mock-logo">${LOGO}</span>
-    ${WELCOME_TOUR.map(tab => `<span class="mock-nav${tab.key === active ? " on" : ""}">${icon(tab.key)}<b>${tab.label}</b></span>`).join("")}
-  </div>`;
+  return `<nav class="mock-cover" aria-label="Preview pages">
+    <span class="mock-logo" aria-hidden="true">${LOGO}</span>
+    ${WELCOME_TOUR.map(tab => `<button class="mock-nav${tab.key === active ? " on" : ""}" type="button" data-action="welcome-tab-mock" data-tab="${tab.key}"
+      ${tab.key === active ? 'aria-current="page"' : ""} aria-label="${esc(`Show the ${tab.label} preview`)}">${icon(tab.key)}<b>${tab.label}</b></button>`).join("")}
+  </nav>`;
 }
+
+/** A link from a preview into the demo. The visible text stays as the preview drew it; the
+ *  accessible name says where the link goes. */
+const demoLink = (key, inner, { className = "", detail = "" } = {}) =>
+  `<a class="mock-link ${className}" href="${WELCOME_ROUTES[key]}" aria-label="${esc(detail ? `${WELCOME_DEMO_LABEL[key]}: ${detail}` : WELCOME_DEMO_LABEL[key])}">${inner}</a>`;
 
 function welcomeMockToday() {
   const seed = DEMO_SEED.applications;
@@ -1561,7 +1573,7 @@ function welcomeMockToday() {
   return `
     <p class="mock-eyebrow">${esc(now.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" }))}</p>
     <p class="mock-title">${esc(timeGreeting(now.getHours()))}<span class="dot">.</span></p>
-    <div class="mock-split">
+    <div class="mock-split" aria-hidden="true">
       <div class="mock-card mock-strip"><p><b>${stats.open}</b> open applications</p><div class="mock-bar">${bar}</div></div>
       <div class="mock-card mock-goal"><span class="mock-ring" style="--p:.6"><b>3</b></span><p>of 5 sent<br>this week</p></div>
     </div>
@@ -1569,7 +1581,8 @@ function welcomeMockToday() {
       <p class="mock-label">Next up</p>
       ${next.map(entry => {
         const days = daysUntil(entry.nextStepDate);
-        return `<div class="mock-line">${pill(entry.status)}<span><b>${esc(entry.nextStep)}</b><small>${esc(entry.company)} · in ${plural(days, "day")}</small></span></div>`;
+        return demoLink("today", `${pill(entry.status)}<span><b>${esc(entry.nextStep)}</b><small>${esc(entry.company)} · in ${plural(days, "day")}</small></span>`,
+          { className: "mock-line", detail: `${entry.nextStep}, ${entry.company}` });
       }).join("")}
     </div>`;
 }
@@ -1579,8 +1592,9 @@ function welcomeMockBoard() {
   return `<div class="mock-columns">${PIPELINE.filter(stage => stage !== "REJECTED").map(stage => {
     const entries = seed.filter(entry => entry.status === stage);
     return `<div class="mock-column st-${stage}">
-      <p class="mock-column-head"><i></i>${LABELS[stage]}<span>${entries.length}</span></p>
-      ${entries.map(entry => `<div class="mock-card mock-mini"><small>${esc(entry.company)}</small><b>${esc(entry.role)}</b></div>`).join("")}
+      <p class="mock-column-head"><i aria-hidden="true"></i>${LABELS[stage]}<span>${entries.length}</span></p>
+      ${entries.map(entry => demoLink("board", `<small>${esc(entry.company)}</small><b>${esc(entry.role)}</b>`,
+        { className: "mock-card mock-mini", detail: entry.company })).join("")}
     </div>`;
   }).join("")}</div>`;
 }
@@ -1588,9 +1602,10 @@ function welcomeMockBoard() {
 function welcomeMockNotebook() {
   const seed = DEMO_SEED.applications;
   return `
-    <div class="mock-search">${icon("search")}<span>Search notes, skills, companies</span></div>
-    <div class="mock-toc">${seed.map(entry => `
-      <div class="mock-toc-row"><span><b>${esc(entry.company)}</b><small>${esc(entry.role)}</small></span>${pill(entry.status)}</div>`).join("")}
+    <div class="mock-search" aria-hidden="true">${icon("search")}<span>Search notes, skills, companies</span></div>
+    <div class="mock-toc">${seed.map(entry => demoLink("notebook",
+      `<span><b>${esc(entry.company)}</b><small>${esc(entry.role)}</small></span>${pill(entry.status)}`,
+      { className: "mock-toc-row", detail: entry.company })).join("")}
     </div>`;
 }
 
@@ -1602,17 +1617,13 @@ function welcomeMockInsights() {
   const skills = [...skillCounts].sort((left, right) => right[1] - left[1]).slice(0, 4).map(([skill]) => skill);
   // Eight decorative weeks of rhythm; the last bar is "this week", drawn in the accent colour.
   const weeks = [2, 4, 3, 5, 6, 4, 7, 3];
+  const stat = (value, label) => demoLink("insights", `<b>${value}</b><small>${label}</small>`, { className: "mock-card", detail: label });
   return `
-    <div class="mock-stats">
-      <div class="mock-card"><b>${stats.responseRate}%</b><small>Response rate</small></div>
-      <div class="mock-card"><b>${stats.interviewRate}%</b><small>Interview rate</small></div>
-      <div class="mock-card"><b>${stats.sent}</b><small>Sent</small></div>
-    </div>
-    <div class="mock-card mock-chart">
-      <p class="mock-label">Weekly rhythm</p>
-      <div class="mock-bars"><span class="mock-goal-line"></span>${weeks.map((count, index) => `<i style="--h:${count / 7}"${index === weeks.length - 1 ? ' class="now"' : ""}></i>`).join("")}</div>
-    </div>
-    <p class="mock-skills">${skills.map(skill => `<span class="chip">${esc(skill)}</span>`).join("")}</p>`;
+    <div class="mock-stats">${stat(`${stats.responseRate}%`, "Response rate")}${stat(`${stats.interviewRate}%`, "Interview rate")}${stat(stats.sent, "Sent")}</div>
+    ${demoLink("insights", `<p class="mock-label">Weekly rhythm</p>
+      <div class="mock-bars" aria-hidden="true"><span class="mock-goal-line"></span>${weeks.map((count, index) => `<i style="--h:${count / 7}"${index === weeks.length - 1 ? ' class="now"' : ""}></i>`).join("")}</div>`,
+      { className: "mock-card mock-chart", detail: "Weekly rhythm" })}
+    <p class="mock-skills" aria-hidden="true">${skills.map(skill => `<span class="chip">${esc(skill)}</span>`).join("")}</p>`;
 }
 
 const WELCOME_MOCKS = { today: welcomeMockToday, board: welcomeMockBoard, notebook: welcomeMockNotebook, insights: welcomeMockInsights };
@@ -1620,24 +1631,27 @@ const WELCOME_MOCKS = { today: welcomeMockToday, board: welcomeMockBoard, notebo
 function welcomeTour() {
   const active = state.welcome.tab;
   return `
-    <section class="welcome-section welcome-tour" aria-labelledby="welcome-tour-title">
+    <div class="welcome-tour">
       <div class="welcome-section-head">
-        <p class="eyebrow">Take the tour</p>
-        <h2 id="welcome-tour-title">Four pages, one notebook<span class="dot">.</span></h2>
+        <h3 id="welcome-tour-title">Four pages, one notebook</h3>
+        <p class="welcome-section-sub">Switch pages with the tabs or the preview's own sidebar. Anything in a preview opens that page in the demo.</p>
       </div>
       <div class="tour-tabs" role="tablist" aria-label="Product tour">
         ${WELCOME_TOUR.map(tab => `<button class="tour-tab" type="button" role="tab" id="tour-tab-${tab.key}" aria-controls="tour-panel-${tab.key}"
           aria-selected="${tab.key === active}" tabindex="${tab.key === active ? 0 : -1}" data-action="welcome-tab" data-tab="${tab.key}">${icon(tab.key)}<span>${tab.label}</span></button>`).join("")}
       </div>
       ${WELCOME_TOUR.map(tab => `
-        <div class="tour-panel" role="tabpanel" id="tour-panel-${tab.key}" aria-labelledby="tour-tab-${tab.key}" tabindex="0" data-panel="${tab.key}"${tab.key === active ? "" : " hidden"}>
-          <div class="mock" role="img" aria-label="Preview of the ${tab.label} page, filled with the demo notebook">
+        <div class="tour-panel" role="tabpanel" id="tour-panel-${tab.key}" aria-labelledby="tour-tab-${tab.key}" data-panel="${tab.key}"${tab.key === active ? "" : " hidden"}>
+          <div class="mock">
             ${welcomeMockCover(tab.key)}
-            <div class="mock-page mock-${tab.key}" aria-hidden="true">${WELCOME_MOCKS[tab.key]()}</div>
+            <div class="mock-page mock-${tab.key}">${WELCOME_MOCKS[tab.key]()}</div>
           </div>
-          <p class="tour-caption">${esc(tab.caption)}</p>
+          <div class="tour-foot">
+            <p class="tour-caption">${esc(tab.caption)}</p>
+            <a class="button ghost tour-open" href="${WELCOME_ROUTES[tab.key]}">${icon("forward")}<span>Open this view in the demo</span></a>
+          </div>
         </div>`).join("")}
-    </section>`;
+    </div>`;
 }
 
 function welcomeBoardCards() {
@@ -1701,72 +1715,116 @@ function welcomeChaos() {
     </section>`;
 }
 
+/* The four things the notebook does, each tied to a real feature and the demo page that shows it.
+   Demo page ids come from DEMO_SEED: 2 is an Applied page with notes, 3 is in the Interview stage. */
+const WELCOME_VALUES = [
+  { icon: "clock", title: "Never miss a deadline", copy: "Today lists what's due next, and a calendar file puts every deadline and interview on your phone with reminders.", href: "#/today", link: "See Today in the demo" },
+  { icon: "notebook", title: "One page per application", copy: "Each role gets its own ruled page: contacts, skills, notes, and a dated timeline of every move.", href: "#/entry/2", link: "Open a page in the demo" },
+  { icon: "board", title: "Your whole search at a glance", copy: "The Board lays every application out by stage, from Saved to Offer. Drag a card when something changes.", href: "#/board", link: "See the Board in the demo" },
+  { icon: "check", title: "Walk into interviews prepared", copy: "A question bank matched to the role and stage. Mark what you've practiced and note the story you'll tell.", href: "#/entry/3", link: "Try interview prep in the demo" }
+];
+
 function viewWelcome() {
   if (!canShowWelcome({ browserMode: BROWSER_MODE, demoActive: inDemo() })) return "";
-  const autoplay = shouldAutoplayTour({ reducedMotion: reducedMotion(), saveData: navigator.connection?.saveData === true });
-  const build = (label = "Build my notebook") => `<button class="button primary large" type="button" data-action="build-notebook">${icon("plus")}<span>${label}</span></button>`;
+  const build = (label = "Build my notebook") => `<a class="button primary large" href="#/build" data-action="build-notebook">${icon("plus")}<span>${label}</span></a>`;
+  const explore = `<a class="button ghost large" href="#/today">${icon("compass")}<span>Explore the demo</span></a>`;
   return `
     <div class="welcome-page">
       <section class="welcome-hero" aria-labelledby="welcome-title">
-        <div class="welcome-copy">
-          <p class="eyebrow welcome-eyebrow">My Internship Notebook</p>
-          <h1 class="welcome-title" id="welcome-title">Your internship search, on paper<span class="dot">.</span></h1>
-          <p class="welcome-sub">Save roles, move each one from Saved to Offer, and keep a ruled page of notes for every application, all in one notebook.</p>
-          <div class="welcome-cta">
-            ${build()}
-            <a class="button ghost large" href="#/today">${icon("compass")}<span>Explore the demo</span></a>
-          </div>
-          <p class="welcome-trust">${icon("lock")}<span>No sign-up needed. Private to your browser.</span></p>
+        <p class="eyebrow welcome-eyebrow">My Internship Notebook</p>
+        <h1 class="welcome-title" id="welcome-title">Your internship search, on paper<span class="dot">.</span></h1>
+        <p class="welcome-sub">One private notebook for every application: what's due, where each one stands, and what to say in the interview.</p>
+        <div class="welcome-cta">${build()}${explore}</div>
+      </section>
+
+      <section class="welcome-section welcome-video" aria-labelledby="welcome-video-title">
+        <div class="welcome-section-head">
+          <p class="eyebrow">See it work</p>
+          <h2 id="welcome-video-title">A quick tour of the notebook<span class="dot">.</span></h2>
         </div>
-        <figure class="welcome-video">
+        <figure class="welcome-video-figure">
           <div class="tour-video-frame" data-video-frame>
-            <video class="tour-video" muted loop playsinline${autoplay ? " autoplay" : ""} preload="${autoplay ? "auto" : "metadata"}"
-              poster="media/demo-tour-poster.jpg" src="media/demo-tour.mp4"
+            <!-- No src until the visitor presses play, so the clip is never downloaded unasked. -->
+            <video class="tour-video" muted loop playsinline preload="none" poster="media/demo-tour-poster.jpg" data-src="media/demo-tour.mp4"
               aria-label="Screen recording of the notebook: Today, the Board, an application page, and Insights"></video>
             <button class="tour-video-toggle" type="button" data-action="welcome-video" aria-label="Play the tour video">
               <span class="when-paused">${icon("play")}</span><span class="when-playing">${icon("pause")}</span>
             </button>
           </div>
-          <figcaption><span class="tour-video-tag">18-second tour</span><span>Recorded in the demo notebook you can open right now.</span></figcaption>
+          <figcaption>
+            <span class="tour-video-tag">18-second tour</span>
+            <span>Recorded in the demo notebook you can open right now.</span>
+            <ol class="video-chapters" aria-label="In this video">
+              <li>Today</li><li>The Board</li><li>An application page</li><li>Insights</li>
+            </ol>
+          </figcaption>
         </figure>
       </section>
 
-      ${welcomeTour()}
-
-      <div class="welcome-pair">
-        ${welcomeMiniBoard()}
-        ${welcomeChaos()}
-      </div>
-
-      <section class="welcome-benefits" aria-label="Why a notebook">
-        <article class="card benefit">
-          <span class="benefit-mark">${icon("clock")}</span>
-          <h3>Never miss a deadline</h3>
-          <p>Deadlines and interview dates surface on Today and the Board before they sneak up on you.</p>
-        </article>
-        <article class="card benefit">
-          <span class="benefit-mark">${icon("notebook")}</span>
-          <h3>One page per application</h3>
-          <p>Notes, contacts, skills, and a dated timeline for every role, on its own ruled page.</p>
-        </article>
-        <article class="card benefit">
-          <span class="benefit-mark">${icon("lock")}</span>
-          <h3>Private, offline, installable</h3>
-          <p>Pages stay in this browser, keep working without a connection, and install like an app.</p>
-        </article>
+      <section class="welcome-section" aria-labelledby="welcome-values-title">
+        <div class="welcome-section-head">
+          <p class="eyebrow">What it does for you</p>
+          <h2 id="welcome-values-title">Less to remember, less to lose<span class="dot">.</span></h2>
+        </div>
+        <div class="welcome-values">
+          ${WELCOME_VALUES.map(value => `
+          <article class="card value-card">
+            <span class="benefit-mark" aria-hidden="true">${icon(value.icon)}</span>
+            <h3>${esc(value.title)}</h3>
+            <p>${esc(value.copy)}</p>
+            <a class="text-button value-link" href="${value.href}">${esc(value.link)}${icon("forward")}</a>
+          </article>`).join("")}
+        </div>
       </section>
 
+      <section class="welcome-section welcome-how" aria-labelledby="welcome-how-title">
+        <div class="welcome-section-head">
+          <p class="eyebrow">How it works</p>
+          <h2 id="welcome-how-title">Three steps to your notebook<span class="dot">.</span></h2>
+        </div>
+        <ol class="how-steps">
+          <li class="how-step">
+            <div class="how-mock" aria-hidden="true"><span class="how-opt on"></span><span class="how-opt"></span><span class="how-opt"></span></div>
+            <h3>Tell us how you work</h3>
+            <p>Three quick questions: how to start, what it's for, and what it should keep an eye on.</p>
+          </li>
+          <li class="how-step">
+            <div class="how-mock" aria-hidden="true"><span class="how-page st-SAVED"></span><span class="how-page st-APPLIED"></span><span class="how-page st-INTERVIEW"></span></div>
+            <h3>We build your notebook</h3>
+            <p>Starter pages for your target role and companies, or a clean empty notebook. Nothing is saved until you say so.</p>
+          </li>
+          <li class="how-step">
+            <div class="how-mock how-mock-today" aria-hidden="true"><span class="how-line"></span><span class="how-line short"></span><span class="how-bar"></span></div>
+            <h3>Track it from Today</h3>
+            <p>Today shows what's due and what moved. Update a page as things happen.</p>
+          </li>
+        </ol>
+        <div class="welcome-cta">${build()}${explore}</div>
+      </section>
+
+      <details class="welcome-closer" data-welcome-closer${state.welcome.closerOpen ? " open" : ""}>
+        <summary><span class="welcome-closer-title">A closer look</span><span class="welcome-closer-sub">Tour the four pages and try the board up close</span></summary>
+        <div class="welcome-closer-body">
+          ${welcomeTour()}
+          <div class="welcome-pair">
+            ${welcomeMiniBoard()}
+            ${welcomeChaos()}
+          </div>
+        </div>
+      </details>
+
       <section class="welcome-final" aria-labelledby="welcome-final-title">
-        <h2 id="welcome-final-title">Start a fresh notebook<span class="dot">.</span></h2>
-        <p>Two minutes of setup. Add your target role and a few companies and the first pages are ready.</p>
-        <div class="welcome-cta">${build()}<a class="text-button" href="#/today">Or keep exploring the demo</a></div>
+        <h2 id="welcome-final-title">Start your notebook<span class="dot">.</span></h2>
+        <p>Three questions, then your first pages are ready.</p>
+        <div class="welcome-cta">${build()}</div>
+        <p class="welcome-trust">${icon("lock")}<span>No sign-up needed. Private to your browser.</span></p>
       </section>
     </div>`;
 }
 
 /* Welcome interactions. These update state.welcome (so a re-render shows the same choice) and then
    patch the live DOM in place, which is what lets the swap, filter, and chaos morph animate. */
-function selectWelcomeTab(key, { focus = false } = {}) {
+function selectWelcomeTab(key, { focus = false, focusMock = false } = {}) {
   if (!WELCOME_MOCKS[key]) return;
   state.welcome.tab = key;
   $$("[data-action='welcome-tab']", viewRoot).forEach(tab => {
@@ -1780,6 +1838,9 @@ function selectWelcomeTab(key, { focus = false } = {}) {
     if (show && panel.hidden) restartAnimation(panel, "is-entering");
     panel.hidden = !show;
   });
+  // The old panel (and the button just pressed inside it) is now hidden, so move focus to the same
+  // spot in the newly shown preview rather than letting it fall back to the page.
+  if (focusMock) $(`#tour-panel-${key} .mock-nav[data-tab="${key}"]`, viewRoot)?.focus();
 }
 
 function restartAnimation(element, className) {
@@ -1813,6 +1874,9 @@ function organizeWelcomeChaos(organized) {
 function toggleWelcomeVideo(button) {
   const video = button.closest("[data-video-frame]")?.querySelector("video");
   if (!video) return;
+  // First play: attach the clip and load it explicitly. Safari on iOS ignores preload and would
+  // otherwise wait for playback to start before fetching anything.
+  if (!video.getAttribute("src") && video.dataset.src) { video.src = video.dataset.src; video.preload = "auto"; video.load(); }
   if (video.paused) video.play().catch(() => { if (video.error) markVideoFailed(video); });
   else video.pause();
 }
@@ -3285,6 +3349,7 @@ const actions = {
   "build-notebook": () => startMyNotebook(),
   "build-back": () => { syncBuildForm(); state.build.errors = {}; showBuildStep(state.build.step - 1); },
   "welcome-tab": target => selectWelcomeTab(target.dataset.tab),
+  "welcome-tab-mock": target => selectWelcomeTab(target.dataset.tab, { focusMock: true }),
   "welcome-filter": target => filterWelcomeBoard(target.dataset.stage),
   "welcome-chaos": target => organizeWelcomeChaos(target.dataset.organized === "true"),
   "welcome-video": target => toggleWelcomeVideo(target),
@@ -3600,6 +3665,7 @@ for (const type of ["play", "pause"]) {
 viewRoot.addEventListener("error", event => { if (event.target.matches?.(".tour-video")) markVideoFailed(event.target); }, true);
 // Interview prep groups remember being opened or closed; "toggle" does not bubble, so capture it.
 viewRoot.addEventListener("toggle", event => {
+  if (event.target.matches?.("[data-welcome-closer]")) { state.welcome.closerOpen = event.target.open; return; }
   const group = event.target.closest?.(".prep-group");
   if (!group || state.route.view !== "entry") return;
   const open = state.prepOpen[state.route.id] ||= new Set();

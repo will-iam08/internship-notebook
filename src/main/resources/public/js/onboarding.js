@@ -87,13 +87,6 @@ export function shouldLandOnWelcome({ browserMode, newVisitor, demoActive, hash,
   return FRONT_DOOR_HASHES.has(typeof hash === "string" ? hash : "");
 }
 
-/**
- * True when the welcome tour video may start on its own. Reduced-motion users get the poster and a
- * play button instead, and so do visitors who asked the browser to save data (the clip is ~2.7 MB).
- */
-export function shouldAutoplayTour({ reducedMotion, saveData }) {
-  return reducedMotion !== true && saveData !== true;
-}
 
 /* ---------- Guided-setup validation ---------- */
 
