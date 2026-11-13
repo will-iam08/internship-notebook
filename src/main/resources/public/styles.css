@@ -1332,8 +1332,9 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 .welcome-page .eyebrow::before { background: var(--accent); border-radius: 2px; content: ""; height: 10px; width: 10px; }
 
 /* Hero: headline and calls to action, with the tour video beside them on wide screens. */
-.welcome-hero { align-items: center; display: grid; gap: 36px; padding-top: clamp(8px, 4vw, 40px); }
-@media (min-width: 1024px) { .welcome-hero { gap: 48px; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); } }
+/* Hero: one column of copy and two calls to action. The video gets its own section below. */
+.welcome-hero { max-width: 780px; padding-top: clamp(8px, 5vw, 56px); }
+.welcome-hero .welcome-title { max-width: 14ch; }
 .welcome-title {
   font-size: clamp(2.6rem, 9vw, 4.5rem);
   letter-spacing: -.035em;
@@ -1355,8 +1356,8 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 .welcome-trust .icon { height: 16px; width: 16px; }
 
 /* Tour video, "taped" onto the page. */
-.welcome-video { margin: 0; position: relative; }
-.welcome-video::before {
+.welcome-video-figure { margin: 0 auto; max-width: 980px; position: relative; }
+.welcome-video-figure::before {
   background: color-mix(in srgb, var(--accent) 26%, transparent);
   border-radius: 2px;
   content: "";
@@ -1403,7 +1404,7 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 .tour-video-frame:not(.is-playing) .tour-video-toggle .icon { height: 26px; width: 26px; }
 .tour-video-toggle .when-playing, .is-playing .tour-video-toggle .when-paused { display: none; }
 .is-playing .tour-video-toggle .when-playing { display: block; }
-.welcome-video figcaption { align-items: baseline; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .86rem; gap: 4px 12px; margin-top: 14px; }
+.welcome-video-figure figcaption { align-items: baseline; color: var(--muted); display: flex; flex-wrap: wrap; font-size: .86rem; gap: 4px 12px; margin-top: 14px; }
 .tour-video-tag { color: var(--ink); font-family: var(--hand); font-size: 1.15rem; }
 
 /* Section headings shared by the tour, mini board, and chaos toggle. */
@@ -1661,13 +1662,8 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 @media (max-width: 479px) { .scrap-mess { font-size: .8rem; } .scrap-email .scrap-mess, .scrap-tab .scrap-mess { font-size: .7rem; } .scrap-neat b { font-size: .76rem; } }
 .chaos-caption { color: var(--ink-2); font-size: .92rem; margin-top: 12px; min-height: 2.8em; }
 
-/* Benefits and the closing call to action. */
-.welcome-benefits { display: grid; gap: 16px; }
-@media (min-width: 760px) { .welcome-benefits { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-.benefit { padding: 22px; }
+/* The benefit mark (value cards) and the closing call to action. */
 .benefit-mark { background: var(--accent-soft); border-radius: 10px; color: var(--accent-ink); display: grid; height: 40px; margin-bottom: 14px; place-items: center; width: 40px; }
-.benefit h3 { font-size: 1.2rem; margin-bottom: 6px; }
-.benefit p { color: var(--ink-2); font-size: .92rem; }
 .welcome-final { display: grid; gap: 12px; justify-items: center; padding-top: 36px; position: relative; text-align: center; }
 .welcome-final::before, .welcome-final::after { border-top: 1px solid var(--rule); content: ""; left: 0; position: absolute; right: 0; top: 0; }
 .welcome-final::after { top: 4px; }
@@ -2007,3 +2003,81 @@ a:not([class]):active { opacity: .65; }
 .cloud-sync-form { display: grid; gap: 12px; margin-top: 16px; }
 .cloud-sync-form .button { justify-self: start; }
 .cloud-sync [data-cloud-status] { color: var(--muted); margin: 12px 0 0; }
+
+
+/* ---------- Welcome landing page: video, value cards, how it works, closer look ---------- */
+.video-chapters { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 6px; list-style: none; margin: 8px 0 0; padding: 0; counter-reset: chapter; }
+.video-chapters li { background: var(--wash-strong); border-radius: 99px; color: var(--ink-2); counter-increment: chapter; font-size: .8rem; font-weight: 650; padding: 4px 10px; }
+.video-chapters li::before { color: var(--muted); content: counter(chapter) ". "; }
+/* Before the first play the frame shows the poster and a large play button. */
+.tour-video-frame:not(.is-playing) .tour-video-toggle { height: 84px; width: 84px; }
+.tour-video-frame:not(.is-playing) .tour-video-toggle .icon { height: 32px; width: 32px; }
+
+.welcome-values { display: grid; gap: 16px; }
+@media (min-width: 640px) { .welcome-values { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .welcome-values { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.value-card { display: flex; flex-direction: column; gap: 6px; padding: 22px; }
+.value-card h3 { font-size: 1.15rem; }
+.value-card p { color: var(--ink-2); flex: 1; font-size: .92rem; }
+.value-link { align-items: center; align-self: flex-start; color: var(--accent-ink); display: inline-flex; gap: 4px; text-decoration: none; margin: 6px 0 -6px -9px; min-height: 44px; }
+.value-link .icon { height: 15px; width: 15px; }
+
+.how-steps { counter-reset: how; display: grid; gap: 16px; list-style: none; margin: 0 0 24px; padding: 0; }
+@media (min-width: 760px) { .how-steps { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.how-step { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); counter-increment: how; padding: 20px; position: relative; }
+.how-step::before {
+  background: var(--primary); border-radius: 50%; color: var(--primary-ink); content: counter(how); display: grid;
+  font-size: .82rem; font-weight: 700; height: 28px; left: 20px; place-items: center; position: absolute; top: -14px; width: 28px;
+}
+.how-step h3 { font-size: 1.12rem; margin: 12px 0 6px; }
+.how-step p { color: var(--ink-2); font-size: .9rem; }
+.how-mock { background: var(--paper-2); border-radius: 10px; display: grid; gap: 6px; margin-top: 8px; padding: 12px; }
+.how-opt { border: 1.5px solid var(--line-strong); border-radius: 7px; height: 16px; }
+.how-opt.on { background: color-mix(in srgb, var(--primary) 12%, var(--card)); border-color: var(--primary); }
+.how-page { background: var(--card); border: 1px solid var(--line); border-radius: 6px; box-shadow: inset 0 3px 0 var(--s); height: 18px; }
+.how-line { background: var(--line-strong); border-radius: 3px; height: 8px; width: 70%; }
+.how-line.short { width: 45%; }
+.how-bar { background: linear-gradient(90deg, var(--st-saved) 0 30%, var(--st-applied) 30% 60%, var(--st-interview) 60% 100%); border-radius: 4px; height: 10px; }
+
+/* A closer look: the tour and mini interactions, folded away as optional detail. */
+.welcome-closer { border-block: 1px solid var(--rule); }
+.welcome-closer > summary { align-items: baseline; cursor: pointer; display: flex; flex-wrap: wrap; gap: 4px 14px; list-style: none; min-height: 56px; padding: 16px 4px; }
+.welcome-closer > summary::-webkit-details-marker { display: none; }
+.welcome-closer > summary::before {
+  align-self: center; border: solid var(--muted); border-width: 0 2px 2px 0; content: ""; height: 8px; margin-right: 4px;
+  transform: rotate(-45deg); transition: transform .18s var(--ease); width: 8px;
+}
+.welcome-closer[open] > summary::before { transform: rotate(45deg); }
+.welcome-closer-title { font: 600 1.3rem var(--serif); }
+.welcome-closer-sub { color: var(--muted); font-size: .9rem; }
+.welcome-closer-body { display: grid; gap: 28px; padding: 4px 0 32px; }
+.welcome-tour .welcome-section-head h3 { font-size: clamp(1.3rem, 3.4vw, 1.6rem); }
+.welcome-section-sub { color: var(--muted); font-size: .9rem; margin-top: 4px; max-width: 62ch; }
+
+/* Interactive previews: the sidebar entries are buttons, the cards and rows are links. */
+.mock-nav { background: none; border: 0; color: inherit; min-height: 44px; text-align: left; width: 100%; }
+@media (hover: hover) { .mock-nav:hover:not(.on) { background: rgba(255, 255, 255, .06); color: var(--cover-ink); } }
+.mock-link { color: inherit; text-decoration: none; }
+.mock-link.mock-line, .mock-link.mock-toc-row { border-radius: 6px; min-height: 44px; }
+.mock-link.mock-mini, .mock-stats .mock-link { display: block; min-height: 44px; }
+.mock-link.mock-chart { display: block; }
+@media (hover: hover) {
+  .mock-link.mock-line:hover, .mock-link.mock-toc-row:hover { background: var(--wash-strong); }
+  .mock-link.mock-card:hover { border-color: var(--line-strong); box-shadow: var(--shadow-md); }
+}
+.mock-link:focus-visible, .mock-nav:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+@media (max-width: 559px) { .mock { grid-template-columns: 48px minmax(0, 1fr); } .mock-nav { justify-content: center; } }
+.tour-foot { align-items: center; display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: space-between; margin-top: 16px; }
+.tour-foot .tour-caption { flex: 1 1 280px; margin-top: 0; }
+.tour-open { min-height: 44px; }
+
+/* The shared press and hover layer also covers the new controls. */
+:is(.mock-nav, .mock-link, .value-link, .tour-open, .welcome-closer > summary) {
+  transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, opacity .16s, translate .16s var(--ease), scale .16s var(--ease);
+}
+:is(.mock-nav, .mock-link, .value-link, .welcome-closer > summary):active { scale: .98; translate: 0 1px; }
+@media (hover: hover) { .value-link:hover { color: var(--ink); } .welcome-closer > summary:hover .welcome-closer-title { color: var(--accent-ink); } }
+@media (prefers-reduced-motion: reduce) {
+  :is(.mock-nav, .mock-link, .value-link, .tour-open, .welcome-closer > summary) { transition-property: background-color, border-color, color, box-shadow, opacity; }
+  :is(.mock-nav, .mock-link, .value-link, .welcome-closer > summary):active { scale: none; translate: none; }
+}

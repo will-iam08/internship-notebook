@@ -19,7 +19,7 @@ test.describe("building a notebook", () => {
     page.on("pageerror", error => errors.push(error.message));
     await page.route("**/media/demo-tour.mp4", route => route.abort());
     await openWelcome(page);
-    await page.getByRole("button", { name: "Build my notebook" }).first().click();
+    await page.locator(".welcome-hero").getByRole("link", { name: "Build my notebook" }).click();
     await expect(page).toHaveURL(/#\/build$/);
     await expect(page.locator(".demo-banner")).toHaveCount(0);
 

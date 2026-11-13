@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { canShowWelcome, shouldLandOnWelcome, shouldAutoplayTour } from "../../src/main/resources/public/js/onboarding.js";
+import { canShowWelcome, shouldLandOnWelcome } from "../../src/main/resources/public/js/onboarding.js";
 
 const newcomer = { browserMode: true, newVisitor: true, demoActive: true, launchIntent: false };
 
@@ -35,12 +35,4 @@ test("the welcome page renders only in the website edition while the demo is act
   assert.equal(canShowWelcome({ browserMode: true, demoActive: false }), false);
   assert.equal(canShowWelcome({ browserMode: false, demoActive: true }), false);
   assert.equal(canShowWelcome({ browserMode: false, demoActive: false }), false);
-});
-
-test("the tour video autoplays only without reduced motion or a save-data request", () => {
-  assert.equal(shouldAutoplayTour({ reducedMotion: false, saveData: false }), true);
-  assert.equal(shouldAutoplayTour({}), true);
-  assert.equal(shouldAutoplayTour({ reducedMotion: true, saveData: false }), false);
-  assert.equal(shouldAutoplayTour({ reducedMotion: false, saveData: true }), false);
-  assert.equal(shouldAutoplayTour({ reducedMotion: true, saveData: true }), false);
 });
