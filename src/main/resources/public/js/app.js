@@ -1918,7 +1918,7 @@ function toggleWelcomeVideo(button) {
   // First play: attach the clip and load it explicitly. Safari on iOS ignores preload and would
   // otherwise wait for playback to start before fetching anything.
   if (!video.getAttribute("src") && video.dataset.src) { video.src = video.dataset.src; video.preload = "auto"; video.load(); }
-  if (video.paused) video.play().catch(() => { if (video.error) markVideoFailed(video); });
+  if (video.paused) video.play().catch(() => { if (video.error || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) markVideoFailed(video); });
   else video.pause();
 }
 
