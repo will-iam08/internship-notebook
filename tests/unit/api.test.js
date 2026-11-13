@@ -34,6 +34,30 @@ function seed(data) {
   localStorage.writes = 0;
 }
 
+test("local changes advance the notebook clock, including restore and purge, using only the existing data key", async t => {
+  const now = Date.parse("2026-11-13T12:00:00.000Z");
+  t.mock.method(Date, "now", () => now);
+  const updatedAt = "2026-11-13T12:00:00.005Z";
+  browserApi.write({ nextId: 2, applications: [application({ id: 1 })], recentlyDeleted: [] }, updatedAt);
+  assert.equal(browserApi.read().updatedAt, updatedAt, "a pulled edit time is preserved");
+  let previous = Date.parse(updatedAt);
+  for (const change of [
+    () => browserApi.update(1, { notes: "New edit" }),
+    () => browserApi.remove([1]),
+    () => browserApi.restore([1]),
+    () => browserApi.remove([1]),
+    () => browserApi.purge([1])
+  ]) {
+    await change();
+    const current = Date.parse(browserApi.read().updatedAt);
+    assert.ok(current > previous, "every edit advances the clock even within one millisecond");
+    previous = current;
+  }
+  assert.deepEqual(browserApi.read().applications, []);
+  assert.deepEqual(browserApi.read().recentlyDeleted, []);
+  assert.equal(localStorage.getItem(KEYS.drafts), null);
+});
+
 test("an all-deleted backup stays recoverable with its original dates and history", async () => {
   const deleted = application({ deletedAt: new Date().toISOString() });
   const added = await browserApi.importBackup([], [deleted]);

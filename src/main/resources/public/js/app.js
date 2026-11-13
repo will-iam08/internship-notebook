@@ -12,15 +12,12 @@ import {
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
   cleanSkills, cleanLink, cleanInterview, collapseHistory, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
-  previewImport
+  previewImport, sanitizeImportedEntry
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
 import { api, browserApi, BROWSER_MODE, StorageCorruptedError } from "./api.js";
-import {
-  cloudSnapshot, createEmailAccount, deleteCloudAccount, disableCloud, enableCloudWithLocal, enableCloudWithRemote,
-  fetchCloudNotebook, initializeCloud, refreshAccount, resendVerification, resumeCloud, sendPasswordReset,
-  signInEmail, signInGoogle, signOutCloud
-} from "./cloud.js";
+import { createCloudClient } from "./cloud.js";
+import { readCloudConfig } from "./cloud-config.js";
 import { DEMO_SEED, buildDemoDataset } from "./demo.js";
 import {
   SEASONS, hasExistingWork, isNewVisitor as isNewVisitorPure,
@@ -137,7 +134,6 @@ const state = {
   boardStage: "SAVED",
   filter: { query: "", stage: "ALL" },
   prefs: readPrefs(),
-  cloud: cloudSnapshot(),
   installPrompt: null,
   dragId: null,
   internships: { listings: [], generatedAt: "", source: "" }
@@ -199,10 +195,10 @@ function isNewVisitor(record) {
    of read()/write(); overriding only read() and write() to use state.demo redirects the whole object
    to memory. Crucially, demoApi.write never calls storage.set and never notifies the cloud write
    listener (that listener runs only inside the real browserApi.write, after persistence, so it could
-   not veto a write anyway). The exported real api/browserApi used by cloud.js are left untouched.
+   not veto a write anyway). The real api/browserApi used by cloud sync are left untouched.
 
    activeApi points at the demo backend while the demo is on and at the real api otherwise. Mutation
-   handlers call activeApi so they work unchanged in both modes. load(), cloud resume, and the cloud
+   handlers call activeApi so they work unchanged in both modes. load() and the cloud
    copy-choice always use the real api and are never invoked while the demo is active.
 
    demoSession is bumped on every enter/exit. Delayed callbacks (undo toasts, autosave retry timers)
@@ -445,7 +441,7 @@ function viewToday() {
         <p class="eyebrow">Welcome</p>
         <h2>Every internship application, one tidy notebook.</h2>
         <p>Add a role you're interested in, move it along as you apply and interview, and keep notes for each one. Your entries ${BROWSER_MODE
-          ? state.cloud.enabled ? "are saved in this browser and synced to your private account notebook." : "stay private in this browser unless you explicitly turn on cloud sync in Settings."
+          ? "stay private in this browser unless you explicitly sync in Settings."
           : "are saved on this computer by the notebook server."}</p>
         <ol class="welcome-steps">
           <li><strong>Save roles</strong>Add companies and deadlines as you find them.</li>
@@ -1026,18 +1022,13 @@ function viewSettings() {
           ${state.installPrompt && !isStandalone() ? `<button class="button primary" type="button" data-action="install">${icon("install")}Install app</button>` : ""}</div>
       </section>
 
-      <section class="card">
-        <h2 class="card-title" style="margin-bottom:10px">Account &amp; cloud sync</h2>
-        ${cloudSettings()}
-      </section>
+      ${cloudSettings()}
 
       <section class="card">
         <h2 class="card-title" style="margin-bottom:10px">Your data</h2>
-        <div class="setting-row"><div><strong>${BROWSER_MODE ? state.cloud.enabled ? "Local-first, with account sync" : "Private to this browser" : "Saved on this computer"}</strong>
+        <div class="setting-row"><div><strong>${BROWSER_MODE ? "Private to this browser" : "Saved on this computer"}</strong>
           <p>${BROWSER_MODE
-            ? state.cloud.enabled
-              ? "Pages are saved locally first and copied to your private account notebook while sync is on. Verified account access and Firestore rules restrict the cloud copy to your user ID. Anyone using this same unlocked browser profile can still see the local copy."
-              : "Pages are stored in this browser profile on this device. Nothing is uploaded. Other browser profiles and devices cannot see them, but anyone using this same profile can. Use a separate profile on a shared device, and use a backup file to move your notebook."
+            ? "Pages are stored in this browser profile on this device. Cloud sync only copies them when you choose Sync now in Settings. Anyone using this same unlocked browser profile can see the local copy. Use a separate profile on a shared device, and download backups to keep another copy."
             : "The Java server saves pages to data/applications.tsv in the project folder."}</p></div></div>
         <div class="setting-row"><div><strong>Backup</strong><p>A single file with every page, including notes and history.</p></div>
           <div class="view-actions">
@@ -1064,40 +1055,90 @@ function viewSettings() {
     </div>`;
 }
 
+const cloud = createCloudClient({ ...(BROWSER_MODE ? readCloudConfig() : {}), fetch: globalThis.fetch.bind(globalThis) });
+let cloudBusy = false;
+let cloudStatus = "Not signed in";
+let cloudError = "";
+
 function cloudSettings() {
-  if (!BROWSER_MODE) return `<div class="setting-row"><div><strong>Local server mode</strong><p>Cloud sync is available on the public web app. This development copy continues to use the Java server.</p></div></div>`;
-  const cloud = state.cloud;
-  if (!cloud.ready) return `<div class="setting-row"><div><strong>${cloud.status === "unavailable" ? "Cloud sync unavailable" : "Loading account options…"}</strong><p>${esc(cloud.error || "Your local notebook remains available while Firebase loads.")}</p></div></div>`;
-  if (!cloud.user) return `
-    <div class="setting-row"><div><strong>Optional cloud sync</strong><p>Sign in to use the same notebook on your devices. Your local notebook stays on this device until you explicitly choose to upload it.</p></div>
-      <button class="button primary" type="button" data-action="cloud-google">Sign in with Google</button></div>
-    <div class="cloud-email-form">
-      <label class="field"><span class="field-label">Email</span><input id="cloud-email" type="email" autocomplete="email" maxlength="254" /></label>
-      <label class="field"><span class="field-label">Password</span><input id="cloud-password" type="password" autocomplete="current-password" minlength="6" maxlength="128" /></label>
-      <div class="view-actions">
-        <button class="button" type="button" data-action="cloud-email-signin">Sign in</button>
-        <button class="button ghost" type="button" data-action="cloud-email-create">Create account</button>
-        <button class="text-button" type="button" data-action="cloud-reset">Forgot password?</button>
-      </div>
-    </div>`;
-  if (!cloud.user.verified) return `
-    <div class="setting-row"><div><strong>Verify ${esc(cloud.user.email)}</strong><p>We sent a verification link. Cloud data stays locked until the address is verified.</p></div></div>
-    <div class="view-actions"><button class="button primary" type="button" data-action="cloud-check-email">I've verified it</button><button class="button ghost" type="button" data-action="cloud-resend">Resend email</button><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>
-    <div class="setting-row"><div><strong>Delete unverified account</strong><p>Permanently removes this sign-in. No cloud notebook can be created before verification.</p></div>
-      <div class="view-actions"><input id="cloud-delete-password" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password" aria-label="Current password for account deletion" /><button class="button danger-soft" type="button" data-action="cloud-delete-account">Delete account</button></div></div>`;
-  return `
-    <div class="setting-row"><div><strong>${cloud.enabled ? "Cloud sync is on" : "Signed in, sync is paused"}</strong><p>${esc(cloud.user.email)} · ${cloud.enabled ? (cloud.status === "waiting" ? "Saved locally, waiting to sync." : cloud.status === "syncing" ? "Syncing…" : cloud.status === "error" ? esc(cloud.error) : "Synced with your private account notebook.") : "This device is still local-only until you choose a copy to sync."}</p>
-      ${cloud.lastSyncedAt ? `<p>Last confirmed cloud save: ${esc(formatDateTime(cloud.lastSyncedAt))}</p>` : ""}</div>
-      ${cloud.enabled
-        ? `<div class="view-actions">${cloud.status === "error" ? `<button class="button primary" type="button" data-action="cloud-retry">Retry sync</button>` : ""}<button class="button ghost" type="button" data-action="cloud-disable">Pause sync</button></div>`
-        : `<button class="button primary" type="button" data-action="cloud-enable">Choose notebook</button>`}</div>
-    <div class="setting-row"><div><strong>Delete cloud account</strong><p>Permanently removes your sign-in and cloud notebook. The notebook saved in this browser is kept unless you clear it separately.</p></div>
-      <div class="view-actions">
-        ${cloud.user.providers?.includes("password") ? `<input id="cloud-delete-password" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password" aria-label="Current password for account deletion" />` : ""}
-        <button class="button danger-soft" type="button" data-action="cloud-delete-account">Delete account</button>
-      </div></div>
-    <div class="view-actions"><button class="text-button" type="button" data-action="cloud-signout">Sign out</button></div>
-    <p class="card-note">Firebase Authentication controls access and Firestore rules restrict each notebook to its verified owner. This is recoverable account security, not user-only end-to-end encryption.</p>`;
+  if (!BROWSER_MODE || !cloud.enabled) return "";
+  const signedIn = Boolean(cloud.session());
+  const disabled = cloudBusy || inDemo() ? "disabled" : "";
+  return `<section class="card cloud-sync" aria-labelledby="cloud-sync-title">
+    <h2 class="card-title" id="cloud-sync-title">Cloud sync</h2>
+    <p class="card-note">Optional: sign in, then choose Sync now. The newer notebook replaces the older copy across devices. Download a backup first if you need to keep both.</p>
+    ${inDemo() ? `<p>Finish building your notebook or leave the demo before syncing.</p>` : ""}
+    ${signedIn ? `<p>${esc(cloud.session().user.email || "Signed in")}</p>
+      <div class="view-actions"><button class="button primary" type="button" data-action="cloud-sync" ${disabled}>Sync now</button>
+        <button class="button ghost" type="button" data-action="cloud-signout" ${disabled}>Sign out</button></div>` : `
+      <form id="cloud-signin" class="cloud-sync-form">
+        <label class="field"><span class="field-label">Email</span><input id="cloud-email" type="email" autocomplete="username" maxlength="254" required ${disabled} /></label>
+        <label class="field"><span class="field-label">Password</span><input id="cloud-password" type="password" autocomplete="current-password" required ${disabled} /></label>
+        <button class="button" type="submit" ${disabled}>Sign in</button>
+      </form>`}
+    <p role="status" data-cloud-status>${esc(cloudStatus)}</p>
+    ${cloudError ? `<p class="field-error" role="alert">${esc(cloudError)}</p>` : ""}
+  </section>`;
+}
+
+async function runCloud(action) {
+  if (!cloud.enabled || cloudBusy || inDemo()) return;
+  cloudBusy = true;
+  cloudError = "";
+  cloudStatus = "Syncing…";
+  rerender();
+  try { await action(); }
+  catch (error) {
+    cloudError = error.message;
+    cloudStatus = /offline/i.test(error.message) || !navigator.onLine ? "Offline" : cloud.session() ? "Sync failed" : "Not signed in";
+  } finally {
+    cloudBusy = false;
+    if (state.route.view === "settings") rerender();
+  }
+}
+
+function signInCloud() {
+  const email = $("#cloud-email")?.value.trim() || "";
+  const password = $("#cloud-password")?.value || "";
+  return runCloud(async () => {
+    if (!email || !password) throw new Error("Enter your email and password.");
+    await cloud.signIn(email, password);
+    cloudStatus = "Signed in";
+  });
+}
+
+async function syncCloudNotebook() {
+  await retryPendingDrafts();
+  await saveChain;
+  if (Object.keys(readDrafts()).length) throw new Error("Save pending edits before syncing.");
+  const local = browserApi.read();
+  const original = JSON.stringify(local);
+  // Older local notebooks have no notebook clock; start from their latest surviving page edit.
+  const updatedAt = local.updatedAt || [...local.applications, ...local.recentlyDeleted]
+    .flatMap(entry => [entry.updatedAt, entry.deletedAt]).filter(value => Number.isFinite(Date.parse(value)))
+    .sort((left, right) => Date.parse(left) - Date.parse(right)).at(-1) || new Date(0).toISOString();
+  const result = await cloud.sync({ ...local, updatedAt });
+  if (JSON.stringify(browserApi.read()) !== original || Object.keys(readDrafts()).length || inDemo()) {
+    throw new Error("Your local notebook changed. Your edits are kept; sync again.");
+  }
+  if (result.action === "pulled") {
+    const record = result.notebook;
+    if (!Array.isArray(record.applications) || !Array.isArray(record.recentlyDeleted)) throw new Error("Cloud notebook is invalid.");
+    const ids = new Set();
+    const clean = list => list.map(raw => {
+      const { entry } = sanitizeImportedEntry(raw);
+      if (!entry || !Number.isSafeInteger(entry.id) || entry.id < 1 || ids.has(entry.id)) throw new Error("Cloud notebook is invalid.");
+      ids.add(entry.id);
+      return entry;
+    });
+    const applications = clean(record.applications);
+    const recentlyDeleted = clean(record.recentlyDeleted);
+    const largestId = Math.max(0, ...ids);
+    const nextId = Number.isSafeInteger(record.nextId) && record.nextId > largestId ? record.nextId : largestId + 1;
+    browserApi.write({ nextId, applications, recentlyDeleted }, record.updatedAt);
+    await load();
+  }
+  cloudStatus = "Synced just now";
 }
 
 function viewEntry(id) {
@@ -2129,25 +2170,13 @@ async function finishBuild() {
 
 function viewSignup() {
   if (!BROWSER_MODE) return "";
-  const error = state.cloud.error;
   return `
-    ${viewHead({ eyebrow: "Optional", title: "Save your notebook<span class=\"dot\">.</span>", sub: "Your notebook is ready on this browser. Add an account to sync it across devices, or keep it here only." })}
+    ${viewHead({ eyebrow: "Your data", title: "Save your notebook", sub: "Your notebook saves automatically in this browser. Download a backup to keep another copy." })}
     <section class="card signup-card">
-      <div class="signup-providers">
-        <button class="button provider" type="button" data-action="cloud-google">${icon("cloud")}<span>Continue with Google</span></button>
-      </div>
-      <div class="signup-or"><span>OR</span></div>
-      <form id="signup-email" class="signup-email">
-        <label class="setup-field"><span>Email</span><input type="email" id="cloud-email" autocomplete="email" placeholder="you@example.com" /></label>
-        <label class="setup-field"><span>Password</span><input type="password" id="cloud-password" autocomplete="new-password" placeholder="At least 6 characters" /></label>
-        <label class="setup-field"><span>Confirm password</span><input type="password" id="cloud-password-confirm" autocomplete="new-password" placeholder="Re-enter your password" /></label>
-        <div class="view-actions">
-          <button class="button" type="submit" data-action="signup-email-create">${icon("mail")}<span>Create account with email</span></button>
-        </div>
-      </form>
-      ${error ? `<p class="field-error" role="alert">${esc(error)}</p>` : ""}
-      <div class="signup-browser-only">
-        <button class="button provider" type="button" data-action="signup-browser-only">${icon("notebook")}<span>Keep it on this browser only</span></button>
+      <div class="view-actions">
+        <button class="button" type="button" data-action="export-json">${icon("download")}Download backup</button>
+        ${cloud.enabled ? `<a class="button ghost" href="#/settings">Sign in to sync</a>` : ""}
+        <button class="button ghost" type="button" data-action="signup-browser-only">Keep it on this browser only</button>
       </div>
     </section>`;
 }
@@ -3149,7 +3178,7 @@ viewRoot.addEventListener("submit", event => {
     if (state.build.step < BUILD_STEPS.length) nextBuildStep(); else finishBuild();
     return;
   }
-  if (event.target.id === "signup-email") { event.preventDefault(); actions["signup-email-create"](); return; }
+  if (event.target.id === "cloud-signin") { event.preventDefault(); signInCloud(); return; }
 });
 
 viewRoot.addEventListener("focusout", event => {
@@ -3167,85 +3196,6 @@ const endSelectionIfEmpty = () => { if (state.selecting && !state.selected.size)
 
 function notebookHasData(record) {
   return Boolean(record?.applications?.length || record?.recentlyDeleted?.length);
-}
-
-function cloudCredentials() {
-  const email = $("#cloud-email")?.value.trim() || "";
-  const password = $("#cloud-password")?.value || "";
-  if (!email) throw new Error("Enter your email address.");
-  return { email, password };
-}
-
-async function chooseCloudNotebook() {
-  // Choosing a real cloud notebook operates on the real backend. If the visitor reached here from the
-  // demo (e.g. opened Settings while the demo was on), end the demo first: discard the in-memory demo
-  // session and restore the real backend/arrays, so load() below works on the real notebook, not the
-  // demo. Demo data is never read here, so it can never be uploaded.
-  if (inDemo()) exitDemoMode();
-  await retryPendingDrafts();
-  await saveChain;
-  if (Object.keys(readDrafts()).length) throw new Error("Some edits are still waiting to save. Retry them before choosing a cloud notebook.");
-  const remote = await fetchCloudNotebook();
-  const local = BROWSER_MODE ? api.read() : null;
-  const summary = record => {
-    const latest = [...(record?.applications || []), ...(record?.recentlyDeleted || [])]
-      .map(entry => entry.updatedAt).filter(Boolean).sort().at(-1);
-    return `${record?.applications?.length || 0} active, ${record?.recentlyDeleted?.length || 0} deleted pages${latest ? `, last edited ${formatDateTime(latest)}` : ""}`;
-  };
-  if (!remote) {
-    const upload = await confirmDialog({
-      eyebrow: "First cloud sync",
-      title: notebookHasData(local) ? "Upload this device's notebook?" : "Create your cloud notebook?",
-      copy: notebookHasData(local)
-        ? `This device: ${summary(local)}. This copies the notebook into your private account. Nothing local is deleted.`
-        : "This creates an empty private notebook for your account and turns on sync for future pages.",
-      yes: "Upload & sync",
-      no: "Not now",
-      iconName: "upload",
-      danger: false
-    });
-    if (!upload) return;
-    await enableCloudWithLocal();
-    toast("Cloud sync is on.");
-    rerender();
-    return;
-  }
-  if (!notebookHasData(local)) {
-    const download = await confirmDialog({
-      eyebrow: "Notebook found",
-      title: "Use your cloud notebook on this device?",
-      copy: `Cloud: ${summary(remote)}. This downloads your account notebook into this browser and turns on sync.`,
-      yes: "Use cloud notebook",
-      no: "Keep local-only",
-      iconName: "download",
-      danger: false
-    });
-    if (!download) return;
-    await enableCloudWithRemote(remote);
-    await load();
-    toast("Cloud notebook restored.");
-    return;
-  }
-  const useCloud = await confirmDialog({
-    eyebrow: "Choose carefully",
-    title: "A notebook already exists in your account",
-    copy: `This device: ${summary(local)}. Cloud: ${summary(remote)}. Using the cloud notebook replaces this device copy. A backup of the current device copy will download first. Choosing Keep local leaves both copies unchanged.`,
-    yes: "Use cloud notebook",
-    no: "Keep local",
-    iconName: "download",
-    danger: false
-  });
-  if (!useCloud) return;
-  if (JSON.stringify(api.read()) !== JSON.stringify(local)) throw new Error("Your local notebook changed while choosing a copy. Choose again so your latest edits are included.");
-  exportJson(local);
-  await enableCloudWithRemote(remote);
-  await load();
-  toast("Cloud notebook restored.");
-}
-
-async function runCloud(action) {
-  try { await action(); }
-  catch (error) { fail(error); }
 }
 
 const completingNextSteps = new Set();
@@ -3296,31 +3246,6 @@ const actions = {
     toast("Your notebook is saved on this browser.");
     go("#/today");
   },
-  "signup-email-create": () => runCloud(async () => {
-    const email = $("#cloud-email")?.value.trim() || "";
-    const password = $("#cloud-password")?.value || "";
-    const confirm = $("#cloud-password-confirm")?.value || "";
-    if (!email) throw new Error("Enter your email address.");
-    // Password/confirmation mismatch is checked BEFORE any Firebase call, so no account is created.
-    if (password !== confirm) throw new Error("Those passwords do not match. Re-enter them and try again.");
-    if (password.length < 6) throw new Error("Use a password with at least 6 characters.");
-    try {
-      await createEmailAccount(email, password);
-      toast("Account created. Check your email to verify it, then you can sync across devices.");
-      rerender();
-    } catch (createError) {
-      // createEmailAccount creates and signs in the account, THEN sends verification. If the send
-      // failed, the account already exists and the user is signed in: offer a resend rather than
-      // claiming no account was created or retrying creation (which would hit email-already-in-use).
-      if (cloudSnapshot().user) {
-        toast("Your account was created, but the verification email could not be sent. Use Resend to try again.",
-          { error: true, action: "Resend", run: () => runCloud(async () => { await resendVerification(); toast("Verification email sent."); }) });
-        rerender();
-        return;
-      }
-      throw createError; // genuine creation failure: not signed in, surfaced by runCloud -> fail()
-    }
-  }),
   palette: () => openPalette(),
   "cycle-theme": () => {
     const order = ["system", "light", "dark"];
@@ -3328,50 +3253,8 @@ const actions = {
     toast(`Theme: ${themeLabel()}`);
   },
   "set-theme": target => setTheme(target.dataset.themeValue),
-  "cloud-google": () => runCloud(async () => { await signInGoogle(); await chooseCloudNotebook(); }),
-  "cloud-email-signin": () => runCloud(async () => {
-    const { email, password } = cloudCredentials();
-    if (!password) throw new Error("Enter your password.");
-    await signInEmail(email, password);
-    await chooseCloudNotebook();
-  }),
-  "cloud-email-create": () => runCloud(async () => {
-    const { email, password } = cloudCredentials();
-    if (password.length < 6) throw new Error("Use a password with at least 6 characters.");
-    await createEmailAccount(email, password);
-    toast("Verification email sent. Open it before enabling sync.");
-    rerender();
-  }),
-  "cloud-reset": () => runCloud(async () => {
-    const { email } = cloudCredentials();
-    await sendPasswordReset(email);
-    toast("If that address has an account, a reset email is on its way.");
-  }),
-  "cloud-resend": () => runCloud(async () => { await resendVerification(); toast("Verification email sent."); }),
-  "cloud-check-email": () => runCloud(async () => { await refreshAccount(); if (cloudSnapshot().user?.verified) await chooseCloudNotebook(); else toast("That email is not verified yet.", { error: true }); }),
-  "cloud-enable": () => runCloud(chooseCloudNotebook),
-  "cloud-retry": () => runCloud(async () => { await enableCloudWithLocal(); toast("Cloud notebook synced."); rerender(); }),
-  "cloud-disable": () => runCloud(async () => {
-    const pause = await confirmDialog({ eyebrow: "This device", title: "Pause cloud sync?", copy: "Changes will keep saving locally in this browser, but they will not reach your other devices until sync is turned on again.", yes: "Pause sync", no: "Keep syncing", iconName: "lock", danger: false });
-    if (pause) { disableCloud(); rerender(); }
-  }),
-  "cloud-signout": () => runCloud(async () => { await signOutCloud(); toast("Signed out. Your local notebook is still here."); rerender(); }),
-  "cloud-delete-account": () => runCloud(async () => {
-    const password = $("#cloud-delete-password")?.value || "";
-    const confirmed = await confirmDialog({
-      eyebrow: "Permanent account deletion",
-      title: "Delete your cloud account and notebook?",
-      copy: "This permanently deletes your Firebase sign-in and the notebook stored in your account. Your copy in this browser remains on this device.",
-      yes: "Delete account",
-      no: "Keep account",
-      iconName: "trash",
-      danger: true
-    });
-    if (!confirmed) return;
-    await deleteCloudAccount(password);
-    toast("Cloud account deleted. Your local notebook is still here.");
-    rerender();
-  }),
+  "cloud-sync": () => runCloud(syncCloudNotebook),
+  "cloud-signout": () => runCloud(async () => { await cloud.signOut(); cloudStatus = "Not signed in"; }),
   goal: target => {
     state.prefs.goal = clamp(state.prefs.goal + Number(target.dataset.delta), 1, 50);
     savePrefs();
@@ -3860,9 +3743,6 @@ function updateStorageChip() {
   if (!BROWSER_MODE) {
     label.textContent = "Saved on this computer";
     chip.title = "Your pages are saved by the local Java server.";
-  } else if (state.cloud.enabled) {
-    label.textContent = state.cloud.status === "waiting" ? "Saved locally, waiting to sync" : state.cloud.status === "syncing" ? "Syncing securely" : state.cloud.status === "error" ? "Cloud sync needs attention" : "Synced to your account";
-    chip.title = state.cloud.error || (state.cloud.lastSyncedAt ? `Last confirmed cloud save: ${formatDateTime(state.cloud.lastSyncedAt)}` : "Your local notebook is synced to your private Firebase account.");
   } else {
     label.textContent = "Private to this browser";
     chip.title = "Your pages are stored only in this browser on this device.";
@@ -3889,24 +3769,11 @@ const sharedOnStart = shared.has("share-target") || shared.has("title") || share
 const openNewOnStart = window.location.hash === "#/new" || sharedOnStart;
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
-load().then(async () => {
+load().then(() => {
   checkDueSoon(); // opt-in, real notebook only, once a day, and only because the tab is open
   if (openNewOnStart && state.loaded) openNew("SAVED", sharedOnStart ? {
     role: (shared.get("title") || "").slice(0, LIMITS.role),
     link: (shared.get("url") || "").slice(0, LIMITS.link),
     notes: (shared.get("text") || "").slice(0, LIMITS.notes)
   } : {});
-  if (!BROWSER_MODE) return;
-  let resumeStarted = false;
-  await initializeCloud(snapshot => {
-    state.cloud = snapshot;
-    updateStorageChip();
-    if (state.route.view === "settings") rerender();
-    if (!resumeStarted && snapshot.user?.verified) {
-      resumeStarted = true;
-      resumeCloud(api.read()).then(async result => {
-        if (result.action === "use-remote") await load();
-      }).catch(error => fail(error));
-    }
-  });
 });

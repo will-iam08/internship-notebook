@@ -1,115 +1,159 @@
-import { readFile } from "node:fs/promises";
 import { expect, test } from "./fixtures.js";
-import { DATA_KEY, openApp, sampleApplications, savedNotebook, seedNotebook } from "./helpers.js";
+import { openApp, sampleApplications, savedNotebook, seedNotebook } from "./helpers.js";
 
 test.use({ serviceWorkers: "block" });
 
-async function mockFirebase(page, { remote = null, rejectUpload = false } = {}) {
-  const blockedProductionRequests = [];
-  await page.route(/https:\/\/(?:identitytoolkit|firestore|securetoken)\.googleapis\.com\//, route => {
-    blockedProductionRequests.push(route.request().url());
-    return route.abort();
-  });
-  await page.route("https://www.gstatic.com/firebasejs/**", async route => {
-    const file = new URL(route.request().url()).pathname.split("/").at(-1);
-    const modules = {
-      "firebase-app.js": `export function initializeApp() { return {}; }`,
-      "firebase-auth.js": `
-        const auth = { currentUser: null };
-        let observer;
-        export function getAuth() { return auth; }
-        export const browserLocalPersistence = {};
-        export async function setPersistence() {}
-        export function onAuthStateChanged(_auth, callback) { observer = callback; callback(null); }
-        export class GoogleAuthProvider {}
-        export async function signInWithPopup() {
-          auth.currentUser = { uid: "synthetic-ui-user", email: "synthetic@example.test", emailVerified: true, providerData: [{ providerId: "google.com" }] };
-          observer(auth.currentUser);
-          return { user: auth.currentUser };
-        }`,
-      "firebase-firestore.js": `
-        const remote = ${JSON.stringify(remote)};
-        export function getFirestore() { return {}; }
-        export function doc(_db, collection, uid) { return { collection, uid }; }
-        export async function getDocFromServer() { return { exists: () => remote !== null, data: () => remote }; }
-        export function serverTimestamp() { return "synthetic-server-time"; }
-        export async function setDoc(_ref, value) {
-          globalThis.__cloudWriteAttempts = (globalThis.__cloudWriteAttempts || 0) + 1;
-          globalThis.__cloudLastUpload = value;
-          if (${rejectUpload}) throw new Error("Synthetic cloud upload denied");
-        }`
+const SUPABASE = "https://test.supabase.co";
+const USER_ID = "synthetic-ui-user";
+const card = page => page.locator('[aria-labelledby="cloud-sync-title"]');
+
+async function mockSupabase(page, { remote = null, offline = false, beforePull } = {}) {
+  const requests = [];
+  let stored = remote;
+  await page.addInitScript(url => {
+    window.__SUPABASE__ = { url, anonKey: "test-anon-key" };
+  }, SUPABASE);
+  await page.route(`${SUPABASE}/**`, async route => {
+    const request = route.request();
+    const url = new URL(request.url());
+    const headers = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "apikey, authorization, content-type, prefer",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
     };
-    if (!modules[file]) throw new Error(`Unexpected Firebase module: ${file}`);
-    await route.fulfill({ contentType: "text/javascript", body: modules[file] });
+    if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
+    requests.push({ url, method: request.method(), body: request.postDataJSON(), headers: request.headers() });
+    const respond = body => route.fulfill({ json: body, headers });
+    if (url.pathname === "/auth/v1/token") {
+      return respond({ access_token: "test-session-token", user: { id: USER_ID, email: "owner@example.test" } });
+    }
+    if (url.pathname === "/auth/v1/logout") return route.fulfill({ status: 204, headers });
+    if (offline) return route.abort("internetdisconnected");
+    if (request.method() === "GET") {
+      await beforePull?.();
+      return respond(stored ? [{ user_id: USER_ID, data: stored }] : []);
+    }
+    stored = request.postDataJSON().data;
+    return respond([{ user_id: USER_ID, data: stored }]);
   });
-  return blockedProductionRequests;
+  return { requests, remote: () => stored };
 }
 
-function deviceNotebook() {
-  const entries = sampleApplications();
-  return {
-    active: { ...entries[0], company: "Device original", notes: "Keep this original local text." },
-    deleted: { ...entries[1], company: "Device deleted", deletedAt: new Date(Date.now() - 86400000).toISOString() }
-  };
+async function signIn(page) {
+  const cloud = card(page);
+  await cloud.getByLabel("Email", { exact: true }).fill("owner@example.test");
+  await cloud.getByLabel("Password", { exact: true }).fill("test-password");
+  await cloud.getByRole("button", { name: "Sign in", exact: true }).click();
+  await expect(cloud.getByRole("button", { name: "Sync now", exact: true })).toBeEnabled();
 }
 
-test("choosing the cloud copy downloads both original local lists before replacing them", async ({ page }) => {
-  const local = deviceNotebook();
-  const cloudEntries = sampleApplications().slice(0, 2).map((entry, index) => ({ ...entry, id: 41 + index, company: `Cloud only ${index + 1}` }));
-  const blocked = await mockFirebase(page, { remote: { nextId: 43, applications: cloudEntries, recentlyDeleted: [] } });
-  await seedNotebook(page, [local.active], { recentlyDeleted: [local.deleted] });
+test("empty config hides cloud settings and makes no cloud requests", async ({ page }) => {
+  const cloudRequests = [];
+  page.on("request", request => {
+    if (/supabase|firebase|gstatic|googleapis/.test(request.url())) cloudRequests.push(request.url());
+  });
+  await seedNotebook(page);
   await openApp(page, "#/settings");
-  await page.getByRole("button", { name: "Sign in with Google", exact: true }).click();
-  const dialog = page.locator("#confirm-dialog");
-  await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("This device: 1 active, 1 deleted pages");
-  await expect(dialog).toContainText("Cloud: 2 active, 0 deleted pages");
-  expect((await savedNotebook(page)).applications[0].company).toBe(local.active.company);
-  await page.evaluate(key => {
-    window.__cloudUiEvents = [];
-    const click = HTMLAnchorElement.prototype.click;
-    HTMLAnchorElement.prototype.click = function () {
-      if (this.download) window.__cloudUiEvents.push("backup");
-      return click.call(this);
-    };
-    const setItem = Storage.prototype.setItem;
-    Storage.prototype.setItem = function (storageKey, value) {
-      if (storageKey === key) window.__cloudUiEvents.push("replace");
-      return setItem.call(this, storageKey, value);
-    };
-  }, DATA_KEY);
-  const downloaded = page.waitForEvent("download");
-  await dialog.getByRole("button", { name: "Use cloud notebook", exact: true }).click();
-  const download = await downloaded;
-  const backup = JSON.parse(await readFile(await download.path(), "utf8"));
-  expect(backup.format).toBe("my-internship-notebook-backup");
-  expect(backup.applications).toEqual([local.active]);
-  expect(backup.recentlyDeleted).toEqual([local.deleted]);
-  await expect.poll(async () => (await savedNotebook(page)).applications.map(entry => entry.company)).toEqual(["Cloud only 1", "Cloud only 2"]);
-  const stored = await savedNotebook(page);
-  expect(stored.applications).toEqual(cloudEntries);
-  expect(stored.recentlyDeleted).toEqual([]);
-  expect(await page.evaluate(() => window.__cloudUiEvents)).toEqual(["backup", "replace"]);
-  expect(await page.evaluate(() => window.__cloudWriteAttempts || 0)).toBe(0);
-  expect(blocked).toEqual([]);
-  await expect(page.locator("#toasts")).toContainText("Cloud notebook restored.");
+  await expect(card(page)).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Cloud sync", exact: true })).toHaveCount(0);
+  expect(cloudRequests).toEqual([]);
 });
 
-test("an explicit first upload failure shows the error and never reports success", async ({ page }) => {
-  const local = deviceNotebook();
-  const blocked = await mockFirebase(page, { rejectUpload: true });
-  await seedNotebook(page, [local.active], { recentlyDeleted: [local.deleted] });
+test("sign-in waits for Sync now before uploading and keeps tokens out of storage", async ({ page }) => {
+  const mock = await mockSupabase(page);
+  await seedNotebook(page);
   await openApp(page, "#/settings");
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Not signed in");
   const original = await savedNotebook(page);
-  await page.getByRole("button", { name: "Sign in with Google", exact: true }).click();
-  const dialog = page.locator("#confirm-dialog");
-  await expect(dialog).toContainText("This device: 1 active, 1 deleted pages");
-  await dialog.getByRole("button", { name: "Upload & sync", exact: true }).click();
-  await expect(page.locator("#toasts .toast.error")).toContainText("Synthetic cloud upload denied");
-  await expect(page.getByRole("button", { name: "Retry sync", exact: true })).toBeVisible();
-  await expect(page.locator("#toasts .toast:not(.error)")).toHaveCount(0);
-  await expect(page.getByText("Last confirmed cloud save:", { exact: false })).toHaveCount(0);
-  expect(await page.evaluate(() => window.__cloudWriteAttempts)).toBe(1);
+  await signIn(page);
+  expect(mock.requests.map(request => request.url.pathname)).toEqual(["/auth/v1/token"]);
   expect(await savedNotebook(page)).toEqual(original);
-  expect(blocked).toEqual([]);
+  await card(page).getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Synced just now");
+  const upload = mock.requests.find(request => request.url.pathname === "/rest/v1/notebooks" && request.method === "POST");
+  expect(upload.body.user_id).toBe(USER_ID);
+  expect(upload.body.data.applications).toEqual(original.applications);
+  expect(upload.body.data.recentlyDeleted).toEqual(original.recentlyDeleted);
+  expect(upload.headers.apikey).toBe("test-anon-key");
+  expect(upload.headers.authorization).toBe("Bearer test-session-token");
+  expect(await page.evaluate(() => JSON.stringify({ ...localStorage }))).not.toContain("test-session-token");
+  await card(page).getByRole("button", { name: "Sign out", exact: true }).click();
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Not signed in");
+  expect((await savedNotebook(page)).applications).toEqual(original.applications);
+});
+
+test("a newer cloud notebook is sanitized before replacing local data", async ({ page }) => {
+  const remote = {
+    nextId: 90,
+    applications: [{ ...sampleApplications()[0], id: 41, company: "Cloud copy", link: "javascript:alert(1)" }],
+    recentlyDeleted: [],
+    updatedAt: "2099-01-01T00:00:00.000Z"
+  };
+  const mock = await mockSupabase(page, { remote });
+  await seedNotebook(page);
+  await openApp(page, "#/settings");
+  await signIn(page);
+  await card(page).getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Synced just now");
+  const stored = await savedNotebook(page);
+  expect(stored.applications).toHaveLength(1);
+  expect(stored.applications[0].company).toBe("Cloud copy");
+  expect(stored.applications[0].link).toBe("");
+  expect(stored.updatedAt).toBe(remote.updatedAt);
+  expect(stored.nextId).toBe(remote.nextId);
+  expect(mock.requests.filter(request => request.method === "POST" && request.url.pathname === "/rest/v1/notebooks")).toHaveLength(0);
+});
+
+test("purging a page advances the notebook clock and uploads its removal", async ({ page }) => {
+  const deleted = { ...sampleApplications()[1], deletedAt: new Date().toISOString() };
+  const mock = await mockSupabase(page);
+  await seedNotebook(page, [sampleApplications()[0]], { recentlyDeleted: [deleted], updatedAt: "2020-01-01T00:00:00.000Z" });
+  await openApp(page, "#/settings");
+  await signIn(page);
+  await card(page).getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Synced just now");
+  const before = mock.remote().updatedAt;
+  await page.evaluate(() => { location.hash = "#/deleted"; });
+  await page.locator('[data-action="purge"]').click();
+  await page.locator("#confirm-dialog").getByRole("button", { name: "Delete permanently", exact: true }).click();
+  await expect.poll(async () => (await savedNotebook(page)).recentlyDeleted.length).toBe(0);
+  await page.evaluate(() => { location.hash = "#/settings"; });
+  await card(page).getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Synced just now");
+  expect(mock.remote().recentlyDeleted).toEqual([]);
+  expect(Date.parse(mock.remote().updatedAt)).toBeGreaterThan(Date.parse(before));
+});
+
+test("offline sync preserves the notebook and never claims success", async ({ page }) => {
+  await mockSupabase(page, { offline: true });
+  await seedNotebook(page);
+  await openApp(page, "#/settings");
+  await signIn(page);
+  const original = await savedNotebook(page);
+  await card(page).getByRole("button", { name: "Sync now", exact: true }).click();
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Offline");
+  await expect(card(page).getByRole("alert")).toBeVisible();
+  expect(await savedNotebook(page)).toEqual(original);
+});
+
+test("a local edit during a pending cloud read survives the sync", async ({ page }) => {
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  let began;
+  const reading = new Promise(resolve => { began = resolve; });
+  const remote = { nextId: 1, applications: [], recentlyDeleted: [], updatedAt: "2099-01-01T00:00:00.000Z" };
+  await mockSupabase(page, { remote, beforePull: async () => { began(); await pending; } });
+  await seedNotebook(page);
+  await openApp(page, "#/settings");
+  await signIn(page);
+  await card(page).getByRole("button", { name: "Sync now", exact: true }).click();
+  await reading;
+  await expect(card(page).locator("[data-cloud-status]")).toHaveText("Syncing…");
+  await page.evaluate(async () => {
+    const { browserApi } = await import("/js/api.js");
+    await browserApi.update(1, { notes: "Saved while cloud read was pending." });
+  });
+  release();
+  await expect(card(page).locator("[data-cloud-status]")).not.toHaveText("Syncing…");
+  expect((await savedNotebook(page)).applications.find(entry => entry.id === 1).notes).toBe("Saved while cloud read was pending.");
 });

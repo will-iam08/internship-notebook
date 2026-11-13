@@ -2001,3 +2001,9 @@ a:not([class]):active { opacity: .65; }
 .date-clear { color: var(--muted); flex: none; visibility: hidden; }
 .date-field.has-value .date-clear { visibility: visible; }
 .date-clear .icon { height: 16px; width: 16px; }
+
+/* Optional cloud sync settings. */
+.cloud-sync .card-title { margin-bottom: 10px; }
+.cloud-sync-form { display: grid; gap: 12px; margin-top: 16px; }
+.cloud-sync-form .button { justify-self: start; }
+.cloud-sync [data-cloud-status] { color: var(--muted); margin: 12px 0 0; }

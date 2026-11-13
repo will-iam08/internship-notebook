@@ -32,16 +32,18 @@ export const browserApi = {
       .filter(entry => entry.id > 0 && new Date(entry.deletedAt).getTime() > cutoff);
     const largestId = Math.max(0, ...applications.map(entry => entry.id), ...recentlyDeleted.map(entry => entry.id));
     return {
+      ...(saved.updatedAt ? { updatedAt: saved.updatedAt } : {}),
       nextId: Number.isInteger(saved.nextId) && saved.nextId > largestId ? saved.nextId : largestId + 1,
       applications,
       recentlyDeleted
     };
   },
-  write(data) {
-    if (!storage.set(KEYS.data, JSON.stringify(data))) {
+  write(data, updatedAt = new Date(Math.max(Date.now(), (Date.parse(data.updatedAt) || 0) + 1)).toISOString()) {
+    const record = { ...data, updatedAt };
+    if (!storage.set(KEYS.data, JSON.stringify(record))) {
       throw new Error("This browser would not save your change. Storage may be full or blocked (for example in a private window).");
     }
-    browserWriteListener?.(structuredClone(data));
+    browserWriteListener?.(structuredClone(record));
   },
   byIds(list, ids, message) {
     const found = ids.map(id => list.find(entry => entry.id === id));

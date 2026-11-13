@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G/Lv6KExRZYvmtQffHGKasiDyIiLxdzaxEaFJnUGbHk=' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://*.googleusercontent.com; connect-src 'self' https://*.googleapis.com https://securetoken.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com https://accounts.google.com; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G/Lv6KExRZYvmtQffHGKasiDyIiLxdzaxEaFJnUGbHk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-src 'none'; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="Track internship applications and browse fresh openings in a private, offline-ready web app that installs on any device." />
     <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
@@ -204,6 +204,7 @@
 
     <input type="file" id="import-file" accept="application/json,.json" hidden />
     <script src="site-mode.js"></script>
+    <script src="runtime-config.js"></script>
     <script type="module" src="js/app.js"></script>
   </body>
 </html>
