@@ -86,14 +86,28 @@ const readPress = locator => locator.evaluate(element => {
   return { scale: round(style.scale), translate: translateY };
 });
 
-/** Holds the mouse down on an element until its press settles at `expected` (polled, so a busy
- *  machine can't catch it mid-transition), and reports how far a neighbour moved meanwhile. */
+/** Waits until no finite animation or transition is running on the page. Entrance animations
+ *  (view-in, the staggered card-in on list rows) and hover transitions move things while they play,
+ *  so a position read during them isn't a stable baseline. Animations that loop forever are ignored:
+ *  their `finished` promise never resolves, which is why this polls instead of awaiting it. */
+async function settle(page) {
+  await expect.poll(() => page.evaluate(() => document.getAnimations()
+    .filter(animation => animation.playState === "running" && Number.isFinite(animation.effect?.getComputedTiming().endTime))
+    .length), { timeout: 10000, message: "page animations should finish" }).toBe(0);
+}
+
+/** Hovers an element, waits for the page to settle, then holds the mouse down until its press
+ *  settles at `expected`. Returns how far a neighbour moved between the settled hover and the
+ *  settled press, which must be zero: the press changes no layout. */
 async function pressAndMeasure(page, locator, neighbour, expected) {
+  await settle(page);
   const box = await locator.boundingBox();
-  const before = await neighbour.boundingBox();
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await settle(page); // the hover transition, so the baseline is taken in the state the press starts from
+  const before = await neighbour.boundingBox();
   await page.mouse.down();
-  await expect.poll(() => readPress(locator), { timeout: 5000 }).toEqual(expected);
+  await expect.poll(() => readPress(locator), { timeout: 10000 }).toEqual(expected);
+  await settle(page);
   const during = await neighbour.boundingBox();
   await page.mouse.up();
   return Math.abs(during.x - before.x) + Math.abs(during.y - before.y);
