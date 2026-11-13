@@ -92,12 +92,17 @@ test("feed filters persist after reload and clear together", async ({ page }) =>
 });
 
 test("feed actions fit phone widths in both themes", async ({ page }) => {
+  // Eight width/theme combinations, each with a network-backed news feed; under a loaded CI this
+  // needs more than the default 30s without changing what is verified.
+  test.setTimeout(180_000);
   for (const width of [320, 375, 390, 430]) {
     await page.setViewportSize({ width, height: 860 });
     for (const colorScheme of ["light", "dark"]) {
       await page.emulateMedia({ colorScheme });
       await openApp(page);
-      await expect(page.locator(".news-item")).toHaveCount(2);
+      // The news feed is fetched after the view renders; under a loaded CI (8 workers) the first
+      // paint can take longer than the default expect timeout.
+      await expect(page.locator(".news-item")).toHaveCount(2, { timeout: 15000 });
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `${width}px ${colorScheme} should not scroll sideways`).toBeLessThanOrEqual(1);
       for (const row of await page.locator(".news-item").all()) {

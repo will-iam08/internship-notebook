@@ -48,6 +48,9 @@ async function signIn(page) {
 }
 
 test("empty config hides cloud settings and makes no cloud requests", async ({ page }) => {
+  // A deployment without a Supabase project ships empty config; simulate that here instead of
+  // relying on the committed runtime-config.js, which now points at a real project.
+  await page.addInitScript(() => { window.__SUPABASE__ = { url: "", anonKey: "" }; });
   const cloudRequests = [];
   page.on("request", request => {
     if (/supabase|firebase|gstatic|googleapis/.test(request.url())) cloudRequests.push(request.url());
