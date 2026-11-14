@@ -18,6 +18,7 @@ import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft 
 import { api, browserApi, BROWSER_MODE, StorageCorruptedError } from "./api.js";
 import { createCloudClient } from "./cloud.js";
 import { readCloudConfig } from "./cloud-config.js";
+import { createUsageTracker } from "./usage.js";
 import { DEMO_SEED, buildDemoDataset } from "./demo.js";
 import {
   SEASONS, hasExistingWork, isNewVisitor as isNewVisitorPure,
@@ -1024,6 +1025,16 @@ function viewSettings() {
 
       ${cloudSettings()}
 
+      ${BROWSER_MODE && usage.configured ? `<section class="card" aria-labelledby="usage-title">
+        <h2 class="card-title" id="usage-title">Usage privacy</h2>
+        <div class="setting-row"><div><strong>Share basic usage counts</strong>
+          <p id="usage-description">Counts visits and page categories using a random browser ID that changes each day. No notes, contacts, account details, or application content are included.</p>
+          <p role="status">${usage.privacyBlocked() ? "Off because your browser requests no tracking." : usage.optedOut() ? "Off on this browser." : "On. You can turn it off at any time."}</p></div>
+          <button class="switch" type="button" role="switch" aria-label="Share basic usage counts" aria-describedby="usage-description"
+            aria-checked="${!usage.optedOut() && !usage.privacyBlocked()}" data-action="toggle-usage" ${usage.privacyBlocked() ? "disabled" : ""}>${!usage.optedOut() && !usage.privacyBlocked() ? "On" : "Off"}</button>
+        </div>
+      </section>` : ""}
+
       <section class="card">
         <h2 class="card-title" style="margin-bottom:10px">Your data</h2>
         <div class="setting-row"><div><strong>${BROWSER_MODE ? "Private to this browser" : "Saved on this computer"}</strong>
@@ -1056,6 +1067,7 @@ function viewSettings() {
 }
 
 const cloud = createCloudClient({ ...(BROWSER_MODE ? readCloudConfig() : {}), fetch: globalThis.fetch.bind(globalThis) });
+const usage = createUsageTracker(BROWSER_MODE ? readCloudConfig() : {});
 let cloudBusy = false;
 let cloudStatus = "Not signed in";
 let cloudError = "";
@@ -3460,6 +3472,14 @@ const actions = {
   }
 };
 
+actions["toggle-usage"] = () => {
+  const off = !usage.optedOut();
+  const saved = usage.setOptOut(off);
+  rerender();
+  if (!saved) toast("Changed for this tab, but this browser could not save the preference.");
+  if (!off) void usage.track(true);
+};
+
 document.addEventListener("click", event => {
   const actionTarget = event.target.closest("[data-action]");
   if (actionTarget && !actionTarget.closest("#new-dialog")) {
@@ -3836,6 +3856,7 @@ const openNewOnStart = window.location.hash === "#/new" || sharedOnStart;
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
 load().then(() => {
+  usage.start();
   checkDueSoon(); // opt-in, real notebook only, once a day, and only because the tab is open
   if (openNewOnStart && state.loaded) openNew("SAVED", sharedOnStart ? {
     role: (shared.get("title") || "").slice(0, LIMITS.role),

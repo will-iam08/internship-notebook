@@ -17,6 +17,7 @@ Notes on how My Internship Notebook is meant to work, and the rules we keep when
 - **Name.** "My Internship Notebook", not "Coop Compass". Many people don't know what "co-op" means, so we prefer familiar names over institution-specific ones. The Java package stays `com.coopcompass` for compatibility.
 - **Audience.** Anyone managing internships and interviews. Copy should never read like a personal tool for one person's search.
 - **Privacy by design.** Nothing uploads application records to a shared public server. A shared device should use a separate browser profile; the Settings page says so.
+- **Usage counts are separate from notebooks.** The public website may send a daily rotating random browser ID, an allowlisted page category, and a page-view flag to a write-only Supabase RPC. Never send notebook content, account IDs, entry IDs, titles, full URLs, or searches. Reads are private to the project owner. Opt-out, Do Not Track, and Global Privacy Control disable events. Local/server editions and hidden tabs do not send events. Daily visitors count browsers, not people or unique users across days.
 - **Look and feel.** A paper notebook: a cloth cover for the sidebar, dot-grid pages, index-card applications, and a ruled page for each entry. Polished, with some purposeful motion, rather than a bare prototype.
 - **Layout requirements.** A sidebar with separate pages, entries that open and can be edited, installable as an app, dark mode, and it works on phones as well as laptops and desktops.
 
