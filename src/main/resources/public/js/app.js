@@ -1096,11 +1096,15 @@ const usage = createUsageTracker(BROWSER_MODE ? readCloudConfig() : {});
 let cloudBusy = false;
 let cloudStatus = "Not signed in";
 let cloudError = "";
+let cloudMode = "signin";
+let cloudEmail = "";
 
 function cloudSettings() {
   if (!BROWSER_MODE || !cloud.enabled) return "";
   const signedIn = Boolean(cloud.session());
   const disabled = cloudBusy || inDemo() ? "disabled" : "";
+  const recovering = cloudMode === "recover";
+  const creating = cloudMode === "signup";
   return `<section class="card cloud-sync" aria-labelledby="cloud-sync-title">
     <h2 class="card-title" id="cloud-sync-title">Cloud sync</h2>
     <p class="card-note">Optional: sign in, then choose Sync now. The newer notebook replaces the older copy across devices. Download a backup first if you need to keep both.</p>
@@ -1108,21 +1112,31 @@ function cloudSettings() {
     ${signedIn ? `<p>${esc(cloud.session().user.email || "Signed in")}</p>
       <div class="view-actions"><button class="button primary" type="button" data-action="cloud-sync" ${disabled}>Sync now</button>
         <button class="button ghost" type="button" data-action="cloud-signout" ${disabled}>Sign out</button></div>` : `
-      <form id="cloud-signin" class="cloud-sync-form">
-        <label class="field"><span class="field-label">Email</span><input id="cloud-email" type="email" autocomplete="username" maxlength="254" required ${disabled} /></label>
-        <label class="field"><span class="field-label">Password</span><input id="cloud-password" type="password" autocomplete="current-password" required ${disabled} /></label>
-        <button class="button" type="submit" ${disabled}>Sign in</button>
+      <form id="cloud-auth" class="cloud-sync-form">
+        <div class="segmented" role="group" aria-label="Cloud account">
+          <button type="button" data-action="cloud-mode" data-mode="signin" aria-pressed="${!creating}" ${disabled}>Sign in</button>
+          <button type="button" data-action="cloud-mode" data-mode="signup" aria-pressed="${creating}" ${disabled}>Create account</button>
+        </div>
+        <label class="field"><span class="field-label">Email</span><input id="cloud-email" type="email" autocomplete="username" maxlength="254" value="${esc(cloudEmail)}" required ${disabled} /></label>
+        <div class="cloud-password-slot${recovering ? " recovering" : ""}">
+          <label class="field"><span class="field-label">Password</span><input id="cloud-password" type="password" autocomplete="${creating ? "new-password" : "current-password"}" ${recovering ? "disabled" : `required ${disabled}`} /></label>
+          ${recovering ? '<p class="card-note">Enter your account email to request a password reset.</p>' : ""}
+        </div>
+        <div class="view-actions">
+          <button class="button" type="submit" ${disabled}>${recovering ? "Send reset email" : creating ? "Create account" : "Sign in"}</button>
+          <button class="text-button" type="button" data-action="cloud-mode" data-mode="${recovering ? "signin" : "recover"}" ${disabled}>${recovering ? "Back to sign in" : "Forgot password?"}</button>
+        </div>
       </form>`}
-    <p role="status" data-cloud-status>${esc(cloudStatus)}</p>
-    ${cloudError ? `<p class="field-error" role="alert">${esc(cloudError)}</p>` : ""}
+    <p role="status" aria-live="polite" data-cloud-status>${esc(cloudStatus)}</p>
+    <p class="field-error" role="alert">${esc(cloudError)}</p>
   </section>`;
 }
 
-async function runCloud(action) {
+async function runCloud(action, pending = "Syncing…") {
   if (!cloud.enabled || cloudBusy || inDemo()) return;
   cloudBusy = true;
   cloudError = "";
-  cloudStatus = "Syncing…";
+  cloudStatus = pending;
   rerender();
   try { await action(); }
   catch (error) {
@@ -1134,14 +1148,33 @@ async function runCloud(action) {
   }
 }
 
-function signInCloud() {
+function setCloudMode(mode) {
+  if (cloudBusy || inDemo()) return;
+  cloudEmail = $("#cloud-email")?.value.trim() || "";
+  cloudMode = mode;
+  cloudError = "";
+  cloudStatus = "Not signed in";
+  rerender();
+  $("#cloud-email")?.focus();
+}
+
+function submitCloudAuth() {
   const email = $("#cloud-email")?.value.trim() || "";
   const password = $("#cloud-password")?.value || "";
+  cloudEmail = email;
   return runCloud(async () => {
-    if (!email || !password) throw new Error("Enter your email and password.");
-    await cloud.signIn(email, password);
-    cloudStatus = "Signed in";
-  });
+    if (cloudMode === "recover") {
+      await cloud.recover(email);
+      cloudStatus = "If that address has an account, a reset email is on its way";
+    } else if (cloudMode === "signup") {
+      const session = await cloud.signUp(email, password);
+      cloudStatus = session ? "Signed in" : "Check your email to confirm the address, then sign in";
+      if (!session) cloudMode = "signin";
+    } else {
+      await cloud.signIn(email, password);
+      cloudStatus = "Signed in";
+    }
+  }, cloudMode === "recover" ? "Requesting reset email…" : cloudMode === "signup" ? "Creating account…" : "Signing in…");
 }
 
 async function syncCloudNotebook() {
@@ -3311,7 +3344,7 @@ viewRoot.addEventListener("submit", event => {
     if (state.build.step < BUILD_STEPS.length) nextBuildStep(); else finishBuild();
     return;
   }
-  if (event.target.id === "cloud-signin") { event.preventDefault(); signInCloud(); return; }
+  if (event.target.id === "cloud-auth") { event.preventDefault(); submitCloudAuth(); return; }
 });
 
 viewRoot.addEventListener("focusout", event => {
@@ -3387,6 +3420,7 @@ const actions = {
     toast(`Theme: ${themeLabel()}`);
   },
   "set-theme": target => setTheme(target.dataset.themeValue),
+  "cloud-mode": target => setCloudMode(target.dataset.mode),
   "cloud-sync": () => runCloud(syncCloudNotebook),
   "cloud-signout": () => runCloud(async () => { await cloud.signOut(); cloudStatus = "Not signed in"; }),
   goal: target => {

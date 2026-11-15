@@ -2050,7 +2050,15 @@ a:not([class]):active { opacity: .65; }
 .cloud-sync .card-title { margin-bottom: 10px; }
 .cloud-sync-form { display: grid; gap: 12px; margin-top: 16px; }
 .cloud-sync-form .button { justify-self: start; }
-.cloud-sync [data-cloud-status] { color: var(--muted); margin: 12px 0 0; }
+.cloud-sync-form .segmented { justify-self: start; }
+.cloud-sync-form :is(button, input) { min-height: 44px; }
+.cloud-sync-form .view-actions { justify-content: flex-start; }
+.cloud-password-slot { display: grid; }
+.cloud-password-slot > * { grid-area: 1 / 1; }
+.cloud-password-slot.recovering .field { visibility: hidden; }
+.cloud-password-slot > p { align-self: center; margin: 0; }
+.cloud-sync [data-cloud-status] { color: var(--muted); margin: 12px 0 0; min-height: 4.5em; }
+.cloud-sync > .field-error { min-height: 4.5em; }
 
 
 /* ---------- Welcome landing page: video, value cards, how it works, closer look ---------- */

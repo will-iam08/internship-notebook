@@ -7,7 +7,10 @@ const SUPABASE = "https://test.supabase.co";
 const USER_ID = "synthetic-ui-user";
 const card = page => page.locator('[aria-labelledby="cloud-sync-title"]');
 
-async function mockSupabase(page, { remote = null, offline = false, beforePull } = {}) {
+async function mockSupabase(page, {
+  remote = null, offline = false, beforePull,
+  signup = { id: USER_ID, identities: [{ id: "email-identity" }] }, recover = {}, authStatus = 200, authOffline = false
+} = {}) {
   const requests = [];
   let stored = remote;
   await page.addInitScript(url => {
@@ -24,6 +27,10 @@ async function mockSupabase(page, { remote = null, offline = false, beforePull }
     if (request.method() === "OPTIONS") return route.fulfill({ status: 204, headers });
     requests.push({ url, method: request.method(), body: request.postDataJSON(), headers: request.headers() });
     const respond = body => route.fulfill({ json: body, headers });
+    if (["/auth/v1/signup", "/auth/v1/recover"].includes(url.pathname)) {
+      if (authOffline) return route.abort("internetdisconnected");
+      return route.fulfill({ json: url.pathname.endsWith("signup") ? signup : recover, status: authStatus, headers });
+    }
     if (url.pathname === "/auth/v1/token") {
       return respond({ access_token: "test-session-token", user: { id: USER_ID, email: "owner@example.test" } });
     }
@@ -43,7 +50,7 @@ async function signIn(page) {
   const cloud = card(page);
   await cloud.getByLabel("Email", { exact: true }).fill("owner@example.test");
   await cloud.getByLabel("Password", { exact: true }).fill("test-password");
-  await cloud.getByRole("button", { name: "Sign in", exact: true }).click();
+  await cloud.locator('button[type="submit"]').click();
   await expect(cloud.getByRole("button", { name: "Sync now", exact: true })).toBeEnabled();
 }
 
@@ -86,10 +93,14 @@ test("sign-in waits for Sync now before uploading and keeps tokens out of storag
 });
 
 test("a newer cloud notebook is sanitized before replacing local data", async ({ page }) => {
+  const practice = {
+    mock: [{ at: "2026-11-13T12:00:00.000Z", mode: "quick", score: 72, groupScores: { behavioral: 80, technical: 64 } }],
+    interview: { "b-about-you": { status: "practiced", note: "Project example" } }
+  };
   const remote = {
     nextId: 90,
-    applications: [{ ...sampleApplications()[0], id: 41, company: "Cloud copy", link: "javascript:alert(1)" }],
-    recentlyDeleted: [],
+    applications: [{ ...sampleApplications()[0], ...practice, id: 41, company: "Cloud copy", link: "javascript:alert(1)" }],
+    recentlyDeleted: [{ ...sampleApplications()[1], ...practice, id: 42, deletedAt: new Date().toISOString() }],
     updatedAt: "2099-01-01T00:00:00.000Z"
   };
   const mock = await mockSupabase(page, { remote });
@@ -104,8 +115,126 @@ test("a newer cloud notebook is sanitized before replacing local data", async ({
   expect(stored.applications[0].link).toBe("");
   expect(stored.updatedAt).toBe(remote.updatedAt);
   expect(stored.nextId).toBe(remote.nextId);
+  for (const entry of [...stored.applications, ...stored.recentlyDeleted]) {
+    expect(entry.mock).toEqual(practice.mock);
+    expect(entry.interview).toEqual(practice.interview);
+  }
   expect(mock.requests.filter(request => request.method === "POST" && request.url.pathname === "/rest/v1/notebooks")).toHaveLength(0);
+  await page.reload();
+  expect((await savedNotebook(page)).applications[0].mock).toEqual(practice.mock);
+  expect((await savedNotebook(page)).applications[0].interview).toEqual(practice.interview);
 });
+
+test("account modes preserve layout, request confirmation and keep credentials out of storage", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const mock = await mockSupabase(page);
+  await seedNotebook(page);
+  await openApp(page, "#/settings");
+  const cloud = card(page);
+  const original = await savedNotebook(page);
+  await cloud.getByLabel("Email", { exact: true }).fill("owner@example.test");
+  const initialHeight = (await cloud.boundingBox()).height;
+  await cloud.getByRole("group", { name: "Cloud account" }).getByRole("button", { name: "Create account", exact: true }).click();
+  await expect(cloud.getByLabel("Email", { exact: true })).toHaveValue("owner@example.test");
+  await expect(cloud.getByLabel("Password", { exact: true })).toHaveAttribute("autocomplete", "new-password");
+  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  for (const control of await cloud.locator("button, input").all()) {
+    expect((await control.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  }
+  await cloud.getByLabel("Password", { exact: true }).fill("signup-private-password");
+  await cloud.locator('button[type="submit"]').click();
+  await expect(cloud.getByRole("status")).toHaveText("Check your email to confirm the address, then sign in");
+  await expect(cloud.getByRole("status")).toHaveAttribute("aria-live", "polite");
+  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  await expect(cloud.locator('button[type="submit"]')).toHaveText("Sign in");
+  await expect(cloud.getByLabel("Password", { exact: true })).toHaveValue("");
+  expect(mock.requests.map(request => request.url.pathname)).toEqual(["/auth/v1/signup"]);
+  expect(mock.requests[0].body).toEqual({ email: "owner@example.test", password: "signup-private-password" });
+  expect(mock.requests[0].headers.apikey).toBe("test-anon-key");
+  expect(await savedNotebook(page)).toEqual(original);
+  expect(await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }))).not.toContain("signup-private-password");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+test("an immediate signup session enables sync without uploading automatically", async ({ page }) => {
+  const mock = await mockSupabase(page, { signup: { access_token: "signup-memory-token", user: { id: USER_ID, email: "owner@example.test" } } });
+  await seedNotebook(page);
+  await openApp(page, "#/settings");
+  const cloud = card(page);
+  await cloud.getByRole("group", { name: "Cloud account" }).getByRole("button", { name: "Create account", exact: true }).click();
+  await cloud.getByLabel("Email", { exact: true }).fill("owner@example.test");
+  await cloud.getByLabel("Password", { exact: true }).fill("test-password");
+  await cloud.locator('button[type="submit"]').click();
+  await expect(cloud.getByRole("status")).toHaveText("Signed in");
+  await expect(cloud.getByRole("button", { name: "Sync now", exact: true })).toBeEnabled();
+  expect(mock.requests).toHaveLength(1);
+  expect(await page.evaluate(() => JSON.stringify({ local: { ...localStorage }, session: { ...sessionStorage } }))).not.toContain("signup-memory-token");
+  await page.reload();
+  await expect(cloud.getByRole("status")).toHaveText("Not signed in");
+});
+
+for (const [name, options, message] of [
+  ["registered address", { signup: { code: 422, error_code: "user_already_exists" }, authStatus: 422 }, "That email is already registered. Sign in or reset your password."],
+  ["weak password", { signup: { code: 422, error_code: "weak_password" }, authStatus: 422 }, "That password is too weak. Choose a longer, more varied password."],
+  ["rate limit", { authStatus: 429 }, "Too many requests. Please wait before trying again."],
+  ["offline", { authOffline: true }, "Cloud sync is offline."]
+]) {
+  test(`signup reports ${name} and clears the password`, async ({ page }) => {
+    await mockSupabase(page, options);
+    await seedNotebook(page);
+    await openApp(page, "#/settings");
+    const cloud = card(page);
+    await cloud.getByRole("group", { name: "Cloud account" }).getByRole("button", { name: "Create account", exact: true }).click();
+    await cloud.getByLabel("Email", { exact: true }).fill("owner@example.test");
+    await cloud.getByLabel("Password", { exact: true }).fill("test-password");
+    const initialHeight = (await cloud.boundingBox()).height;
+    await cloud.locator('button[type="submit"]').click();
+    await expect(cloud.getByRole("alert")).toHaveText(message);
+    expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+    await expect(cloud.getByLabel("Password", { exact: true })).toHaveValue("");
+    await expect(cloud.getByRole("button", { name: "Sync now", exact: true })).toHaveCount(0);
+  });
+}
+
+test("forgot password asks for email only and gives a neutral result", async ({ page }) => {
+  const mock = await mockSupabase(page);
+  await seedNotebook(page);
+  await openApp(page, "#/settings");
+  const cloud = card(page);
+  const original = await savedNotebook(page);
+  const initialHeight = (await cloud.boundingBox()).height;
+  await cloud.getByRole("button", { name: "Forgot password?", exact: true }).click();
+  await expect(cloud.getByLabel("Email", { exact: true })).toBeFocused();
+  await expect(cloud.getByLabel("Password", { exact: true })).toBeHidden();
+  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  await cloud.getByLabel("Email", { exact: true }).fill("unknown@example.test");
+  await cloud.getByRole("button", { name: "Send reset email", exact: true }).click();
+  await expect(cloud.getByRole("status")).toHaveText("If that address has an account, a reset email is on its way");
+  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  expect(mock.requests.map(request => request.url.pathname)).toEqual(["/auth/v1/recover"]);
+  expect(mock.requests[0].body).toEqual({ email: "unknown@example.test" });
+  expect(await savedNotebook(page)).toEqual(original);
+  await cloud.getByRole("button", { name: "Back to sign in", exact: true }).click();
+  await expect(cloud.getByLabel("Password", { exact: true })).toHaveAttribute("autocomplete", "current-password");
+});
+
+for (const [name, options, message] of [
+  ["offline", { authOffline: true }, "Cloud sync is offline."],
+  ["rate limited", { authStatus: 429 }, "Too many requests. Please wait before trying again."],
+  ["server failure", { authStatus: 500 }, "Cloud request failed (500)."]
+]) {
+  test(`recovery reports ${name} without claiming an email was sent`, async ({ page }) => {
+    await mockSupabase(page, options);
+    await seedNotebook(page);
+    await openApp(page, "#/settings");
+    const cloud = card(page);
+    await cloud.getByRole("button", { name: "Forgot password?", exact: true }).click();
+    await cloud.getByLabel("Email", { exact: true }).fill("owner@example.test");
+    await cloud.getByRole("button", { name: "Send reset email", exact: true }).click();
+    await expect(cloud.getByRole("alert")).toHaveText(message);
+    await expect(cloud.getByRole("status")).not.toContainText("on its way");
+  });
+}
 
 test("purging a page advances the notebook clock and uploads its removal", async ({ page }) => {
   const deleted = { ...sampleApplications()[1], deletedAt: new Date().toISOString() };
