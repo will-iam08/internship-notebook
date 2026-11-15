@@ -37,7 +37,7 @@ import { createMockInterviewView } from "./mock-interview-view.js";
 import {
   upcomingActions, dueSoon, dueSoonMessage, buildIcs, buildMarkdownNotebook, buildEmailDigest, digestMailto, shortDate
 } from "./reminders.js";
-import { REGIONS, matchesRegion, regionCounts } from "./listings.js";
+import { COUNTRIES, COUNTRY_LABELS, matchesRegionIn, countryCounts, regionCountsFor } from "./listings.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -82,6 +82,9 @@ function readPrefs() {
   const legacyGoal = Number(storage.get(KEYS.goal) ?? storage.get(KEYS.legacyGoal));
   const theme = storage.get(KEYS.theme);
   const filters = saved.newsFilter || {};
+  const legacyCountry = { Canada: "CA", "United States": "US", Remote: "REMOTE" }[filters.region];
+  const country = Object.hasOwn(COUNTRY_LABELS, filters.country) ? filters.country
+    : !filters.country && typeof legacyCountry === "string" ? legacyCountry : "ALL";
   return {
     goal: clamp(Number(saved.goal) || (legacyGoal > 0 ? legacyGoal : 5), 1, 50),
     name: typeof saved.name === "string" ? saved.name.slice(0, 40) : "",
@@ -101,7 +104,8 @@ function readPrefs() {
     newsFilter: {
       term: typeof filters.term === "string" ? filters.term.slice(0, 80) : "ALL",
       degree: ["Junior", "Intermediate", "Senior"].includes(filters.degree) ? filters.degree : "ALL",
-      region: REGIONS.includes(filters.region) ? filters.region : "ALL",
+      country,
+      region: country !== "ALL" && filters.country === country && typeof filters.region === "string" ? filters.region.slice(0, 120) : "ALL",
       coopOnly: filters.coopOnly === true,
       location: typeof filters.location === "string" ? filters.location.slice(0, 120) : "",
       keywords: typeof filters.keywords === "string" ? filters.keywords.slice(0, 120) : ""
@@ -685,7 +689,6 @@ function postingKey(link) {
   } catch { return ""; }
 }
 
-const REGION_PHRASES = { ALL: "worldwide", Canada: "in Canada", "United States": "in the United States", Remote: "remote", International: "outside Canada and the US" };
 const SOURCE_LABELS = { "canadian-tech-internships": "Canadian Tech Internships", simplify: "Pitt CSC / Simplify" };
 /** Credits the lists the feed was built from, linking back to each one. */
 function feedSources(feed) {
@@ -710,7 +713,7 @@ function newsCard() {
 
   const location = filters.location.trim().toLowerCase();
   const keywords = filters.keywords.toLowerCase().trim().split(/\s+/).filter(Boolean);
-  // Region chips count what the other filters leave, so each count is what a click would show.
+  // Counts follow the other filters; keep zero-count places available so choices stay visible.
   const otherwiseShown = safeRows.filter(listing =>
     (filters.term === "ALL" || (listing.terms || []).includes(filters.term))
     // A listing with no degree information (the Canadian list has none) is "unspecified".
@@ -719,16 +722,39 @@ function newsCard() {
     && (!location || String(listing.location || "").toLowerCase().includes(location))
     && keywords.every(word => `${listing.company} ${listing.role}`.toLowerCase().includes(word))
   );
-  const rows = otherwiseShown.filter(listing => matchesRegion(listing, filters.region));
-  const regionTotals = regionCounts(otherwiseShown);
+  const rows = otherwiseShown.filter(listing => matchesRegionIn(listing, filters.country, filters.region));
+  const availableCountries = countryCounts(safeRows);
+  const countryTotals = countryCounts(otherwiseShown);
+  const regionTotals = regionCountsFor(filters.country, otherwiseShown);
+  const availableRegions = regionCountsFor(filters.country, safeRows);
+  const countries = [...COUNTRIES, { code: "REMOTE", name: "Remote" }]
+    .filter(({ code }) => availableCountries[code] || code === filters.country);
+  const regions = [...new Set([...Object.keys(availableRegions).filter(region => region !== "ALL"), ...(filters.region !== "ALL" ? [filters.region] : [])])]
+    .sort((left, right) => (regionTotals[right] || 0) - (regionTotals[left] || 0) || left.localeCompare(right));
+  const placeLabel = COUNTRY_LABELS[filters.country];
+  const placePhrase = filters.country === "ALL" ? "worldwide" : filters.country === "REMOTE" ? "remote"
+    : `in ${placeLabel}${filters.region !== "ALL" ? `, ${filters.region}` : ""}`;
+  const emptyMessage = filters.region !== "ALL" ? `No openings in ${filters.region} right now - try All regions or another country.`
+    : filters.country === "REMOTE" ? "No remote openings right now - try All countries or adjust the other filters."
+    : filters.country !== "ALL" ? `No openings in ${placeLabel} right now - try All countries or adjust the other filters.`
+    : "No roles match these filters.";
 
   const modeClass = { Remote: "remote", Hybrid: "hybrid", "In-person": "onsite" };
   const termLabel = filters.term === "ALL" ? "All terms" : filters.term;
   const degreeLabel = filters.degree === "ALL" ? "Any degree eligibility" : EXPERIENCE_LEVELS.find(([value]) => value === filters.degree)?.[1] || "Any degree eligibility";
-  const regionChips = [["ALL", "All"], ...REGIONS.map(region => [region, region])];
   const filterBar = safeRows.length ? `
-    <div class="filters news-regions" role="group" aria-label="Filter openings by region">
-      ${regionChips.map(([value, label]) => `<button class="filter-chip" type="button" data-action="news-region" data-region="${esc(value)}" aria-pressed="${filters.region === value}">${esc(label)} <b>${regionTotals[value]}</b></button>`).join("")}
+    <div class="news-places" role="group" aria-label="Filter openings by location">
+      <label class="sr-only" for="news-country">Country</label>
+      <select id="news-country" class="filter-select" data-input="news-country">
+        <option value="ALL" ${filters.country === "ALL" ? "selected" : ""}>All countries (${countryTotals.ALL})</option>
+        ${countries.map(({ code, name }) => `<option value="${code}" ${filters.country === code ? "selected" : ""}>${esc(name)} (${countryTotals[code] || 0})</option>`).join("")}
+      </select>
+      <label class="sr-only" for="news-region">Region</label>
+      <select id="news-region" class="filter-select" data-input="news-region" ${filters.country === "ALL" ? "disabled" : ""}>
+        ${filters.country === "ALL" ? `<option value="ALL">Choose a country first</option>` : `
+          <option value="ALL" ${filters.region === "ALL" ? "selected" : ""}>All regions (${regionTotals.ALL})</option>
+          ${regions.map(region => `<option value="${esc(region)}" ${filters.region === region ? "selected" : ""}>${esc(region)} (${regionTotals[region] || 0})</option>`).join("")}`}
+      </select>
     </div>
     <div class="news-filters">
       <button class="filter-select" type="button" data-action="news-term-menu" aria-haspopup="menu">${esc(termLabel)}</button>
@@ -744,7 +770,7 @@ function newsCard() {
   return `
     <section class="card news-card" aria-labelledby="news-title">
       <div class="card-head"><div><h2 class="card-title" id="news-title">${icon("sparkle")} Latest internship openings</h2>
-        <p class="card-note">${safeRows.length ? `${plural(rows.length, "role")} shown, ${REGION_PHRASES[filters.region] || "worldwide"}${feed.generatedAt ? ` · updated ${esc(timeAgo(feed.generatedAt))}` : ""}` : "A feed of recently posted internship roles"}</p></div>
+        <p class="card-note">${safeRows.length ? `${plural(rows.length, "role")} ${esc(placePhrase)}${feed.generatedAt ? ` · updated ${esc(timeAgo(feed.generatedAt))}` : ""}` : "A feed of recently posted internship roles"}</p></div>
       </div>
       ${filterBar}
       ${rows.length ? `<ul class="news-list">${rows.map(listing => `
@@ -762,7 +788,7 @@ function newsCard() {
             <a class="button ghost small" href="${esc(listing.safeUrl)}" target="_blank" rel="noopener noreferrer" aria-label="Apply to ${esc(listing.role)} at ${esc(listing.company)} (opens in a new tab)">Apply${icon("external")}</a>
           </div>
         </li>`).join("")}</ul>`
-        : `<p class="empty-note">${safeRows.length ? "No roles match these filters." : "No fresh listings right now. Check back soon."}</p>`}
+        : `<p class="empty-note">${safeRows.length ? esc(emptyMessage) : "No fresh listings right now. Check back soon."}</p>`}
       ${feedSources(feed)}
     </section>`;
 }
@@ -3267,6 +3293,15 @@ viewRoot.addEventListener("change", event => {
   }
   if (target.dataset.select) { toggleSelected(Number(target.dataset.select), target.checked); return; }
   if (target.dataset.input === "sort") { state.prefs.sort = target.value; savePrefs(); rerender(); }
+  if (target.dataset.input === "news-country" || target.dataset.input === "news-region") {
+    if (target.dataset.input === "news-country") {
+      state.prefs.newsFilter.country = Object.hasOwn(COUNTRY_LABELS, target.value) ? target.value : "ALL";
+      state.prefs.newsFilter.region = "ALL";
+    } else state.prefs.newsFilter.region = target.value.slice(0, 120);
+    savePrefs(); rerender();
+    $(`#${target.id}`)?.focus({ preventScroll: true });
+    return;
+  }
   if (target.dataset.input === "news-coop") { state.prefs.newsFilter.coopOnly = target.checked; savePrefs(); rerender(); }
   if ((state.route.view === "setup" || state.route.view === "build") && target.name && target.name in state.setupForm) {
     state.setupForm[target.name] = target.value;
@@ -3418,15 +3453,8 @@ const actions = {
     } catch (error) { fail(error); }
   },
   "news-clear": () => {
-    state.prefs.newsFilter = { term: "ALL", degree: "ALL", region: "ALL", coopOnly: false, location: "", keywords: "" };
+    state.prefs.newsFilter = { term: "ALL", degree: "ALL", country: "ALL", region: "ALL", coopOnly: false, location: "", keywords: "" };
     savePrefs(); rerender();
-  },
-  "news-region": target => {
-    const region = target.dataset.region;
-    state.prefs.newsFilter.region = REGIONS.includes(region) ? region : "ALL";
-    savePrefs(); rerender();
-    // The chips are re-drawn, so keep keyboard focus on the one just chosen.
-    $(`[data-action="news-region"][data-region="${state.prefs.newsFilter.region}"]`)?.focus({ preventScroll: true });
   },
   "news-term-menu": target => {
     const current = state.prefs.newsFilter.term;
