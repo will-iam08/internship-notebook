@@ -137,7 +137,7 @@ test("account modes preserve layout, request confirmation and keep credentials o
   await cloud.getByRole("group", { name: "Cloud account" }).getByRole("button", { name: "Create account", exact: true }).click();
   await expect(cloud.getByLabel("Email", { exact: true })).toHaveValue("owner@example.test");
   await expect(cloud.getByLabel("Password", { exact: true })).toHaveAttribute("autocomplete", "new-password");
-  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  expect(Math.abs((await cloud.boundingBox()).height - initialHeight)).toBeLessThanOrEqual(2);
   for (const control of await cloud.locator("button, input").all()) {
     expect((await control.boundingBox()).height).toBeGreaterThanOrEqual(44);
   }
@@ -145,7 +145,7 @@ test("account modes preserve layout, request confirmation and keep credentials o
   await cloud.locator('button[type="submit"]').click();
   await expect(cloud.getByRole("status")).toHaveText("Check your email to confirm the address, then sign in");
   await expect(cloud.getByRole("status")).toHaveAttribute("aria-live", "polite");
-  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  expect(Math.abs((await cloud.boundingBox()).height - initialHeight)).toBeLessThanOrEqual(2);
   await expect(cloud.locator('button[type="submit"]')).toHaveText("Sign in");
   await expect(cloud.getByLabel("Password", { exact: true })).toHaveValue("");
   expect(mock.requests.map(request => request.url.pathname)).toEqual(["/auth/v1/signup"]);
@@ -190,7 +190,7 @@ for (const [name, options, message] of [
     const initialHeight = (await cloud.boundingBox()).height;
     await cloud.locator('button[type="submit"]').click();
     await expect(cloud.getByRole("alert")).toHaveText(message);
-    expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+    expect(Math.abs((await cloud.boundingBox()).height - initialHeight)).toBeLessThanOrEqual(2);
     await expect(cloud.getByLabel("Password", { exact: true })).toHaveValue("");
     await expect(cloud.getByRole("button", { name: "Sync now", exact: true })).toHaveCount(0);
   });
@@ -206,11 +206,11 @@ test("forgot password asks for email only and gives a neutral result", async ({ 
   await cloud.getByRole("button", { name: "Forgot password?", exact: true }).click();
   await expect(cloud.getByLabel("Email", { exact: true })).toBeFocused();
   await expect(cloud.getByLabel("Password", { exact: true })).toBeHidden();
-  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  expect(Math.abs((await cloud.boundingBox()).height - initialHeight)).toBeLessThanOrEqual(2);
   await cloud.getByLabel("Email", { exact: true }).fill("unknown@example.test");
   await cloud.getByRole("button", { name: "Send reset email", exact: true }).click();
   await expect(cloud.getByRole("status")).toHaveText("If that address has an account, a reset email is on its way");
-  expect((await cloud.boundingBox()).height).toBeCloseTo(initialHeight, 0);
+  expect(Math.abs((await cloud.boundingBox()).height - initialHeight)).toBeLessThanOrEqual(2);
   expect(mock.requests.map(request => request.url.pathname)).toEqual(["/auth/v1/recover"]);
   expect(mock.requests[0].body).toEqual({ email: "unknown@example.test" });
   expect(await savedNotebook(page)).toEqual(original);

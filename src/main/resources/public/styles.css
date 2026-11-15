@@ -2057,8 +2057,10 @@ a:not([class]):active { opacity: .65; }
 .cloud-password-slot > * { grid-area: 1 / 1; }
 .cloud-password-slot.recovering .field { visibility: hidden; }
 .cloud-password-slot > p { align-self: center; margin: 0; }
-.cloud-sync [data-cloud-status] { color: var(--muted); margin: 12px 0 0; min-height: 4.5em; }
-.cloud-sync > .field-error { min-height: 4.5em; }
+/* Each message keeps room for two lines, so switching modes or reporting a
+   failure never moves the controls above it. */
+.cloud-sync [data-cloud-status] { color: var(--muted); margin: 12px 0 0; min-height: 2.75rem; }
+.cloud-sync > .field-error { margin: 10px 0 0; min-height: 2.75rem; }
 
 
 /* ---------- Welcome landing page: video, value cards, how it works, closer look ---------- */
