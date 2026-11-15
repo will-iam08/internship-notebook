@@ -1,7 +1,72 @@
 {
-  "generatedAt": "2026-11-14T18:45:19.812Z",
+  "generatedAt": "2026-11-15T19:23:56.387Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "listings": [
+    {
+      "company": "Fanatics",
+      "role": "Product Management Intern",
+      "location": "Seattle, WA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4507819009",
+      "postedAt": "2026-11-15T13:05:31.000Z"
+    },
+    {
+      "company": "Fanatics",
+      "role": "Product Intern - Physical Trading Cards",
+      "location": "Coppell, TX",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4507757009",
+      "postedAt": "2026-11-15T13:05:18.000Z"
+    },
+    {
+      "company": "Fanatics",
+      "role": "Product Intern",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4507676009",
+      "postedAt": "2026-11-15T13:05:09.000Z"
+    },
+    {
+      "company": "Fanatics",
+      "role": "People Intelligence Intern",
+      "location": "NYC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4505998009",
+      "postedAt": "2026-11-15T13:04:43.000Z"
+    },
     {
       "company": "Tesla",
       "role": "Electrical Engineer Intern - High Speed Hardware Design",
@@ -30,6 +95,38 @@
       "degrees": [],
       "experienceLevel": "Junior",
       "url": "https://careers-sas.icims.com/jobs/42797/job?mobile=true&needsRedirect=false",
+      "postedAt": "2026-11-14T00:00:00.000Z"
+    },
+    {
+      "company": "SAS",
+      "role": "IoT Product Strategy Intern",
+      "location": "Cary, NC",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Master's"
+      ],
+      "experienceLevel": "Senior",
+      "url": "https://careers-sas.icims.com/jobs/43309/job?mobile=true&needsRedirect=false",
+      "postedAt": "2026-11-14T00:00:00.000Z"
+    },
+    {
+      "company": "General Dynamics Mission Systems",
+      "role": "Engineer Intern",
+      "location": "Pittsfield, MA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "N/A"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://careers-gdms.icims.com/jobs/75487/job?mobile=true&needsRedirect=false",
       "postedAt": "2026-11-14T00:00:00.000Z"
     },
     {
@@ -1419,6 +1516,73 @@
       "postedAt": "2026-11-13T00:00:00.000Z"
     },
     {
+      "company": "Cigna Group",
+      "role": "Healthcare Analytics Intern",
+      "location": "Morris Plains, NJ",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://cigna.wd5.myworkdayjobs.com/cignacareers/job/Morris-Plains-NJ/Healthcare-Analytics-Summer-Intern---Start-Date--May-24--2027_26009857",
+      "postedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "company": "RTX",
+      "role": "Software Engineering Co-op",
+      "location": "Richardson, TX",
+      "workMode": "In-person",
+      "isCoop": true,
+      "terms": [
+        "Summer 2027",
+        "Fall 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-TX-RICHARDSON-C17--1717-Cityline-Dr--CITYLINE-C17/Software-Engineering-Co-op--Summer-Fall-_01884404",
+      "postedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "company": "Blizzard Entertainment",
+      "role": "Animation & Cinematic Tools Engineering Intern - Animation & Cinematic Tools Engineering",
+      "location": "Irvine, CA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Summer 2027"
+      ],
+      "degrees": [
+        "Bachelor's",
+        "Master's"
+      ],
+      "experienceLevel": "Intermediate",
+      "url": "https://xboxgaming.wd1.myworkdayjobs.com/Blizzard_External_Careers/job/Irvine---Blizzard---Blizzard-Way/Blizzard-2027-Summer-Internships---Animation---Cinematic-Tools-Engineering_R028350",
+      "postedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
+      "company": "Carnegie Mellon University",
+      "role": "Cyber AI Engineering Intern",
+      "location": "Pittsburgh, PA",
+      "workMode": "In-person",
+      "isCoop": false,
+      "terms": [
+        "Spring 2027"
+      ],
+      "degrees": [
+        "Bachelor's"
+      ],
+      "experienceLevel": "Junior",
+      "url": "https://cmu.wd115.myworkdayjobs.com/cmu/job/Pittsburgh-PA/Cyber-AI-Engineering-Intern--Spring-2027-_2025346-1",
+      "postedAt": "2026-11-13T00:00:00.000Z"
+    },
+    {
       "company": "Cintas",
       "role": "IT OT Software Engineer Intern",
       "location": "Mason, OH",
@@ -2250,166 +2414,6 @@
       "degrees": [],
       "experienceLevel": "Junior",
       "url": "https://compassion.wd5.myworkdayjobs.com/compassioncareers/job/USA---Global-Ministry-Center/GIS-Geospatial-Analyst-Intern_R8713-2",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Northrop Grumman",
-      "role": "Engineering Technician – Electrical Ground Support Equipment Intern",
-      "location": "Chandler, AZ",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Associate's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://ngc.wd1.myworkdayjobs.com/Northrop_Grumman_External_Site/job/United-States-Arizona-Chandler/Engineering-Technician---4---Electrical-Ground-Support-Equipment_R10260399",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Atalanta",
-      "role": "Software Engineer Intern",
-      "location": "Washington, DC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jobs.ashbyhq.com/atalanta/52011b21-df9a-4304-81a9-005a79f55335/application?embed=true",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Stanley Black & Decker",
-      "role": "Data Analyst Intern",
-      "location": "Towson, MD",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Master's"
-      ],
-      "experienceLevel": "Senior",
-      "url": "https://sbdinc.wd1.myworkdayjobs.com/en-US/Stanley_Black_Decker_Career_Site/job/Towson-MD-United-States/Intern--Data-Analyst---BI--Summer-2027_REQ-1000052481",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Atalanta",
-      "role": "Forward Deployed Engineer Intern",
-      "location": "Washington, DC",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's",
-        "PhD"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://jobs.ashbyhq.com/atalanta/732425ff-3461-49e6-9022-5b0cd732e6c1/application?embed=true",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Intermountain Healthcare",
-      "role": "Machine Learning Operations Intern",
-      "location": "Remote in USA",
-      "workMode": "Remote",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://imh.wd108.myworkdayjobs.com/IntermountainCareers/job/Key-Bank-Tower/Machine-Learning-Operations--MLOps--Intern_R188318",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Intermountain Healthcare",
-      "role": "AI/ML Engineer Intern",
-      "location": "Remote in USA",
-      "workMode": "Remote",
-      "isCoop": false,
-      "terms": [
-        "N/A"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://imh.wd108.myworkdayjobs.com/IntermountainCareers/job/Key-Bank-Tower/AI-ML-Engineer-Intern_R188835",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Castleton Commodities International",
-      "role": "Commodities Trading Summer Analyst Intern",
-      "location": "Houston, TX, Stamford, CT",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2028"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers/job/Stamford/Commodities-Trading-Summer-Analyst-Internship-Program--Summer-2028-Internship-_R1417",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Jabil",
-      "role": "IT Programmer Analyst Intern Co-op",
-      "location": "Florence, KY",
-      "workMode": "In-person",
-      "isCoop": true,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [],
-      "experienceLevel": "Junior",
-      "url": "https://jabil.wd5.myworkdayjobs.com/Jabil_Careers/job/Florence-KY/IT-Programmer-Analyst-Spring-Co-Op_J2471333",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "TMX Group",
-      "role": "AI Engineer Intern",
-      "location": "Toronto, ON, Canada",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Winter 2027"
-      ],
-      "degrees": [
-        "Bachelor's",
-        "Master's"
-      ],
-      "experienceLevel": "Intermediate",
-      "url": "https://tmx.wd3.myworkdayjobs.com/TMX_Careers/job/Toronto---100-Adelaide-St-W/AI-Engineering-Intern_R-6680",
-      "postedAt": "2026-11-12T00:00:00.000Z"
-    },
-    {
-      "company": "Entegris",
-      "role": "Product Management Intern",
-      "location": "Colorado Springs, CO",
-      "workMode": "In-person",
-      "isCoop": false,
-      "terms": [
-        "Summer 2027"
-      ],
-      "degrees": [
-        "Bachelor's"
-      ],
-      "experienceLevel": "Junior",
-      "url": "https://entegris.wd1.myworkdayjobs.com/entegriscareers/job/Rockrimmon-Colorado-Springs-CO/Product-Management-Intern_REQ-15838",
       "postedAt": "2026-11-12T00:00:00.000Z"
     }
   ]
