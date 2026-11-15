@@ -40,6 +40,8 @@ test("privacy and account-deletion pages are public", async ({ page }) => {
 });
 
 test("the service worker registers and caches the app shell for offline use", async ({ page, context, browserName }) => {
+  // Headless Chromium crashes in its native speech probe; voice paths use stubs in mock.spec.js.
+  await page.addInitScript(() => { window.SpeechRecognition = undefined; window.webkitSpeechRecognition = undefined; });
   await seedNotebook(page);
   await openApp(page, "#/today");
   await page.waitForFunction(() => navigator.serviceWorker?.controller || navigator.serviceWorker.ready);
@@ -48,6 +50,9 @@ test("the service worker registers and caches the app shell for offline use", as
   // A page visited once while online should still open once the network is gone.
   await openApp(page, "#/board");
   expect(await page.evaluate(async () => Boolean(await caches.match("index.html")))).toBe(true);
+  for (const module of ["js/mock-interview.js", "js/mock-interview-view.js"]) {
+    expect(await page.evaluate(async url => Boolean(await caches.match(url)), module), `${module} is precached`).toBe(true);
+  }
   // Playwright WebKit errors on offline navigation with a service worker. Its cache is checked
   // above; Chromium also verifies that the cached page actually reloads without network access.
   if (browserName === "webkit") return;
@@ -55,6 +60,9 @@ test("the service worker registers and caches the app shell for offline use", as
   try {
     await page.reload({ waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: "Board" })).toBeVisible({ timeout: 10000 });
+    await page.goto("/#/mock/3", { waitUntil: "domcontentloaded" });
+    await page.getByRole("button", { name: "Start practice", exact: true }).click();
+    await expect(page.locator("#mock-answer-form")).toBeVisible();
   } finally {
     await context.setOffline(false);
   }

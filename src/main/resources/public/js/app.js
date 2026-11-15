@@ -11,7 +11,7 @@ import {
   STAGES, PIPELINE, OPEN_STAGES, LABELS, DAY_MS, RETENTION_MS, LIMITS, SOURCE_SUGGESTIONS,
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
-  cleanSkills, cleanLink, cleanInterview, collapseHistory, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
+  cleanSkills, cleanLink, cleanInterview, cleanMock, collapseHistory, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
   previewImport, sanitizeImportedEntry
 } from "./domain.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
@@ -33,6 +33,7 @@ import {
 } from "./builder.js";
 import { entryCalendar } from "./calendar.js";
 import { QUESTION_GROUPS, questionsByGroup, questionsFor, interviewSummary, withQuestionStatus, withQuestionNote } from "./interview.js";
+import { createMockInterviewView } from "./mock-interview-view.js";
 import {
   upcomingActions, dueSoon, dueSoonMessage, buildIcs, buildMarkdownNotebook, buildEmailDigest, digestMailto, shortDate
 } from "./reminders.js";
@@ -54,6 +55,7 @@ const VIEWS = {
   setup: { title: "Set up your notebook", tab: "--tab-today" },
   build: { title: "Build your notebook", tab: "--tab-today" },
   export: { title: "Reminders and exports", tab: "--tab-settings" },
+  mock: { title: "Practice interview", tab: "--tab-notebook" },
   signup: { title: "Save your notebook", tab: "--tab-settings" }
 };
 
@@ -250,6 +252,7 @@ const inDemo = () => state.demoMode;
  *  the session so any earlier delayed callback is invalidated. Leaves real storage untouched. */
 function enterDemoMode() {
   if (!BROWSER_MODE) return false;
+  mockView.reset();
   let dataset;
   try {
     dataset = buildDemoDataset();
@@ -277,6 +280,7 @@ function enterDemoMode() {
  *  bump the session so demo-era timers/undo callbacks become no-ops. No real write ever happens. */
 function exitDemoMode() {
   if (!state.demoMode) return;
+  mockView.reset();
   demoSession++;
   state.demoMode = false;
   // Restore the real notebook arrays captured on entry; discard the in-memory demo copy entirely.
@@ -1327,6 +1331,8 @@ function prepCard(entry) {
           <p class="prep-sub">Practice out loud, then mark each question. Your progress stays with this page, in this browser.</p></div>
         <label class="prep-filter"><input type="checkbox" data-prep-filter${only ? " checked" : ""} /><span>Only to practice</span></label>
       </div>
+      <div class="export-actions"><a class="button" href="#/mock/${entry.id}">${icon("clock")}Practice interview</a></div>
+      ${mockTrend(entry)}
       <div class="prep-progress">
         <div class="prep-bar" role="progressbar" aria-label="Questions practiced" aria-valuemin="0" aria-valuemax="${summary.total}"
           aria-valuenow="${summary.practiced}" aria-valuetext="${esc(summary.text)}"><i style="width:${summary.percent}%"></i></div>
@@ -1408,7 +1414,33 @@ function practiceCard(focus) {
         <button class="text-button" type="button" data-action="open-prep" data-id="${target.id}">All questions</button></div>
       ${questions.length ? `<ol class="prep-list">${questions.map(question => prepQuestion(target.id, question, progress[question.id], { compact: true })).join("")}</ol>`
         : `<p class="empty-note">${icon("check", "inline")} Every question for ${esc(target.company)} is practiced.</p>`}
+      <div class="export-actions"><a class="button" href="#/mock/${target.id}">${icon("clock")}Practice interview</a></div>
     </section>`;
+}
+
+function mockTrend(entry) {
+  const sessions = cleanMock(entry.mock).slice(-3);
+  if (!sessions.length) return "";
+  return `<div class="mock-trend"><span class="card-note">Recent practice · oldest to newest</span><ol aria-label="Recent practice scores">${sessions.map(session => `<li><time datetime="${esc(session.at)}">${esc(formatDay(dayKey(new Date(session.at))))}</time><strong>${session.score}<small> / 100</small></strong></li>`).join("")}</ol><a class="text-button" href="#/mock/${entry.id}/summary">View latest summary</a></div>`;
+}
+
+const mockView = createMockInterviewView({
+  esc, icon, viewHead, redraw: () => rerender(), go,
+  saveSummary: async (id, summary) => {
+    const entry = find(id);
+    if (!entry) throw new Error("This application is no longer available.");
+    const backend = activeApi;
+    const session = currentSession();
+    const updated = await backend.update(id, { mock: cleanMock([...(entry.mock || []), summary]) });
+    if (sessionActive(session)) replaceApplications([updated]);
+  }
+});
+
+function viewMock() {
+  const entry = find(state.route.id);
+  if (entry) return mockView.render(entry, state.route);
+  return `${viewHead({ eyebrow: "Interview prep", title: "Practice interview<span class=\"dot\">.</span>", sub: state.route.id ? "This application is no longer available. Choose another page to practice." : "Choose the application you want to practice for." })}
+    <section class="card mock-picker">${state.applications.length ? `<ul class="mock-next">${state.applications.map(item => `<li><a href="#/mock/${item.id}"><span><strong>${esc(item.company)}</strong><small>${esc(item.role)}</small></span>${icon("forward")}</a></li>`).join("")}</ul>` : `<p>Add an application to your notebook to start practicing.</p><a class="button" href="#/notebook">All pages</a>`}</section>`;
 }
 
 /* ==========================================================================
@@ -2365,7 +2397,7 @@ async function completeSetup() {
    ========================================================================== */
 const viewRoot = $("#view");
 const page = $("#page");
-const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup, export: viewExport };
+const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup, export: viewExport, mock: viewMock };
 
 // The skip link targets #view directly with JS, not a "#view" hash change: every hash change
 // goes through the router below, and "view" isn't a route name, so letting the browser's default
@@ -2378,11 +2410,12 @@ $(".skip-link").addEventListener("click", event => {
 });
 
 function parseRoute() {
-  const [view, id] = window.location.hash.replace(/^#\/?/, "").split("/");
+  const [view, id, section, question] = window.location.hash.replace(/^#\/?/, "").split("/");
   if (view === "entry" && Number(id) > 0) return { view: "entry", id: Number(id) };
   // The welcome page only exists in front of the demo; anyone else asking for it gets Today.
   if (view === "welcome" && !canShowWelcome({ browserMode: BROWSER_MODE, demoActive: inDemo() })) return { view: "today", id: null };
-  if ((view === "build" || view === "export") && !BROWSER_MODE) return { view: "today", id: null }; // browser-notebook features only
+  if ((view === "build" || view === "export" || view === "mock") && !BROWSER_MODE) return { view: "today", id: null }; // browser-notebook features only
+  if (view === "mock") return { view, id: Number.isSafeInteger(Number(id)) && Number(id) > 0 ? Number(id) : null, focus: section === "focus" ? question : "", summary: section === "summary" };
   return { view: renderers[view] ? view : "today", id: null };
 }
 
@@ -2395,6 +2428,7 @@ function render({ animate = false, keepScroll = true } = {}) {
   const { view, id } = state.route;
   const scrollTop = page.scrollTop;
   const windowScroll = window.scrollY;
+  mockView.unmount();
   if (state.corrupted) {
     document.title = "Recover your notebook · My Internship Notebook";
     $("#mobile-title").textContent = "Recover your notebook";
@@ -2417,7 +2451,7 @@ function render({ animate = false, keepScroll = true } = {}) {
   $("#mobile-title").textContent = title;
   // An open application page is still a page of "All pages", so that tab stays highlighted
   // instead of every tab looking unselected while you are reading or editing an entry.
-  const navKey = view === "entry" ? "notebook" : view === "export" ? "settings" : view;
+  const navKey = view === "entry" || view === "mock" ? "notebook" : view === "export" ? "settings" : view;
   $$("[data-nav]").forEach(link => {
     if (link.dataset.nav === navKey) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -2427,6 +2461,7 @@ function render({ animate = false, keepScroll = true } = {}) {
   updateCounts();
   renderSelectionBar();
   if (view === "entry") setupEntry();
+  if (view === "mock" && find(id)) mockView.mount(find(id), state.route);
   drawCharts();
   if (keepScroll) { page.scrollTop = scrollTop; window.scrollTo(0, windowScroll); }
 }
@@ -2445,12 +2480,13 @@ async function navigate() {
   await flushEntrySave();
   const previous = state.route;
   state.route = parseRoute();
+  if (previous.view === "mock" && state.route.view !== "mock") mockView.reset();
   // Leaving the demo for setup or sign-up ends the demo so those screens and the real notebook show.
   if (inDemo() && (state.route.view === "setup" || state.route.view === "signup")) exitDemoMode();
   settleWelcomeHash();
   if (previous.view !== state.route.view) endSelection(false);
   if (state.route.view === "entry" && previous.view !== "entry") {
-    state.backRoute = `#/${previous.view === "entry" ? "board" : previous.view}`;
+    state.backRoute = `#/${previous.view === "entry" ? "board" : previous.view === "mock" ? "notebook" : previous.view}`;
   }
   closeMenu();
   render({ animate: true, keepScroll: false });
@@ -3866,12 +3902,11 @@ function updateStorageChip() {
 window.addEventListener("hashchange", navigate);
 window.addEventListener("pagehide", () => { if (!inDemo()) flushEntrySave(); });
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden" && !inDemo()) flushEntrySave(); });
-// Keep relative times ("2 min ago", "3 days left") fresh while the app stays open. The welcome page
-// and the builder are skipped: neither shows relative times, and a re-render would restart the tour
-// video or pull focus off the builder's buttons.
+// Keep relative times ("2 min ago", "3 days left") fresh. Entry, welcome, builder and practice skip
+// refreshes so media and control focus stay intact.
 window.setInterval(() => {
   const typing = document.activeElement?.closest?.("#view input, #view textarea, #view select");
-  if (state.loaded && !["entry", "welcome", "build"].includes(state.route.view) && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
+  if (state.loaded && !["entry", "welcome", "build", "mock"].includes(state.route.view) && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
 }, 60000);
 
 hydrateStaticIcons();

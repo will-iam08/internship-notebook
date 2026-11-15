@@ -897,7 +897,7 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
 /* ---------- Entry page (one application) ---------- */
 .entry { margin: 0 auto; max-width: 940px; }
 .entry-nav { align-items: center; display: flex; gap: 6px; margin-bottom: 14px; }
-.entry-nav .back { align-items: center; background: none; border: 0; border-radius: 10px; color: var(--ink-2); display: inline-flex; font-weight: 650; gap: 4px; min-height: 44px; padding: 7px 10px 7px 6px; text-decoration: none; }
+.entry-nav .back, .entry.mock-page > .back { align-items: center; background: none; border: 0; border-radius: 10px; color: var(--ink-2); display: inline-flex; font-weight: 650; gap: 4px; min-height: 44px; padding: 7px 10px 7px 6px; text-decoration: none; }
 .entry-nav .back:hover { background: var(--wash-strong); }
 .save-state { align-items: center; color: var(--muted); display: inline-flex; font-size: .8rem; font-weight: 600; gap: 5px; margin-left: auto; transition: opacity .3s; }
 .save-state .icon { height: 15px; width: 15px; }
@@ -1893,6 +1893,52 @@ dialog[open] { animation: modal-in .3s var(--ease) both; }
 .prep-note textarea { font-size: .88rem; min-height: 60px; }
 @media (max-width: 559px) { .prep-q { grid-template-columns: minmax(0, 1fr); } .prep-actions { justify-content: flex-start; } }
 .practice-card .prep-list { padding: 0; }
+
+/* Practice uses the builder's choices and the application's ruled paper. */
+.entry.mock-page { background: none; border: 0; border-radius: 0; box-shadow: none; font-size: 1rem; max-width: 880px; min-height: 0; padding: 0; }
+.entry.mock-page > .back { margin-bottom: 8px; }
+.entry.mock-page .build-card { max-width: none; }
+.entry.mock-page .build-title { text-wrap: pretty; }
+.entry.mock-page .view-sub, .mock-picker { overflow-wrap: anywhere; }
+.mock-note { color: var(--muted); font-size: .88rem; margin-top: 20px; max-width: 68ch; }
+.mock-clock { color: var(--muted); font-size: .86rem; font-variant-numeric: tabular-nums; margin: 14px 0 18px; min-height: 4.5em; }
+.mock-clock p:last-child { color: var(--ink-2); font-weight: 650; min-height: 2.8em; }
+.entry.mock-page .notes-area { display: block; margin-top: 12px; max-height: 540px; overflow-y: auto; resize: vertical; width: 100%; }
+.entry.mock-page .notes-area:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.mock-voice-slot { align-items: center; display: grid; gap: 8px; grid-template-rows: 44px 3em; padding-top: 12px; }
+.mock-voice-slot button { grid-row: 1; justify-self: start; }
+.mock-voice-slot [role="status"] { grid-row: 2; }
+.mock-voice-slot [hidden] { display: none; }
+.entry.mock-page .build-nav { flex-wrap: wrap; }
+.entry.mock-page .build-nav > .card-note { flex: 1 1 160px; }
+.entry.mock-page h3 { margin: 20px 0 8px; }
+.entry.mock-page h4 { font-family: var(--sans); font-size: .9rem; margin: 16px 0 6px; }
+.mock-score { align-items: center; display: flex; gap: 12px; margin: 12px 0 20px; }
+.mock-score > strong { font: 700 clamp(3rem, 10vw, 4rem)/1.1 var(--serif); font-variant-numeric: tabular-nums; }
+.mock-score > span { color: var(--muted); }
+.mock-score small { display: block; font-size: .84rem; }
+.mock-review-columns { display: grid; gap: 12px 24px; }
+@media (min-width: 680px) { .mock-review-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.mock-list { color: var(--ink-2); display: grid; gap: 8px; margin: 8px 0 16px; padding-left: 20px; }
+.mock-facts { margin: 16px 0; }
+.mock-facts > div { border-bottom: 1px solid var(--rule); display: grid; gap: 4px 16px; grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr); padding: 12px 0; }
+.mock-facts dt { font-weight: 650; }
+.mock-facts dd { color: var(--ink-2); margin: 0; overflow-wrap: anywhere; }
+.mock-answer-copy summary { align-items: center; cursor: pointer; display: flex; font-weight: 650; min-height: 44px; }
+.mock-answer-copy p { color: var(--ink-2); overflow-wrap: anywhere; white-space: pre-wrap; }
+.mock-next { list-style: none; margin: 8px 0 16px; padding: 0; }
+.mock-next li + li { border-top: 1px solid var(--rule); }
+.mock-next a { align-items: center; color: var(--ink-2); display: flex; gap: 12px; justify-content: space-between; min-height: 44px; padding: 12px 0; text-underline-offset: 3px; }
+.mock-next a .icon { flex: none; }
+.mock-next small { display: block; }
+.mock-save { color: var(--ink-2); font-size: .88rem; margin-top: 18px; min-height: 3em; }
+.entry.mock-page .text-button, .mock-trend .text-button, .mock-picker .button { align-items: center; display: inline-flex; min-height: 44px; }
+.mock-history-link { margin-top: 12px; }
+.mock-trend { margin: 16px 0; }
+.mock-trend ol { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 8px 0; padding: 0; }
+.mock-trend li { background: var(--paper-2); border: 1px solid var(--line); border-radius: var(--radius-sm); display: grid; flex: 1 1 84px; gap: 2px; max-width: 160px; padding: 10px 12px; }
+.mock-trend time, .mock-trend small { color: var(--muted); font-size: .78rem; font-weight: 400; }
+.mock-trend strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 
 /* ==========================================================================
    Interaction feedback: one press, hover, and focus language for every control

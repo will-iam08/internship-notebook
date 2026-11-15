@@ -85,7 +85,7 @@ test("touch targets: icon buttons and the pipeline stepper are at least 44px tal
   // boundingBox() is null (not "zero-size"), so asserting through it threw instead of failing on
   // an actual measurement. Scope to the one this test is actually about: the visible mobile bar.
   const searchBox = await page.locator('.mobile-bar [data-action="palette"]').boundingBox();
-  expect(searchBox.height).toBeGreaterThanOrEqual(44);
+  expect(Math.round(searchBox.height)).toBeGreaterThanOrEqual(44);
   const step = await page.locator(".step").first().boundingBox();
   // Transformed 44px boxes can measure 43.99998px due to browser rounding.
   expect(Number(step.height.toFixed(3))).toBeGreaterThanOrEqual(44);

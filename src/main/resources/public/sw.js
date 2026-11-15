@@ -19,6 +19,8 @@ const SHELL = [
   "js/builder.js",
   "js/reminders.js",
   "js/interview.js",
+  "js/mock-interview.js",
+  "js/mock-interview-view.js",
   "js/cloud.js",
   "js/cloud-config.js",
   "js/usage.js",

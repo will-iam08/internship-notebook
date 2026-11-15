@@ -158,6 +158,27 @@ export function cleanInterview(value) {
   return clean;
 }
 
+/* Compact, browser-only practice history, oldest first. Answers and transcripts are never stored. */
+export const MOCK_SESSION_LIMIT = 5;
+const MOCK_MODES = ["quick", "full", "technical", "behavioral"];
+const MOCK_GROUPS = ["behavioral", "technical", "logistics", "ask"];
+const MOCK_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/;
+const validScore = value => typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+
+export function cleanMock(value) {
+  if (!Array.isArray(value)) return [];
+  const clean = [];
+  for (const raw of value) {
+    if (!raw || !MOCK_MODES.includes(raw.mode) || !validScore(raw.score) || typeof raw.at !== "string"
+      || !MOCK_TIMESTAMP.test(raw.at) || !isValidDate(raw.at.slice(0, 10)) || !isValidIso(raw.at)) continue;
+    const groupScores = Object.fromEntries(MOCK_GROUPS.filter(group => validScore(raw.groupScores?.[group]))
+      .map(group => [group, Math.round(raw.groupScores[group])]));
+    if (!Object.keys(groupScores).length) continue;
+    clean.push({ at: new Date(raw.at).toISOString(), mode: raw.mode, score: Math.round(raw.score), groupScores });
+  }
+  return clean.sort((left, right) => left.at.localeCompare(right.at)).slice(-MOCK_SESSION_LIMIT);
+}
+
 export function cleanChanges(changes, { creating = false } = {}) {
   const clean = {};
   const has = key => Object.prototype.hasOwnProperty.call(changes, key);
@@ -173,6 +194,7 @@ export function cleanChanges(changes, { creating = false } = {}) {
   if (has("starred")) clean.starred = Boolean(changes.starred);
   if (has("status")) clean.status = cleanStage(changes.status || "SAVED");
   if (has("interview")) clean.interview = cleanInterview(changes.interview);
+  if (has("mock")) clean.mock = cleanMock(changes.mock);
   return clean;
 }
 
@@ -205,6 +227,8 @@ export function normalize(entry) {
   };
   const interview = cleanInterview(entry.interview);
   if (Object.keys(interview).length) application.interview = interview;
+  const mock = cleanMock(entry.mock);
+  if (mock.length) application.mock = mock;
   if (entry.deletedAt) application.deletedAt = entry.deletedAt;
   return application;
 }
