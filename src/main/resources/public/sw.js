@@ -24,6 +24,7 @@ const SHELL = [
   "js/usage.js",
   "js/sync.js",
   "js/calendar.js",
+  "js/listings.js",
   "js/ui/icons.js",
   "site-mode.js",
   "runtime-config.js",
