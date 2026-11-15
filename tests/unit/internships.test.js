@@ -53,6 +53,9 @@ test("selectListings joins multiple locations and converts the posted date to IS
   const [listing] = selectListings([role({ locations: ["SF", "NYC"], date_posted: 1_700_000_000 })]);
   assert.equal(listing.location, "SF, NYC");
   assert.equal(listing.postedAt, new Date(1_700_000_000 * 1000).toISOString());
+  const [multiple] = selectListings([role({ locations: ["Toronto, ON", "Austin, TX", "Toronto, ON"] })]);
+  assert.deepEqual(multiple.countries, ["CA", "US"]);
+  assert.deepEqual(multiple.regions, ["Ontario", "Texas"]);
 });
 
 test("selectListings tolerates a non-array input", () => {
@@ -118,6 +121,8 @@ test("Simplify listings are tagged with their source and a region read from the 
   ]);
   assert.deepEqual([toronto, austin, remote, london].map(listing => listing.source), ["simplify", "simplify", "simplify", "simplify"]);
   assert.deepEqual([toronto, austin, remote, london].map(listing => listing.region), ["Canada", "United States", "Remote", "International"]);
+  assert.deepEqual([toronto, austin, remote, london].map(listing => listing.countries), [["CA"], ["US"], ["REMOTE"], ["GB"]]);
+  assert.deepEqual([toronto, austin, remote, london].map(listing => listing.regions), [["Ontario"], ["Texas"], ["Other"], ["England"]]);
 });
 test("normalizeSimplify keeps every valid role so the merge can choose among them", () => {
   const raw = Array.from({ length: 200 }, (_, index) => role({ company_name: `Company ${index}`, date_posted: index }));

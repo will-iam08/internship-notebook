@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-15T19:32:18.067Z",
+  "generatedAt": "2026-11-15T19:52:37.764Z",
   "source": "https://github.com/SimplifyJobs/Summer2027-Internships",
   "sources": [
     {
@@ -30,7 +30,13 @@
       "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4507819009",
       "postedAt": "2026-11-15T13:05:31.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington"
+      ]
     },
     {
       "company": "Fanatics",
@@ -48,7 +54,13 @@
       "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4507757009",
       "postedAt": "2026-11-15T13:05:18.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Fanatics",
@@ -66,7 +78,13 @@
       "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4507676009",
       "postedAt": "2026-11-15T13:05:09.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "New York"
+      ]
     },
     {
       "company": "Fanatics",
@@ -85,7 +103,13 @@
       "url": "https://job-boards.greenhouse.io/fanaticscollectibles/jobs/4505998009",
       "postedAt": "2026-11-15T13:04:43.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "New York"
+      ]
     },
     {
       "company": "Tesla",
@@ -103,7 +127,13 @@
       "url": "https://www.tesla.com/careers/search/job/289951",
       "postedAt": "2026-11-14T10:15:06.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "SAS",
@@ -119,7 +149,13 @@
       "url": "https://careers-sas.icims.com/jobs/42797/job?mobile=true&needsRedirect=false",
       "postedAt": "2026-11-14T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "SAS",
@@ -137,7 +173,13 @@
       "url": "https://careers-sas.icims.com/jobs/43309/job?mobile=true&needsRedirect=false",
       "postedAt": "2026-11-14T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "General Dynamics Mission Systems",
@@ -155,7 +197,13 @@
       "url": "https://careers-gdms.icims.com/jobs/75487/job?mobile=true&needsRedirect=false",
       "postedAt": "2026-11-14T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Massachusetts"
+      ]
     },
     {
       "company": "Amazon",
@@ -176,7 +224,16 @@
       "url": "https://amazon.jobs/en/jobs/10604778/2027-applied-science-internship-robotics-united-states",
       "postedAt": "2026-11-13T23:50:59.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington",
+        "Massachusetts",
+        "New York",
+        "California"
+      ]
     },
     {
       "company": "Meta",
@@ -192,7 +249,13 @@
       "url": "https://www.metacareers.com/jobs/1674297360998408",
       "postedAt": "2026-11-13T23:49:16.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington"
+      ]
     },
     {
       "company": "Meta",
@@ -208,7 +271,13 @@
       "url": "https://www.metacareers.com/jobs/1158829233342350",
       "postedAt": "2026-11-13T23:49:16.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington"
+      ]
     },
     {
       "company": "Microsoft",
@@ -226,7 +295,13 @@
       "url": "https://apply.careers.microsoft.com/careers/job/1970393557073455",
       "postedAt": "2026-11-13T23:47:37.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington"
+      ]
     },
     {
       "company": "Microsoft",
@@ -244,7 +319,13 @@
       "url": "https://apply.careers.microsoft.com/careers/job/1970393557073416",
       "postedAt": "2026-11-13T23:47:37.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington"
+      ]
     },
     {
       "company": "NextEra Energy",
@@ -262,7 +343,13 @@
       "url": "https://jobs.nexteraenergy.com/job/Juno-Beach-Summer-Intern-Technical-FL-33408/1450749000/?ats=successfactors",
       "postedAt": "2026-11-13T23:46:04.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Minnesota"
+      ]
     },
     {
       "company": "W.W. Grainger",
@@ -280,7 +367,13 @@
       "url": "https://jobs.grainger.com/Canada/job/THORNHILL-GCAN-Field-Operations-Analyst-Intern-ON-L3T-7W8/1450732300/?ats=successfactors",
       "postedAt": "2026-11-13T23:44:18.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "W.W. Grainger",
@@ -298,7 +391,13 @@
       "url": "https://jobs.grainger.com/Canada/job/THORNHILL-Analyste-des-op%C3%A9rations-de-terrain-1-1-ON-L3T-7W8/1450732400/?ats=successfactors",
       "postedAt": "2026-11-13T23:44:17.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "W.W. Grainger",
@@ -316,7 +415,13 @@
       "url": "https://jobs.grainger.com/Canada/job/THORNHILL-GCAN-Customer-Experience-Intern-ON-L3T-7W8/1450621700/?ats=successfactors",
       "postedAt": "2026-11-13T23:44:17.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Hiebing",
@@ -332,7 +437,13 @@
       "url": "https://hiebing.applytojob.com/apply/yIhDpeWv4F/AI-Agent-Developer-Intern",
       "postedAt": "2026-11-13T23:27:01.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Wisconsin"
+      ]
     },
     {
       "company": "Koch Industries",
@@ -348,7 +459,13 @@
       "url": "https://koch.avature.net/en_US/careers/JobDetail/197821",
       "postedAt": "2026-11-13T23:27:01.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Seaspan",
@@ -366,7 +483,13 @@
       "url": "https://hckz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/9156",
       "postedAt": "2026-11-13T23:22:06.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "British Columbia"
+      ]
     },
     {
       "company": "FieldPulse",
@@ -384,7 +507,13 @@
       "url": "https://ats.rippling.com/fieldpulse/jobs/c62a858b-8eea-47e8-b481-07b9363d509f",
       "postedAt": "2026-11-13T23:17:25.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "FieldPulse",
@@ -402,7 +531,13 @@
       "url": "https://ats.rippling.com/fieldpulse/jobs/bfade8ef-2509-4042-b400-019fe3a84a7d",
       "postedAt": "2026-11-13T23:17:25.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "BMLL Technologies",
@@ -418,7 +553,13 @@
       "url": "https://apply.workable.com/bmlltech/j/685458148E/apply",
       "postedAt": "2026-11-13T23:14:23.000Z",
       "source": "simplify",
-      "region": "International"
+      "region": "International",
+      "countries": [
+        "GB"
+      ],
+      "regions": [
+        "England"
+      ]
     },
     {
       "company": "Toyota Research Institute",
@@ -436,7 +577,13 @@
       "url": "https://jobs.lever.co/tri/6c9002a1-6ed1-42b7-829c-5ba6661446ac/apply",
       "postedAt": "2026-11-13T23:13:43.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Massachusetts"
+      ]
     },
     {
       "company": "Trane Technologies",
@@ -454,7 +601,14 @@
       "url": "https://careers.tranetechnologies.com/global/en/job/JR-10435",
       "postedAt": "2026-11-13T23:09:30.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Colorado",
+        "Michigan"
+      ]
     },
     {
       "company": "ServiceNow",
@@ -472,7 +626,13 @@
       "url": "https://jobs.smartrecruiters.com/ServiceNow/744000161590090",
       "postedAt": "2026-11-13T23:09:15.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Texas Instruments",
@@ -490,7 +650,13 @@
       "url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25019536",
       "postedAt": "2026-11-13T23:04:39.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Other"
+      ]
     },
     {
       "company": "Texas Instruments",
@@ -508,7 +674,13 @@
       "url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25019495",
       "postedAt": "2026-11-13T23:04:35.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Texas Instruments",
@@ -526,7 +698,13 @@
       "url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25016352",
       "postedAt": "2026-11-13T23:04:35.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Texas Instruments",
@@ -544,7 +722,13 @@
       "url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25016349",
       "postedAt": "2026-11-13T23:04:32.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Texas Instruments",
@@ -563,7 +747,13 @@
       "url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25016345",
       "postedAt": "2026-11-13T23:04:27.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Texas Instruments",
@@ -581,7 +771,13 @@
       "url": "https://edbz.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/25016015",
       "postedAt": "2026-11-13T23:04:26.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Addepar",
@@ -600,7 +796,13 @@
       "url": "https://job-boards.greenhouse.io/addepar1/jobs/8910306002",
       "postedAt": "2026-11-13T22:57:27.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "New York"
+      ]
     },
     {
       "company": "ServiceNow",
@@ -618,7 +820,13 @@
       "url": "https://jobs.smartrecruiters.com/ServiceNow/744000161584449",
       "postedAt": "2026-11-13T22:00:54.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Lightmatter",
@@ -636,7 +844,13 @@
       "url": "https://boards.greenhouse.io/lightmatter/jobs/5473869008",
       "postedAt": "2026-11-13T21:29:35.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "StepStone Group",
@@ -652,7 +866,13 @@
       "url": "https://boards.greenhouse.io/embed/job_app?token=8386648",
       "postedAt": "2026-11-13T21:18:34.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Ohio"
+      ]
     },
     {
       "company": "Helcim",
@@ -670,7 +890,13 @@
       "url": "https://helcim.careers.hibob.com/jobs/aa77ff61-8d21-4cef-a633-9960bde8ca3a",
       "postedAt": "2026-11-13T20:56:41.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Renesas Electronics",
@@ -688,7 +914,14 @@
       "url": "https://jobs.smartrecruiters.com/RenesasElectronics/744000161574999",
       "postedAt": "2026-11-13T20:54:48.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California",
+        "Texas"
+      ]
     },
     {
       "company": "Samsung",
@@ -707,7 +940,13 @@
       "url": "https://job-boards.greenhouse.io/samsungsemiconductor/jobs/8203052003",
       "postedAt": "2026-11-13T19:00:42.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Samsung",
@@ -725,7 +964,13 @@
       "url": "https://job-boards.greenhouse.io/samsungsemiconductor/jobs/8202927003",
       "postedAt": "2026-11-13T19:00:34.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Samsung",
@@ -744,7 +989,13 @@
       "url": "https://job-boards.greenhouse.io/samsungsemiconductor/jobs/8203058003",
       "postedAt": "2026-11-13T18:59:33.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Lightmatter",
@@ -763,7 +1014,13 @@
       "url": "https://boards.greenhouse.io/lightmatter/jobs/5481668008",
       "postedAt": "2026-11-13T17:18:06.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Massachusetts"
+      ]
     },
     {
       "company": "WTW",
@@ -782,7 +1039,13 @@
       "url": "https://eedu.fa.em3.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003/job/202607277",
       "postedAt": "2026-11-13T15:33:59.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "New York"
+      ]
     },
     {
       "company": "Verisk",
@@ -801,7 +1064,13 @@
       "url": "https://fa-ewmy-saasfaprod1.fa.ocs.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/5184",
       "postedAt": "2026-11-13T15:14:24.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Utah"
+      ]
     },
     {
       "company": "Cantor Fitzgerald",
@@ -820,7 +1089,13 @@
       "url": "https://hdow.fa.us6.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003/job/250537",
       "postedAt": "2026-11-13T15:04:47.000Z",
       "source": "simplify",
-      "region": "International"
+      "region": "International",
+      "countries": [
+        "GB"
+      ],
+      "regions": [
+        "England"
+      ]
     },
     {
       "company": "Minitab",
@@ -838,7 +1113,13 @@
       "url": "https://job-boards.greenhouse.io/minitab/jobs/8200707003",
       "postedAt": "2026-11-13T14:13:08.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Pennsylvania"
+      ]
     },
     {
       "company": "TikTok",
@@ -856,7 +1137,13 @@
       "url": "https://lifeattiktok.com/search/7703925583541979445",
       "postedAt": "2026-11-13T07:37:26.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Tesla",
@@ -875,7 +1162,13 @@
       "url": "https://www.tesla.com/careers/search/job/289796",
       "postedAt": "2026-11-13T07:15:09.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Samsung",
@@ -895,7 +1188,13 @@
       "url": "https://job-boards.greenhouse.io/samsungsemiconductor/jobs/8202902003",
       "postedAt": "2026-11-13T06:23:34.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "TikTok",
@@ -913,7 +1212,13 @@
       "url": "https://lifeattiktok.com/search/7698822572474583301",
       "postedAt": "2026-11-13T02:35:18.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "TikTok",
@@ -931,7 +1236,13 @@
       "url": "https://lifeattiktok.com/search/7707222170826623285",
       "postedAt": "2026-11-13T02:35:18.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Zoox",
@@ -950,7 +1261,13 @@
       "url": "https://jobs.lever.co/zoox/0f42ac76-3821-4805-8b59-446477d1e1db/apply",
       "postedAt": "2026-11-13T02:24:10.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Lightmatter",
@@ -968,7 +1285,13 @@
       "url": "https://boards.greenhouse.io/lightmatter/jobs/5474812008",
       "postedAt": "2026-11-13T01:01:09.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Fonds de solidarité FTQ",
@@ -986,7 +1309,13 @@
       "url": "https://fondsftq.wd10.myworkdayjobs.com/sitecarriere_externe/job/Fonds-de-solidarit-FTQ--Sige-social---Montral-Canada/Stagiaire-en-intelligence-d-affaires-et-solutions-M365_DP5874",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec"
+      ]
     },
     {
       "company": "Canadian Tire",
@@ -1004,7 +1333,13 @@
       "url": "https://canadiantirecorporation.wd3.myworkdayjobs.com/Enterprise_External_Careers_Site/job/Mississauga-ON/Programmer-Analyst-Intern--12-months----Winter-2027_JR167748",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Marvell",
@@ -1020,7 +1355,13 @@
       "url": "https://marvell.wd1.myworkdayjobs.com/MarvellCareers/job/Toronto-Canada/Analog-Layout-Intern---BS-MS---2027-Co-Op_2604789",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Ciena",
@@ -1038,7 +1379,14 @@
       "url": "https://ciena.wd5.myworkdayjobs.com/Careers/job/Ottawa/Technical-Solution-Engineer--Intern---SE-I_R032114",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec",
+        "Ontario"
+      ]
     },
     {
       "company": "The Toro Company",
@@ -1056,7 +1404,13 @@
       "url": "https://ttc.wd1.myworkdayjobs.com/Toro_External_Careers/job/Bloomington-MN/CX-and-Customer-Lifetime-Value---Operations-Analyst---The-Toro-Company_JR17819",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Minnesota"
+      ]
     },
     {
       "company": "Adobe",
@@ -1075,7 +1429,13 @@
       "url": "https://adobe.wd5.myworkdayjobs.com/external_experienced/job/London/XMLNAME-2027-Intern---Research-Scientist_R173345",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "International"
+      "region": "International",
+      "countries": [
+        "GB"
+      ],
+      "regions": [
+        "England"
+      ]
     },
     {
       "company": "DraftKings",
@@ -1093,7 +1453,13 @@
       "url": "https://draftkings.wd1.myworkdayjobs.com/Employee_Referral_Portal/job/London-UK/Data-Science-Intern--Summer-2027-_JR15149-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "International"
+      "region": "International",
+      "countries": [
+        "GB"
+      ],
+      "regions": [
+        "England"
+      ]
     },
     {
       "company": "Valeo",
@@ -1111,7 +1477,13 @@
       "url": "https://valeo.wd3.myworkdayjobs.com/en-US/valeo_jobs/job/Troy-MI/Software-Engineer-Intern--Year-Round-_REQ2026081794",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Michigan"
+      ]
     },
     {
       "company": "Entegris",
@@ -1127,7 +1499,13 @@
       "url": "https://entegris.wd1.myworkdayjobs.com/entegriscareers/job/Chaska-MN/Associate-Product-Manager-Intern_REQ-15844",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Minnesota"
+      ]
     },
     {
       "company": "Rocket Mortgage",
@@ -1143,7 +1521,13 @@
       "url": "https://quickenloans.wd5.myworkdayjobs.com/rocket_careers/job/Detroit-MI/Data-Analyst-Intern---Summer-2027_R-083832",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Michigan"
+      ]
     },
     {
       "company": "Rocket Mortgage",
@@ -1159,7 +1543,13 @@
       "url": "https://quickenloans.wd5.myworkdayjobs.com/rocket_careers/job/Detroit-MI/Customer-Correspondence-Analyst---Summer-2027_R-085167-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Michigan"
+      ]
     },
     {
       "company": "Rambus",
@@ -1178,7 +1568,13 @@
       "url": "https://careers-rambus.icims.com/jobs/23125/job?mobile=true&needsRedirect=false",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Micron Technology",
@@ -1197,7 +1593,13 @@
       "url": "https://micron.wd1.myworkdayjobs.com/External/job/Boise-ID---Main-Site/Intern---Enterprise-SSD-Architecture_JR114108",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Idaho"
+      ]
     },
     {
       "company": "Rambus",
@@ -1213,7 +1615,13 @@
       "url": "https://careers-rambus.icims.com/jobs/23124/job?mobile=true&needsRedirect=false",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "Vertex Pharmaceuticals",
@@ -1231,7 +1639,13 @@
       "url": "https://vrtx.wd501.myworkdayjobs.com/vertex_careers/job/Boston-MA/Summer-Intern-2027--OSD-Process-Data-Analytics_REQ-31312",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Massachusetts"
+      ]
     },
     {
       "company": "Pennsylvania State University",
@@ -1248,7 +1662,13 @@
       "url": "https://psu.wd1.myworkdayjobs.com/PSU_Staff/job/Penn-State-University-Park/Part-Time-Energy-Savings-Program-Intern_REQ_0000084318-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Pennsylvania"
+      ]
     },
     {
       "company": "ASML",
@@ -1267,7 +1687,13 @@
       "url": "https://asml.wd3.myworkdayjobs.com/asmlext1/job/Austin-TX-USA/Internship---EUV-Data-Science-and-Analytics_J-00357717",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Reliable Robotics",
@@ -1283,7 +1709,13 @@
       "url": "https://jobs.ashbyhq.com/reliable-robotics/0af72d5a-87b7-49a1-b49e-424d28758c9e/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Reliable Robotics",
@@ -1301,7 +1733,13 @@
       "url": "https://jobs.ashbyhq.com/reliable-robotics/f4073938-ccdb-46fb-aa65-6715981d27ee/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Reliable Robotics",
@@ -1320,7 +1758,13 @@
       "url": "https://jobs.ashbyhq.com/reliable-robotics/131987a0-ede9-4291-9cd2-1aaadabd2a54/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Reliable Robotics",
@@ -1338,7 +1782,13 @@
       "url": "https://jobs.ashbyhq.com/reliable-robotics/cbd31c94-5a83-4d1e-8252-de67a5e594ed/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Piedmont Airlines",
@@ -1358,7 +1808,13 @@
       "url": "https://aaregional.wd503.myworkdayjobs.com/search/job/Charlotte-NC/Safety-Data-Analytics-Intern_R1014590",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "Manulife Financial",
@@ -1376,7 +1832,13 @@
       "url": "https://manulife.wd3.myworkdayjobs.com/en-US/MFCJH_adminJobs/job/Boston-Massachusetts/Spring-Co-op-2027---Software-Engineering-Intern_JR26110405",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Massachusetts"
+      ]
     },
     {
       "company": "Amgen",
@@ -1395,7 +1857,13 @@
       "url": "https://amgen.wd1.myworkdayjobs.com/careers/job/United-States---Remote/Grad-Intern---Knowledge-Graph-Applications--Summer-2027-_R-260625",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Other"
+      ]
     },
     {
       "company": "Horizon3.ai",
@@ -1413,7 +1881,14 @@
       "url": "https://jobs.ashbyhq.com/horizon3ai/818f854b-f212-4817-8227-3b9e654d39a2/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Illinois",
+        "Indiana"
+      ]
     },
     {
       "company": "TC Energy",
@@ -1431,7 +1906,13 @@
       "url": "https://tcenergy.wd3.myworkdayjobs.com/CAREER_SITE_TC/job/Spokane-Washington/Intern--Intelligent-Operations-Technology_JR-10919",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington"
+      ]
     },
     {
       "company": "Nexus Cognitive Technologies",
@@ -1450,7 +1931,13 @@
       "url": "https://jobs.ashbyhq.com/nexus-cognitive/22c64819-67fc-48d0-b206-5b41d370f6a5/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Georgia"
+      ]
     },
     {
       "company": "Capital Group",
@@ -1468,7 +1955,13 @@
       "url": "https://capgroup.wd1.myworkdayjobs.com/en-US/capitalgroupcareers/job/Irvine/CAMPUS-Global-Technology-Summer-Associate--2027-_JR7798",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Carnegie Mellon University",
@@ -1486,7 +1979,13 @@
       "url": "https://cmu.wd115.myworkdayjobs.com/SEI/job/Pittsburgh-PA/Cyber-AI-Engineering-Intern--Spring-2027-_2025346-2",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Pennsylvania"
+      ]
     },
     {
       "company": "Shield AI",
@@ -1506,7 +2005,13 @@
       "url": "https://jobs.ashbyhq.com/f7d8749a-72d6-407c-bf98-292ea630c73a/7e0ae8a3-4872-431c-a04a-2f2b8988b527/application?embed=true",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Virginia"
+      ]
     },
     {
       "company": "Postman",
@@ -1526,7 +2031,13 @@
       "url": "https://postman.wd108.myworkdayjobs.com/careers/job/San-Francisco-CA-US/AI-Engineer--Intern_JR1000055",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Camping World",
@@ -1544,7 +2055,13 @@
       "url": "https://campingworld.wd5.myworkdayjobs.com/en-US/Jobs/job/Lincolnshire-IL/Software-Engineering-Intern_26_09080",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Illinois"
+      ]
     },
     {
       "company": "Camping World",
@@ -1562,7 +2079,13 @@
       "url": "https://campingworld.wd5.myworkdayjobs.com/en-US/Jobs/job/Chicago-IL/Data-Engineering-Intern_26_09297",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Illinois"
+      ]
     },
     {
       "company": "Camping World",
@@ -1580,7 +2103,13 @@
       "url": "https://campingworld.wd5.myworkdayjobs.com/en-US/Jobs/job/Chicago-IL/Data-Analyst-Intern_26_09300",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Illinois"
+      ]
     },
     {
       "company": "Martin Marietta",
@@ -1598,7 +2127,13 @@
       "url": "https://martinmarietta.wd5.myworkdayjobs.com/Martin_Marietta_Careers/job/Raleigh-NC/Intern--Software-Data-Integration-Engineer_JR024146",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "Martin Marietta",
@@ -1617,7 +2152,13 @@
       "url": "https://martinmarietta.wd5.myworkdayjobs.com/Martin_Marietta_Careers/job/Raleigh-NC/Intern--Data-Scientist_JR024144-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "Daimler Truck",
@@ -1637,7 +2178,13 @@
       "url": "https://dtna.wd5.myworkdayjobs.com/dtna_affiliate/job/Mount-Holly-NC-US/IT-Developer-Analyst-Intern_DT-20681-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "North Carolina"
+      ]
     },
     {
       "company": "Watts Water",
@@ -1657,7 +2204,13 @@
       "url": "https://wattswater.wd5.myworkdayjobs.com/external/job/Menomonee-Falls-WI/Product-Management-Co-op--Jan-June-2027_10017702-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Wisconsin"
+      ]
     },
     {
       "company": "Cigna Group",
@@ -1675,7 +2228,13 @@
       "url": "https://cigna.wd5.myworkdayjobs.com/cignacareers/job/Morris-Plains-NJ/Healthcare-Analytics-Summer-Intern---Start-Date--May-24--2027_26009857",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "New Jersey"
+      ]
     },
     {
       "company": "RTX",
@@ -1695,7 +2254,13 @@
       "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-TX-RICHARDSON-C17--1717-Cityline-Dr--CITYLINE-C17/Software-Engineering-Co-op--Summer-Fall-_01884404",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Texas"
+      ]
     },
     {
       "company": "Blizzard Entertainment",
@@ -1714,7 +2279,13 @@
       "url": "https://xboxgaming.wd1.myworkdayjobs.com/Blizzard_External_Careers/job/Irvine---Blizzard---Blizzard-Way/Blizzard-2027-Summer-Internships---Animation---Cinematic-Tools-Engineering_R028350",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "California"
+      ]
     },
     {
       "company": "Carnegie Mellon University",
@@ -1732,7 +2303,13 @@
       "url": "https://cmu.wd115.myworkdayjobs.com/cmu/job/Pittsburgh-PA/Cyber-AI-Engineering-Intern--Spring-2027-_2025346-1",
       "postedAt": "2026-11-13T00:00:00.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Pennsylvania"
+      ]
     },
     {
       "company": "Cintas",
@@ -1752,7 +2329,13 @@
       "url": "https://careers.cintas.com/job/Mason-IT-Intern-OT-Software-Engineer-OH-45040/1450367200/?ats=successfactors",
       "postedAt": "2026-11-12T23:42:44.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Ohio"
+      ]
     },
     {
       "company": "Bask Health",
@@ -1768,7 +2351,13 @@
       "url": "https://apply.workable.com/bask-health-1/j/71AEBBCADE/apply",
       "postedAt": "2026-11-12T23:38:08.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Other"
+      ]
     },
     {
       "company": "Bask Health",
@@ -1784,7 +2373,13 @@
       "url": "https://apply.workable.com/bask-health-1/j/F0E122E877/apply",
       "postedAt": "2026-11-12T23:38:08.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Other"
+      ]
     },
     {
       "company": "Zoox",
@@ -1803,7 +2398,14 @@
       "url": "https://jobs.lever.co/zoox/54be0f19-9a45-466d-89bc-bc72dd3f9d68/apply",
       "postedAt": "2026-11-12T23:32:42.000Z",
       "source": "simplify",
-      "region": "United States"
+      "region": "United States",
+      "countries": [
+        "US"
+      ],
+      "regions": [
+        "Washington",
+        "California"
+      ]
     },
     {
       "company": "Huawei",
@@ -1819,7 +2421,13 @@
       "url": "https://huaweicanada.recruitee.com/o/intern-researcher-embodied-ai-3",
       "postedAt": "2026-11-12T19:04:30.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Capital Power",
@@ -1838,7 +2446,13 @@
       "url": "https://capitalpower.wd10.myworkdayjobs.com/External/job/Edmonton-AB/Summer-Student---Data-Science_JR807223-1",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Capital Power",
@@ -1854,7 +2468,13 @@
       "url": "https://capitalpower.wd10.myworkdayjobs.com/External/job/Calgary-AB/Summer-Student---Data-Analytics_JR807222",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "canadian-tech-internships",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Bank of Montreal",
@@ -1872,7 +2492,13 @@
       "url": "https://bmo.wd3.myworkdayjobs.com/Privileged/job/Toronto-ON-CAN/AI-Developer--Winter-2027--Co-op-Internship----4-months_R260026323",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "TMX Group",
@@ -1891,7 +2517,13 @@
       "url": "https://tmx.wd3.myworkdayjobs.com/TMX_Careers/job/Toronto---100-Adelaide-St-W/AI-Engineering-Intern_R-6680",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Analog Devices",
@@ -1911,7 +2543,13 @@
       "url": "https://analogdevices.wd1.myworkdayjobs.com/External/job/Canada-Ottawa/Analog-Design-Engineering-Intern_R267446",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Capital Power",
@@ -1930,7 +2568,13 @@
       "url": "https://capitalpower.wd10.myworkdayjobs.com/External/job/Calgary-AB/Summer-Student---Data-Analytics_JR807222",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Analog Devices",
@@ -1949,7 +2593,13 @@
       "url": "https://analogdevices.wd1.myworkdayjobs.com/External/job/Canada-Ottawa/Product-Engineering--Prod-Dev--Intern_R267447",
       "postedAt": "2026-11-12T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "exacare ai",
@@ -1967,7 +2617,13 @@
       "url": "https://ats.rippling.com/exacare-inc/jobs/e42f12bc-041a-4ef2-90d8-a77cd7f1f166",
       "postedAt": "2026-11-11T15:09:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Ciena",
@@ -1986,7 +2642,13 @@
       "url": "https://ciena.wd5.myworkdayjobs.com/Careers/job/Ottawa/AI-ML-Layout-Engineering-Intern--Winter-2027-_R032102",
       "postedAt": "2026-11-11T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Ciena",
@@ -2004,7 +2666,13 @@
       "url": "https://ciena.wd5.myworkdayjobs.com/Careers/job/Ottawa/Layout-Design-Co-op--Winter-2027-_R032103",
       "postedAt": "2026-11-11T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "SOTI",
@@ -2020,7 +2688,13 @@
       "url": "https://soti.wd3.myworkdayjobs.com/SOTI-Next-Gen/job/Mississauga-Canada--Meadowvale-Office-HQ/Software-Developer-Intern--May-2027---12-months-_R10677",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Amgen",
@@ -2036,7 +2710,13 @@
       "url": "https://amgen.wd1.myworkdayjobs.com/careers/job/Canada---Burnaby/Undergraduate---Graduate-Co-op-Student---Software-Engineer---Large-Molecule-Discovery---Technology_R-260920",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "canadian-tech-internships",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "British Columbia"
+      ]
     },
     {
       "company": "Investissement Québec",
@@ -2050,7 +2730,13 @@
       "url": "https://investquebec.wd10.myworkdayjobs.com/ext/job/Montral/tudiant---Automatisation-et-intelligence-artificielle--Montral-_R3656",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "canadian-tech-internships",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec"
+      ]
     },
     {
       "company": "Bank of Montreal",
@@ -2068,7 +2754,13 @@
       "url": "https://bmo.wd3.myworkdayjobs.com/Privileged/job/Toronto-ON-CAN/Data-Analyst--Winter-2027--Co-o-Internship----8-months_R260026973",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Amgen",
@@ -2086,7 +2778,13 @@
       "url": "https://amgen.wd1.myworkdayjobs.com/careers/job/Canada---Burnaby/Undergraduate---Graduate-Co-op-Student---Software-Engineer---Large-Molecule-Discovery---Technology_R-260920",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "British Columbia"
+      ]
     },
     {
       "company": "Bank of Montreal",
@@ -2104,7 +2802,13 @@
       "url": "https://bmo.wd3.myworkdayjobs.com/External/job/Toronto-ON-CAN/Treasury---Payment-Solutions-Strategy-Internship--Summer-2027--4-months-_R260031382",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "NVIDIA",
@@ -2123,7 +2827,15 @@
       "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Performance-Engineering-Intern--Platform-Performance-and-Power----Spring-2027_JR2029541",
       "postedAt": "2026-11-10T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA",
+        "US"
+      ],
+      "regions": [
+        "Other",
+        "California"
+      ]
     },
     {
       "company": "Qualcomm",
@@ -2141,7 +2853,13 @@
       "url": "https://qualcomm.eightfold.ai/careers/job/446722038614",
       "postedAt": "2026-11-09T23:22:42.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Kensington",
@@ -2157,7 +2875,13 @@
       "url": "https://job-boards.greenhouse.io/kensingtontours/jobs/5289223007",
       "postedAt": "2026-11-09T14:49:36.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "CIBC",
@@ -2175,7 +2899,13 @@
       "url": "https://cibc.wd3.myworkdayjobs.com/search/job/Toronto-ON/Associate-Technology-Leadership-Advancement-Program---Summer-2027_2623078-1",
       "postedAt": "2026-11-09T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Altera",
@@ -2193,7 +2923,13 @@
       "url": "https://altera.wd1.myworkdayjobs.com/altera/job/Toronto-Ontario-Canada/Software-Engineer----Intern_R03414",
       "postedAt": "2026-11-09T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Altera",
@@ -2211,7 +2947,13 @@
       "url": "https://altera.wd1.myworkdayjobs.com/altera/job/Toronto-Ontario-Canada/FPGA-Design-Verification-Intern_R03440",
       "postedAt": "2026-11-09T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "NVIDIA",
@@ -2229,7 +2971,15 @@
       "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Product-Management-Space-Compute-MBA-Intern---Summer-2027_JR2029628",
       "postedAt": "2026-11-09T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA",
+        "US"
+      ],
+      "regions": [
+        "Other",
+        "California"
+      ]
     },
     {
       "company": "NVIDIA",
@@ -2248,7 +2998,15 @@
       "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Systems-Research-Intern--Observability---Summer-2027_JR2026644",
       "postedAt": "2026-11-09T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA",
+        "US"
+      ],
+      "regions": [
+        "Other",
+        "California"
+      ]
     },
     {
       "company": "Qualcomm",
@@ -2266,7 +3024,13 @@
       "url": "https://qualcomm.eightfold.ai/careers/job/446722005254",
       "postedAt": "2026-11-06T23:13:10.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Brave",
@@ -2282,7 +3046,13 @@
       "url": "https://job-boards.greenhouse.io/brave/jobs/8360001",
       "postedAt": "2026-11-06T19:21:56.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Other"
+      ]
     },
     {
       "company": "Qualcomm",
@@ -2302,7 +3072,13 @@
       "url": "https://qualcomm.eightfold.ai/careers/job/446722001120",
       "postedAt": "2026-11-06T15:34:02.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Hootsuite",
@@ -2318,7 +3094,13 @@
       "url": "https://job-boards.greenhouse.io/hootsuite/jobs/8360176",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "canadian-tech-internships",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "OLG",
@@ -2334,7 +3116,13 @@
       "url": "https://olg.wd3.myworkdayjobs.com/Careers-Students/job/Toronto-Ontario-Canada/Analytics-Engineering---Measurement-Student_R26_00700",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "DataRobot",
@@ -2353,7 +3141,16 @@
       "url": "https://datarobot.wd1.myworkdayjobs.com/en-US/DataRobot_External_Careers/job/Boston-Massachusetts-US/Software-Design-Engineer-Intern_R-102764",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "US",
+        "CA"
+      ],
+      "regions": [
+        "Massachusetts",
+        "Washington",
+        "Ontario"
+      ]
     },
     {
       "company": "PETRONAS Canada",
@@ -2369,7 +3166,13 @@
       "url": "https://petronascanada.wd3.myworkdayjobs.com/PETRONASCanada/job/Calgary/Summer-Student--Technical-Assurance-and-Pipeline-Engineering_R0001879",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "canadian-tech-internships",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Bank of Montreal",
@@ -2388,7 +3191,13 @@
       "url": "https://bmo.wd3.myworkdayjobs.com/Campus/job/Toronto-ON-CAN/Quantitative-Analyst--Summer-2027--Co-op-Internship----4-Months_R260031097-1",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "University of Ottawa",
@@ -2406,7 +3215,13 @@
       "url": "https://uottawa.wd3.myworkdayjobs.com/uOttawa_External_Career_Site/job/Ottawa-ON/CUPE---Winter2027---Data-Analysis_JR41185",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "PETRONAS Canada",
@@ -2424,7 +3239,13 @@
       "url": "https://petronascanada.wd3.myworkdayjobs.com/PETRONASCanada/job/Calgary/Summer-Student--Technical-Assurance-and-Pipeline-Engineering_R0001879",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "PETRONAS Canada",
@@ -2442,7 +3263,13 @@
       "url": "https://petronascanada.wd3.myworkdayjobs.com/PETRONASCanada/job/Calgary/Summer-Student--Operation-Advancement_R0001881",
       "postedAt": "2026-11-06T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Alberta"
+      ]
     },
     {
       "company": "Qualcomm",
@@ -2462,7 +3289,13 @@
       "url": "https://qualcomm.eightfold.ai/careers/job/446721989047",
       "postedAt": "2026-11-05T23:26:48.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Acumatica",
@@ -2479,7 +3312,13 @@
       "url": "https://jobs.smartrecruiters.com/Acumatica/744000159911799",
       "postedAt": "2026-11-05T15:59:22.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec"
+      ]
     },
     {
       "company": "DataVisor",
@@ -2495,7 +3334,13 @@
       "url": "https://apply.workable.com/datavisor-jobs/j/2FB6A93BF6/apply",
       "postedAt": "2026-11-05T02:39:55.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Other"
+      ]
     },
     {
       "company": "Qualcomm",
@@ -2513,7 +3358,13 @@
       "url": "https://qualcomm.eightfold.ai/careers/job/446721972361",
       "postedAt": "2026-11-05T02:32:02.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Qualcomm",
@@ -2531,7 +3382,13 @@
       "url": "https://qualcomm.eightfold.ai/careers/job/446721969461",
       "postedAt": "2026-11-05T02:32:01.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Boston Scientific",
@@ -2550,7 +3407,13 @@
       "url": "https://bostonscientific.eightfold.ai/careers/job/563602813850819",
       "postedAt": "2026-11-05T02:31:03.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec"
+      ]
     },
     {
       "company": "Equitable Bank",
@@ -2569,7 +3432,13 @@
       "url": "https://jobs.lever.co/eqbank/e4ed38f2-5de1-405f-a02d-c21f421bc7c1/apply",
       "postedAt": "2026-11-05T02:09:24.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "SOTI",
@@ -2585,7 +3454,13 @@
       "url": "https://soti.wd3.myworkdayjobs.com/SOTI-Next-Gen/job/Mississauga-Canada--Meadowvale-Office-HQ/Software-Developer-Intern--May-2027-12-Months-_R10655",
       "postedAt": "2026-11-05T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Acumatica",
@@ -2601,7 +3476,13 @@
       "url": "https://jobs.smartrecruiters.com/Acumatica/744000159911799",
       "postedAt": "2026-11-05T00:00:00.000Z",
       "source": "canadian-tech-internships",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec"
+      ]
     },
     {
       "company": "BiblioCommons",
@@ -2617,7 +3498,13 @@
       "url": "https://volarisgroup.wd3.myworkdayjobs.com/BiblioCommons/job/Canada---Ontario/PEY---Junior-Fullstack-Engineer_R72454",
       "postedAt": "2026-11-05T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "Royal Bank of Canada",
@@ -2635,7 +3522,13 @@
       "url": "https://rbc.wd3.myworkdayjobs.com/ExternalPrivatePostingStudents/job/MONTRAL-Quebec-Canada/XMLNAME-2027-Winter-Capital-Markets-QTS--Software-Developer--Montreal---4-Months_R-0000184676-3",
       "postedAt": "2026-11-05T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Quebec"
+      ]
     },
     {
       "company": "Element Fleet Management",
@@ -2654,7 +3547,13 @@
       "url": "https://elementfleet.wd3.myworkdayjobs.com/External_Career_Site/job/Toronto/Forward-Deployed-Engineer--FDE--Intern--8-12-month-intern-_R105989",
       "postedAt": "2026-11-05T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     },
     {
       "company": "NVIDIA",
@@ -2673,7 +3572,15 @@
       "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/VLSI-Timing-Methodology-Intern---Summer-2027_JR2026798",
       "postedAt": "2026-11-04T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA",
+        "US"
+      ],
+      "regions": [
+        "Other",
+        "California"
+      ]
     },
     {
       "company": "NVIDIA",
@@ -2692,7 +3599,15 @@
       "url": "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite/job/US-CA-Santa-Clara/Deep-Learning-Scientist-Intern--LLM--Multimodal-and-Agentic-AI---Summer-2027_JR2027548",
       "postedAt": "2026-11-04T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA",
+        "US"
+      ],
+      "regions": [
+        "Other",
+        "California"
+      ]
     },
     {
       "company": "Plusgrade",
@@ -2708,7 +3623,13 @@
       "url": "https://plusgrade.wd10.myworkdayjobs.com/Plusgrade_External_Site/job/CAN---Toronto/Data-Science-Intern_JR100230",
       "postedAt": "2026-11-04T00:00:00.000Z",
       "source": "simplify",
-      "region": "Canada"
+      "region": "Canada",
+      "countries": [
+        "CA"
+      ],
+      "regions": [
+        "Ontario"
+      ]
     }
   ]
 }
