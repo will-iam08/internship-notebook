@@ -15,7 +15,7 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { classifyRegion, workModeFrom } from "../src/main/resources/public/js/listings.js";
+import { classifyRegion, listingCountries, listingRegions, workModeFrom } from "../src/main/resources/public/js/listings.js";
 import { CANADIAN_README_URLS, CANADIAN_REPO, normalizeCanadian, parseCanadianTable } from "./canadian-internships.mjs";
 export const SOURCE_URL = "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/.github/scripts/listings.json";
 export const SOURCE_REPO = "https://github.com/SimplifyJobs/Summer2027-Internships";
@@ -30,7 +30,7 @@ const CANADA_QUOTA = 60;
 /*
  * The source data has no separate "remote/hybrid/on-site" field or a clean country column,
  * only a free-text locations list (e.g. "Remote in USA", "Surrey, BC, Canada", "SF"). workMode
- * and region are inferred from that same text (rules in public/js/listings.js) rather than
+ * and country/region tags are inferred from that same text (rules in public/js/listings.js) rather than
  * invented from nothing, and location stays free text so filtering can match a city, region, or
  * country anywhere in the world, not just a fixed list. isCoop is likewise read from the
  * posting's own title, which already says "Co-op" when a role is one (as opposed to a
@@ -84,7 +84,9 @@ export function normalizeSimplify(rawListings) {
         url: /^https:\/\//i.test(role.url ?? "") ? role.url : "",
         postedAt: new Date(role.date_posted * 1000).toISOString(),
         source: "simplify",
-        region: classifyRegion(location)
+        region: classifyRegion(location),
+        countries: listingCountries({ location }),
+        regions: listingRegions({ location })
       };
     });
 }

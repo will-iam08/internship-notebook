@@ -689,8 +689,9 @@ legend { color: var(--ink-2); font-size: .8rem; font-weight: 650; margin-bottom:
   .news-actions { flex-wrap: wrap; }
 }
 .news-filters { align-items: center; display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
-/* Region chips sit inside the card, so they wrap instead of scrolling past its edges. */
-.filters.news-regions { flex-wrap: wrap; margin: 2px 0 10px; overflow: visible; padding: 0; }
+.news-places { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px; }
+.news-places .filter-select { appearance: none; flex: 1 1 210px; max-width: 100%; min-height: 44px; min-width: 0; width: 100%; }
+.news-places .filter-select:disabled { color: var(--muted); cursor: default; }
 .filter-select {
   background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%238a939b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 4.5 3 3 3-3'/%3E%3C/svg%3E") no-repeat right 10px center;
   border: 1px solid var(--line-strong);

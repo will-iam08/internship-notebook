@@ -9,7 +9,7 @@
  * feed links back to the list. Pure functions, no dependencies, unit-tested in
  * tests/unit/canadian-internships.test.js.
  */
-import { classifyRegion, workModeFrom } from "../src/main/resources/public/js/listings.js";
+import { classifyRegion, listingCountries, listingRegions, workModeFrom } from "../src/main/resources/public/js/listings.js";
 export const CANADIAN_REPO = "https://github.com/negarprh/Canadian-Tech-Internships-2027";
 export const CANADIAN_README_URLS = ["main", "master"].map(branch =>
   `https://raw.githubusercontent.com/negarprh/Canadian-Tech-Internships-2027/${branch}/README.md`);
@@ -171,6 +171,8 @@ export function normalizeCanadian(rows) {
     url: row.url,
     postedAt: row.postedAt,
     source: "canadian-tech-internships",
-    region: classifyRegion(row.location)
+    region: classifyRegion(row.location),
+    countries: listingCountries({ location: row.location }),
+    regions: listingRegions({ location: row.location })
   }));
 }

@@ -131,10 +131,12 @@ test("normalizeCanadian fills the listing shape and leaves unknown facts empty",
     company: "exacare ai", role: "Data and Analytics Intern (Summer 2027)", location: "Toronto, ON",
     workMode: "In-person", isCoop: false, terms: ["Summer 2027"], degrees: [], experienceLevel: "",
     url: "https://ats.rippling.com/exacare-inc/jobs/e42f", postedAt: "2026-11-11T00:00:00.000Z",
-    source: "canadian-tech-internships", region: "Canada"
+    source: "canadian-tech-internships", region: "Canada", countries: ["CA"], regions: ["Ontario"]
   });
   assert.equal(remote.workMode, "Remote");
   assert.equal(remote.isCoop, true);
   assert.deepEqual(remote.terms, ["Winter 2027"]);
   assert.equal(remote.region, "Canada", "Remote, Canada is a Canadian role");
+  assert.deepEqual(remote.countries, ["CA"]);
+  assert.deepEqual(remote.regions, ["Other"]);
 });
