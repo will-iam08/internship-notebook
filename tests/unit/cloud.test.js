@@ -37,6 +37,8 @@ test("missing, empty, or partial config stays disabled and makes zero calls", as
     const { client, calls } = fixture([], config);
     assert.equal(client.enabled, false);
     assert.equal(await client.signIn("owner@example.com", "password"), null);
+    assert.equal(await client.signUp("owner@example.com", "password"), null);
+    assert.equal(await client.recover("owner@example.com"), null);
     await client.signOut();
     assert.equal(client.session(), null);
     assert.equal(await client.push(newer), null);
@@ -72,6 +74,107 @@ test("signOut calls GoTrue with the access token and clears the session", async 
   assert.equal(calls[1][1].headers.Authorization, `Bearer ${auth.access_token}`);
   await client.signOut();
   assert.equal(calls.length, 2);
+});
+
+test("signUp posts credentials and adopts an immediate session in memory", async () => {
+  const { client, calls } = fixture([response(auth)]);
+  assert.deepEqual(await client.signUp(" owner@example.com ", "private-password"), auth);
+  assert.deepEqual(calls, [[`${URL}/auth/v1/signup`, {
+    method: "POST",
+    headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "owner@example.com", password: "private-password" })
+  }]]);
+  client.session().user.id = "changed";
+  assert.deepEqual(client.session(), auth);
+  assert.ok(!JSON.stringify(client.session()).includes("private-password"));
+});
+
+test("signUp without a session waits for email confirmation, including an obfuscated user", async () => {
+  for (const user of [{ id: "new-user", identities: [{ id: "email-identity" }] }, { id: "obfuscated-user" }]) {
+    const { client } = fixture([response(user)]);
+    assert.equal(await client.signUp("owner@example.com", "private-password"), null);
+    assert.equal(client.session(), null);
+  }
+});
+
+test("signUp reports registered addresses only when the response identifies them", async () => {
+  for (const reply of [
+    response({ code: "user_already_exists", msg: "secret" }, 422),
+    response({ error_code: "email_exists" }, 400),
+    response({ code: 422, error_code: "user_already_exists", msg: "secret" }, 422),
+    response({ msg: "User already registered" }, 400),
+    response({ id: "hidden-user", identities: [] })
+  ]) {
+    const { client } = fixture([reply]);
+    await assert.rejects(client.signUp("owner@example.com", "private-password"), {
+      message: "That email is already registered. Sign in or reset your password."
+    });
+    assert.equal(client.session(), null);
+  }
+});
+
+test("signUp handles weak passwords, rate limits, offline and server failures safely", async () => {
+  for (const [reply, message] of [
+    [response({ code: "weak_password", msg: "private-password" }, 422), "That password is too weak. Choose a longer, more varied password."],
+    [response({ code: 422, error_code: "weak_password" }, 422), "That password is too weak. Choose a longer, more varied password."],
+    [response({ weak_password: { reasons: ["length"] } }, 400), "That password is too weak. Choose a longer, more varied password."],
+    [response({}, 429), "Too many requests. Please wait before trying again."],
+    [response({ code: "over_email_send_rate_limit" }, 422), "Too many requests. Please wait before trying again."],
+    [new Error("private-password"), "Cloud sync is offline."],
+    [response({ msg: "private-password" }, 500), "Cloud request failed (500)."]
+  ]) {
+    const { client } = fixture([reply]);
+    await assert.rejects(client.signUp("owner@example.com", "private-password"), { message });
+    assert.equal(client.session(), null);
+  }
+});
+
+test("signUp rejects empty credentials and malformed success responses without adopting a session", async () => {
+  for (const reply of [response({}), response({ id: "user", access_token: "" }), response({ access_token: "token" }), new Response("broken")]) {
+    const { client, calls } = fixture([reply]);
+    await assert.rejects(client.signUp(" ", "password"), /Enter an email and password/);
+    await assert.rejects(client.signUp("owner@example.com", ""), /Enter an email and password/);
+    assert.equal(calls.length, 0);
+    await assert.rejects(client.signUp("owner@example.com", "private-password"), /Invalid .*response/);
+    assert.equal(client.session(), null);
+  }
+});
+
+test("recover sends only the trimmed email with the public key and never creates a session", async () => {
+  const { client, calls } = fixture([response({})]);
+  assert.equal(await client.recover(" owner@example.com "), null);
+  assert.deepEqual(calls, [[`${URL}/auth/v1/recover`, {
+    method: "POST",
+    headers: { apikey: KEY, Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "owner@example.com" })
+  }]]);
+  assert.equal(client.session(), null);
+});
+
+test("recover keeps an unknown address neutral, and reports rate limits, offline and SMTP failures", async () => {
+  const unknown = fixture([response({ code: 404, error_code: "user_not_found" }, 404)]);
+  assert.equal(await unknown.client.recover("unknown@example.com"), null);
+  for (const [reply, message] of [
+    [response({}, 429), "Too many requests. Please wait before trying again."],
+    [response({ code: "over_request_rate_limit" }, 422), "Too many requests. Please wait before trying again."],
+    [new Error("secret"), "Cloud sync is offline."],
+    [response({ msg: "SMTP secret" }, 500), "Cloud request failed (500)."],
+    [new Response("broken"), "Invalid cloud response."]
+  ]) {
+    const { client } = fixture([reply]);
+    await assert.rejects(client.recover("owner@example.com"), { message });
+    assert.equal(client.session(), null);
+  }
+  const { client, calls } = fixture();
+  await assert.rejects(client.recover(" "), /Enter your email address/);
+  assert.equal(calls.length, 0);
+});
+
+test("unconfirmed email sign-in explains the confirmation step", async () => {
+  const { client } = fixture([response({ code: 400, error_code: "email_not_confirmed" }, 400)]);
+  await assert.rejects(client.signIn("owner@example.com", "private-password"), {
+    message: "Check your email to confirm the address, then sign in."
+  });
 });
 
 test("a failed logout still discards the local session", async () => {
@@ -197,12 +300,16 @@ test("the pure client never reads or writes browser storage or the DOM", async t
     }
   });
   const { client } = await signedIn([
-    response(null, 201), response([{ data: newer }]), response([{ data: newer }]), response(null, 204)
+    response(null, 201), response([{ data: newer }]), response([{ data: newer }]), response(null, 204),
+    response({ id: "pending-user" }), response({}), response(auth)
   ]);
   await client.push(newer);
   await client.pull();
   await client.sync(older);
   client.session();
   await client.signOut();
+  await client.signUp("owner@example.com", "private-password");
+  await client.recover("owner@example.com");
+  await client.signUp("owner@example.com", "private-password");
   assert.equal(touches, 0);
 });

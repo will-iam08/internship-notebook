@@ -39,11 +39,23 @@ export function createCloudClient({ url = "", anonKey = "", fetch: fetcher } = {
     }
     if (!response.ok) {
       if (response.status === 401 && currentSession?.access_token === token) currentSession = null;
-      const message = response.status === 400 && path.startsWith("/auth/v1/token")
+      const body = await response.json().catch(() => ({}));
+      const code = body?.error_code || body?.code;
+      if (path === "/auth/v1/recover" && code === "user_not_found") return null;
+      let message = response.status === 400 && path.startsWith("/auth/v1/token")
         ? "That email or password was not accepted."
         : response.status === 401 ? "Sign in again to sync."
           : response.status === 403 ? "Cloud access was denied."
             : `Cloud request failed (${response.status}).`;
+      if (response.status === 429 || ["over_email_send_rate_limit", "over_request_rate_limit"].includes(code)) {
+        message = "Too many requests. Please wait before trying again.";
+      } else if (path === "/auth/v1/signup" && (["user_already_exists", "email_exists"].includes(code) || body?.msg === "User already registered")) {
+        message = "That email is already registered. Sign in or reset your password.";
+      } else if (path === "/auth/v1/signup" && (code === "weak_password" || body?.weak_password)) {
+        message = "That password is too weak. Choose a longer, more varied password.";
+      } else if (code === "email_not_confirmed") {
+        message = "Check your email to confirm the address, then sign in.";
+      }
       const error = new Error(message);
       error.status = response.status;
       throw error;
@@ -53,21 +65,50 @@ export function createCloudClient({ url = "", anonKey = "", fetch: fetcher } = {
     catch { throw new Error("Invalid cloud response."); }
   }
 
-  async function signIn(email, password) {
-    if (!enabled) return null;
+  function credentials(email, password) {
     if (typeof email !== "string" || !email.trim() || typeof password !== "string" || !password) {
       throw new Error("Enter an email and password.");
     }
-    const result = await request("/auth/v1/token?grant_type=password", {
-      method: "POST",
-      body: JSON.stringify({ email: email.trim(), password })
-    }, key);
+    return JSON.stringify({ email: email.trim(), password });
+  }
+
+  function adoptSession(result, action) {
     if (typeof result?.access_token !== "string" || !result.access_token
         || typeof result.user?.id !== "string" || !result.user.id) {
-      throw new Error("Invalid sign-in response.");
+      throw new Error(`Invalid ${action} response.`);
     }
     currentSession = result;
     return session();
+  }
+
+  async function signIn(email, password) {
+    if (!enabled) return null;
+    const result = await request("/auth/v1/token?grant_type=password", {
+      method: "POST",
+      body: credentials(email, password)
+    }, key);
+    return adoptSession(result, "sign-in");
+  }
+
+  async function signUp(email, password) {
+    if (!enabled) return null;
+    const result = await request("/auth/v1/signup", {
+      method: "POST",
+      body: credentials(email, password)
+    }, key);
+    if (result?.access_token != null) return adoptSession(result, "sign-up");
+    if (typeof result?.id !== "string" || !result.id) throw new Error("Invalid sign-up response.");
+    if (Array.isArray(result.identities) && !result.identities.length) {
+      throw new Error("That email is already registered. Sign in or reset your password.");
+    }
+    return null;
+  }
+
+  async function recover(email) {
+    if (!enabled) return null;
+    if (typeof email !== "string" || !email.trim()) throw new Error("Enter your email address.");
+    await request("/auth/v1/recover", { method: "POST", body: JSON.stringify({ email: email.trim() }) }, key);
+    return null;
   }
 
   async function signOut() {
@@ -121,5 +162,5 @@ export function createCloudClient({ url = "", anonKey = "", fetch: fetcher } = {
     }
   }
 
-  return { enabled, signIn, signOut, session, push, pull, sync };
+  return { enabled, signIn, signUp, recover, signOut, session, push, pull, sync };
 }

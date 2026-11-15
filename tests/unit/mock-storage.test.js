@@ -5,6 +5,7 @@ import { browserApi, serverApi, setBrowserWriteListener } from "../../src/main/r
 import { QUESTION_GROUPS } from "../../src/main/resources/public/js/interview.js";
 import { SESSION_MODES } from "../../src/main/resources/public/js/mock-interview.js";
 import { KEYS } from "../../src/main/resources/public/js/storage.js";
+import { createCloudClient } from "../../src/main/resources/public/js/cloud.js";
 
 class MemoryStorage {
   #map = new Map();
@@ -91,5 +92,49 @@ test("mock history and interview prep never reach Java server edit or backup pay
     assert.equal("mock" in record, false);
     assert.equal("interview" in record, false);
     assert.equal(record.company, "Acme");
+  }
+});
+
+test("active and deleted interview prep and mock history round-trip through the write listener and cloud", async t => {
+  t.after(() => setBrowserWriteListener(null));
+  const interview = { "b-about-you": { status: "practiced", note: "Use the project example" }, "a-mentor": { status: "stuck" } };
+  const prep = { interview, mock: [summary(), summary({ at: "2026-11-14T12:00:00.000Z", mode: "technical" })] };
+  let written;
+  setBrowserWriteListener(record => { written = record; });
+  await browserApi.create({ company: "Active", role: "Intern", ...prep });
+  await browserApi.create({ company: "Deleted", role: "Intern", ...prep });
+  await browserApi.remove([2]);
+  const original = browserApi.read();
+  assert.deepEqual(written, original);
+  written.applications[0].interview["b-about-you"].note = "changed listener copy";
+  assert.deepEqual(browserApi.read(), original, "listener receives an independent copy");
+  await browserApi.update(1, { notes: "Keep both practice fields" });
+  const source = browserApi.read();
+
+  let remote = null;
+  const client = createCloudClient({ url: "https://test.supabase.co", anonKey: "public-key", fetch: async (url, options) => {
+    if (url.includes("/auth/v1/token")) return Response.json({ access_token: "memory-token", user: { id: "owner" } });
+    if (options.method === "POST") {
+      remote = JSON.parse(options.body).data;
+      return new Response(null, { status: 204 });
+    }
+    return Response.json(remote ? [{ data: remote }] : []);
+  } });
+  await client.signIn("owner@example.test", "password");
+  assert.equal((await client.sync(source)).action, "pushed");
+  assert.deepEqual(remote, source);
+  const result = await client.sync({ nextId: 1, applications: [], recentlyDeleted: [], updatedAt: "1970-01-01T00:00:00.000Z" });
+  assert.equal(result.action, "pulled");
+  const record = result.notebook;
+  browserApi.write({
+    nextId: record.nextId,
+    applications: record.applications.map(raw => sanitizeImportedEntry(raw).entry),
+    recentlyDeleted: record.recentlyDeleted.map(raw => sanitizeImportedEntry(raw).entry)
+  }, record.updatedAt);
+  assert.deepEqual(browserApi.read(), source);
+  assert.deepEqual(written, source);
+  for (const entry of [...browserApi.read().applications, ...browserApi.read().recentlyDeleted]) {
+    assert.deepEqual(entry.interview, interview);
+    assert.deepEqual(entry.mock, prep.mock);
   }
 });
