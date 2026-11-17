@@ -4123,9 +4123,9 @@ function initLandingPage() {
       }
     });
     heroVideo.addEventListener("error", () => markHeroVideoFailed(heroVideo));
-    $$("source", heroVideo).forEach(source => {
-      source.addEventListener("error", () => markHeroVideoFailed(heroVideo));
-    });
+    // A browser that cannot play one <source> reports an error on it and moves on to the next, so
+    // only an error on the last one means the video really cannot play here.
+    $$("source", heroVideo).at(-1)?.addEventListener("error", () => markHeroVideoFailed(heroVideo));
     if (heroVideo.error || heroVideo.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
       markHeroVideoFailed(heroVideo);
     } else {

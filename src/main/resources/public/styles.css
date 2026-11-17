@@ -2170,11 +2170,13 @@ a:not([class]):active { opacity: .65; }
 /* ==========================================================================
    Standalone Marketing & Onboarding Landing Page (#landing-shell)
    ========================================================================== */
-html {
+/* Smooth scrolling only while the landing page shows: in the notebook itself it would leave buttons
+   gliding under a tap whenever something scrolls them into view. */
+html:has(#landing-shell:not([hidden])) {
   scroll-behavior: smooth;
 }
 @media (prefers-reduced-motion: reduce) {
-  html {
+  html:has(#landing-shell:not([hidden])) {
     scroll-behavior: auto;
   }
 }
