@@ -3904,6 +3904,7 @@ document.addEventListener("keydown", event => {
 let landingAuthMode = "signup";
 let landingSubmitting = false;
 let landingRedirectTimer = 0;
+let landingHeldIntent = null;
 let activeScrollFrame = 0;
 const landingTouched = new Set();
 
@@ -3917,8 +3918,10 @@ function smoothScrollToSection(targetId, { duration = 560 } = {}) {
   const targetY = Math.max(0, startY + targetRect.top - (targetId === "hero" ? headerHeight : headerHeight - 4));
   const distance = targetY - startY;
   const clampedDuration = clampScrollDuration(duration);
+  // Each frame jumps straight to its position ("instant"), so the page's CSS smooth scrolling
+  // doesn't start a second animation on every frame and make this one stutter.
   if (reducedMotion() || Math.abs(distance) < 2) {
-    window.scrollTo(0, targetY);
+    window.scrollTo({ top: targetY, behavior: "instant" });
     return;
   }
   const startTime = performance.now();
@@ -3926,7 +3929,7 @@ function smoothScrollToSection(targetId, { duration = 560 } = {}) {
     const elapsed = now - startTime;
     const progress = Math.min(1, elapsed / clampedDuration);
     const eased = easeInOutCubic(progress);
-    window.scrollTo(0, Math.round(startY + distance * eased));
+    window.scrollTo({ top: Math.round(startY + distance * eased), behavior: "instant" });
     if (progress < 1) {
       activeScrollFrame = window.requestAnimationFrame(step);
     } else {
@@ -4050,6 +4053,8 @@ function handleLandingHashNavigation(hash = window.location.hash) {
   }
   if (clean && clean !== "welcome" && clean !== "landing") {
     // Any attempt to access a notebook route while unauthenticated stays gated on the landing page.
+    // A job sent by the browser extension or clipper (#/new?...) is kept and opened after sign-up.
+    landingHeldIntent = parseHashNewIntent(hash) || landingHeldIntent;
     window.history.replaceState(null, "", "#signup");
     smoothScrollToSection("signup");
   }
@@ -4176,7 +4181,8 @@ function initLandingPage() {
     const videoToggle = event.target.closest?.('[data-action="toggle-hero-video"]');
     if (videoToggle && heroVideo) {
       if (heroVideo.paused) {
-        heroVideo.play().catch(() => markHeroVideoFailed(heroVideo));
+        // A quick pause interrupts play() with an AbortError; only a real "can't play this" hides the video.
+        heroVideo.play().catch(error => { if (error?.name === "NotSupportedError") markHeroVideoFailed(heroVideo); });
       } else {
         heroVideo.pause();
       }
@@ -4219,6 +4225,14 @@ function initLandingPage() {
         window.history.pushState(null, "", hash);
       }
       smoothScrollToSection(targetId, { duration: 560 });
+      // Move keyboard focus with the view, so Tab continues from where the link went: the form's
+      // first field for the sign-up links, otherwise the section itself.
+      const field = targetId === "signup" ? $(landingAuthMode === "signin" ? "#signup-email" : "#signup-name") : null;
+      const section = field || document.getElementById(targetId);
+      if (section) {
+        if (!field && !section.hasAttribute("tabindex")) section.setAttribute("tabindex", "-1");
+        section.focus({ preventScroll: true });
+      }
     }
   });
 
@@ -4348,6 +4362,9 @@ function initLandingPage() {
         render({ animate: true, keepScroll: false });
         window.scrollTo(0, 0);
         viewRoot.focus({ preventScroll: true });
+        const held = landingHeldIntent;
+        landingHeldIntent = null;
+        if (held && state.loaded) openNew(held.stage, held.initial);
       }, REDIRECT_DELAY_MS);
     });
   }

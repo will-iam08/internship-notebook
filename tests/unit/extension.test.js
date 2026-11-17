@@ -240,3 +240,23 @@ test("no em dashes anywhere in the extension", () => {
     assert.equal(extensionFile(name).includes("—"), false, name);
   }
 });
+
+test("company, role and location names that the page HTML-escaped come out as plain text", () => {
+  const posting = {
+    ...greenhousePosting,
+    title: "Software Engineer Intern &#8211; R&amp;D",
+    hiringOrganization: { "@type": "Organization", name: "Johnson &amp; Johnson" },
+    jobLocation: { "@type": "Place", address: { addressLocality: "St. John&#39;s", addressRegion: "NL" } }
+  };
+  const job = jobFromPage(snapshot({ structured: [posting] }), clipper);
+  assert.equal(job.company, "Johnson & Johnson");
+  assert.equal(job.role, "Software Engineer Intern – R&D");
+  assert.equal(job.location, "St. John's, NL");
+});
+
+test("the popup keeps working when the browser's settings storage is unavailable", () => {
+  const popup = extensionFile("popup.js");
+  assert.doesNotMatch(popup, /ext\.storage\.sync\.(get|set)\(/, "storage calls go through readSettings/writeSettings");
+  assert.match(popup, /async function readSettings\(\)[\s\S]*?catch/);
+  assert.match(popup, /async function writeSettings\(values\)[\s\S]*?catch/);
+});

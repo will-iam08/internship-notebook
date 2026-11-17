@@ -45,7 +45,7 @@
 /* Rules below set display on .found and .check, which would otherwise override the hidden attribute. */
 [hidden] { display: none !important; }
 html, body { margin: 0; }
-body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--sans); width: 360px; }
+body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--sans); width: min(360px, 100vw); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 .head { align-items: center; background: var(--card); border-bottom: 1px solid var(--line); display: flex; gap: 12px; padding: 14px 16px; }

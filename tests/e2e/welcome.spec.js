@@ -30,6 +30,21 @@ test.describe("entry gate and decoupling from notebook", () => {
     }
   });
 
+  test("a job sent by the browser extension before signing up is kept and opens after sign-up", async ({ page }) => {
+    await page.goto("/#/new?company=Acme%20Robotics&role=Firmware%20Intern&location=Waterloo%2C%20ON", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("#landing-shell")).toBeVisible();
+    await expect(page).toHaveURL(/#signup$/);
+
+    await page.locator("#signup-name").fill("Jordan Rivera");
+    await page.locator("#signup-email").fill("jordan@waterloo.ca");
+    await page.locator("#signup-password").fill("CoopSearch2026");
+    await page.locator("#signup-submit").click();
+
+    await expect(page.locator("#new-dialog")).toBeVisible({ timeout: 5000 });
+    await expect(page.locator("#new-form").getByLabel("Company")).toHaveValue("Acme Robotics");
+    await expect(page.locator("#new-form").getByLabel("Role")).toHaveValue("Firmware Intern");
+  });
+
   test("authenticated or returning visitors bypass the landing page and open their notebook directly", async ({ page }) => {
     await seedNotebook(page);
     await page.goto("/");

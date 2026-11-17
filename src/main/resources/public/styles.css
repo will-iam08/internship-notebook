@@ -2299,7 +2299,8 @@ html:has(#landing-shell:not([hidden])) {
   flex: 1 1 auto;
 }
 
-.landing-main:focus {
+.landing-main:focus,
+.landing-main > section:focus {
   outline: none;
 }
 

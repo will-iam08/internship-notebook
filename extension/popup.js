@@ -18,6 +18,22 @@ const SETTINGS = { notebookUrl: DEFAULT_NOTEBOOK, keepDescription: true };
 let settings = { ...SETTINGS };
 let job = null;
 
+// Settings are a convenience: if sync storage is off or unavailable (some Firefox profiles,
+// Safari), fall back to local storage, and if that fails too, keep going with the defaults.
+async function readSettings() {
+  for (const area of [ext.storage?.sync, ext.storage?.local]) {
+    try { if (area) return { ...SETTINGS, ...(await area.get(SETTINGS)) }; } catch { /* try the next one */ }
+  }
+  return { ...SETTINGS };
+}
+
+async function writeSettings(values) {
+  for (const area of [ext.storage?.sync, ext.storage?.local]) {
+    try { if (area) { await area.set(values); return true; } } catch { /* try the next one */ }
+  }
+  return false;
+}
+
 function showStatus(text, { error = false } = {}) {
   const status = $("#status");
   status.textContent = text;
@@ -68,7 +84,7 @@ async function save() {
   const includeDescription = !$("#keep-description-row").hidden && $("#keep-description").checked;
   if (includeDescription !== settings.keepDescription) {
     settings.keepDescription = includeDescription;
-    await ext.storage.sync.set({ keepDescription: includeDescription });
+    await writeSettings({ keepDescription: includeDescription });
   }
   const url = notebookNewUrl(settings.notebookUrl, job, { includeDescription });
   if (!url) {
@@ -91,13 +107,14 @@ async function saveAddress(value) {
   const address = cleanNotebookAddress(value);
   if (!address) { showSettingsStatus("Enter a web address starting with https:// (or http:// for a local copy).", "error"); return; }
   settings.notebookUrl = address;
-  await ext.storage.sync.set({ notebookUrl: address });
   $("#notebook-url").value = address;
-  showSettingsStatus("Saved. Jobs will open in this notebook.", "good");
+  showSettingsStatus(await writeSettings({ notebookUrl: address })
+    ? "Saved. Jobs will open in this notebook."
+    : "Using this address for now, but the browser wouldn't save it for next time.", "good");
 }
 
 async function start() {
-  settings = { ...SETTINGS, ...(await ext.storage.sync.get(SETTINGS)) };
+  settings = await readSettings();
   $("#notebook-url").value = settings.notebookUrl;
   $("#save").addEventListener("click", () => save().catch(() => showStatus("Couldn't open your notebook. Try again.", { error: true })));
   $("#settings-form").addEventListener("submit", event => { event.preventDefault(); saveAddress($("#notebook-url").value); });

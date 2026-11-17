@@ -40,16 +40,16 @@ export function findJobPostings(structured) {
 /** A plain name from a schema.org value that may be a string, an object with a name, or a list. */
 function nameOf(value) {
   if (Array.isArray(value)) return nameOf(value[0]);
-  if (value && typeof value === "object") return clean(value.name ?? value["@value"] ?? "");
-  return clean(value);
+  if (value && typeof value === "object") return plain(value.name ?? value["@value"] ?? "");
+  return plain(value);
 }
 
 /** "Toronto, ON" style text for one schema.org Place (or a plain string). */
 function placeText(place) {
   if (!place) return "";
-  if (typeof place !== "object") return clean(place);
+  if (typeof place !== "object") return plain(place);
   const address = place.address ?? place;
-  if (typeof address !== "object") return clean(address);
+  if (typeof address !== "object") return plain(address);
   const city = nameOf(address.addressLocality);
   const region = nameOf(address.addressRegion);
   const country = nameOf(address.addressCountry);
@@ -79,6 +79,8 @@ const decode = text => text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, cod
   }
   return ENTITIES[code.toLowerCase()] ?? whole;
 });
+// Names and titles in structured data are often HTML-escaped too ("Johnson &amp; Johnson").
+const plain = value => clean(decode(String(value ?? "")));
 
 /** Readable text from a posting's HTML description: paragraphs and list items on their own
  *  lines, everything else removed. Job sites often escape the HTML once more, so it decodes,
@@ -123,7 +125,7 @@ export function jobFromPage(snapshot = {}, clipper) {
   const skills = [...new Set([...clip.skills, ...clipper.extractSkillsFromText(description)])].slice(0, SKILL_LIMIT);
   return {
     company: clamp(nameOf(posting?.hiringOrganization) || clip.company, LIMITS.company),
-    role: clamp(clean(posting?.title) || clip.role || headingRole, LIMITS.role),
+    role: clamp(plain(posting?.title) || clip.role || headingRole, LIMITS.role),
     location: postingLocation(posting) || clamp(clip.location, LIMITS.location),
     source: clamp(clip.source, LIMITS.source),
     link: clip.link,
