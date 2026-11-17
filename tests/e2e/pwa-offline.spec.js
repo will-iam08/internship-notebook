@@ -1,7 +1,7 @@
 // Covers: the web app manifest is valid and linked, the service worker registers and caches the
 // app shell, and a previously-visited page still loads while offline.
 import { ROUTE_FILES, expect, test } from "./fixtures.js";
-import { openApp, seedNotebook, seedStarted } from "./helpers.js";
+import { openApp, seedNotebook, seedSession, seedStarted } from "./helpers.js";
 
 test("the manifest is linked and declares the fields an installer needs", async ({ page, baseURL }) => {
   await seedStarted(page); // a real empty notebook, not the demo
@@ -25,6 +25,7 @@ test("the manifest is linked and declares the fields an installer needs", async 
 });
 
 test("a shared job opens a safely prefilled new-application sheet", async ({ page }) => {
+  await seedSession(page); // signed in: the job opens straight away (signed out, it waits for sign-up)
   await page.goto("/?share-target=1&title=Software%20Intern&text=Shared%20from%20a%20job%20site&url=https%3A%2F%2Fexample.com%2Fjob");
   await expect(page.getByRole("heading", { name: "Add an application" })).toBeVisible();
   await expect(page.locator("#new-form").getByLabel("Role")).toHaveValue("Software Intern");
@@ -103,4 +104,11 @@ test("the service worker registers and caches the app shell for offline use", as
   } finally {
     await context.setOffline(false);
   }
+});
+
+test("signed out, a shared job shows the landing page first and the address is tidied", async ({ page }) => {
+  await page.goto("/?share-target=1&title=Software%20Intern&url=https%3A%2F%2Fexample.com%2Fjob");
+  await expect(page.locator("#landing-shell")).toBeVisible();
+  await expect(page.locator("#app")).toBeHidden();
+  await expect(page).toHaveURL(/\/$/);
 });

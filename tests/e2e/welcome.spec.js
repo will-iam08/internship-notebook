@@ -95,6 +95,12 @@ test.describe("entry gate and decoupling from notebook", () => {
     await page.locator("#view .view-head").waitFor();
     await expect(page.locator("#landing-shell")).toBeHidden();
     expect(await page.evaluate(() => window.__landingSeen)).toBe(false);
+
+    // A cold reload (the service worker is now installed and may answer from its cache) must not flash either.
+    await page.reload({ waitUntil: "commit" });
+    await page.locator("#view .view-head").waitFor();
+    expect(await page.evaluate(() => window.__landingSeen)).toBe(false);
+    expect(await page.evaluate(() => document.documentElement.dataset.shell)).toBe("notebook");
   });
 
   test("authenticated or returning visitors bypass the landing page and open their notebook directly", async ({ page }) => {
@@ -220,6 +226,10 @@ test.describe("1. Hero section", () => {
     const expectedTimes = [0, 4.5, 9, 13.5];
     for (let index = expectedTimes.length - 1; index >= 0; index--) {
       await pills.nth(index).click();
+      // Read the position straight after the click: the clip keeps playing and loops at about 17s,
+      // so on a slow run the checks below could otherwise let it wrap past the end back to 0.
+      const currentTime = await video.evaluate(el => el.currentTime);
+      expect(Math.abs(currentTime - expectedTimes[index])).toBeLessThan(1.0);
       await expect(pills.nth(index)).toHaveAttribute("aria-pressed", "true");
       await expect(pills.nth(index)).toHaveClass(/is-active/);
       for (let other = 0; other < expectedTimes.length; other++) {
@@ -227,8 +237,6 @@ test.describe("1. Hero section", () => {
           await expect(pills.nth(other)).toHaveAttribute("aria-pressed", "false");
         }
       }
-      const currentTime = await video.evaluate(el => el.currentTime);
-      expect(Math.abs(currentTime - expectedTimes[index])).toBeLessThan(1.0);
     }
 
     // Verify timeupdate keeps the active chapter pill in sync with playback position
