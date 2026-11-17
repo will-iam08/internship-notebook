@@ -132,6 +132,15 @@
           <button class="icon-button" type="button" data-action="close-new" aria-label="Close"><span data-icon="x"></span></button>
         </header>
         <div class="sheet-body">
+          <div class="quickfill-bar">
+            <label class="field" for="new-quickfill">
+              <span class="field-label"><span data-icon="sparkle"></span> Quick fill from link or job text</span>
+            </label>
+            <div class="quickfill-row">
+              <input id="new-quickfill" data-quickfill type="text" autocomplete="off" placeholder="Paste a job URL or title (e.g. Software Intern at Stripe)" />
+              <button class="button small" type="button" data-action="quickfill">Fill</button>
+            </div>
+          </div>
           <div class="field-grid">
             <label class="field span-2"><span class="field-label">Company <span class="req" aria-hidden="true">*</span></span>
               <input required maxlength="80" name="company" autocomplete="organization" placeholder="e.g. Shopify" />
@@ -202,7 +211,7 @@
       </div>
     </dialog>
 
-    <input type="file" id="import-file" accept="application/json,.json" hidden />
+    <input type="file" id="import-file" accept="application/json,.json,text/csv,.csv,text/tab-separated-values,.tsv" hidden />
     <script src="site-mode.js"></script>
     <script src="runtime-config.js"></script>
     <script type="module" src="js/app.js"></script>

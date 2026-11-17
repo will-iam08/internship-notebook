@@ -2131,12 +2131,42 @@ a:not([class]):active { opacity: .65; }
 .tour-open { min-height: 44px; }
 
 /* The shared press and hover layer also covers the new controls. */
-:is(.mock-nav, .mock-link, .value-link, .tour-open, .welcome-closer > summary) {
+:is(.mock-nav, .mock-link, .value-link, .tour-open, .welcome-closer > summary, .bookmarklet-link) {
   transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, opacity .16s, translate .16s var(--ease), scale .16s var(--ease);
 }
-:is(.mock-nav, .mock-link, .value-link, .welcome-closer > summary):active { scale: .98; translate: 0 1px; }
+:is(.mock-nav, .mock-link, .value-link, .welcome-closer > summary, .bookmarklet-link):active { scale: .98; translate: 0 1px; }
 @media (hover: hover) { .value-link:hover { color: var(--ink); } .welcome-closer > summary:hover .welcome-closer-title { color: var(--accent-ink); } }
 @media (prefers-reduced-motion: reduce) {
-  :is(.mock-nav, .mock-link, .value-link, .tour-open, .welcome-closer > summary) { transition-property: background-color, border-color, color, box-shadow, opacity; }
-  :is(.mock-nav, .mock-link, .value-link, .welcome-closer > summary):active { scale: none; translate: none; }
+  :is(.mock-nav, .mock-link, .value-link, .tour-open, .welcome-closer > summary, .bookmarklet-link) { transition-property: background-color, border-color, color, box-shadow, opacity; }
+  :is(.mock-nav, .mock-link, .value-link, .welcome-closer > summary, .bookmarklet-link):active { scale: none; translate: none; }
 }
+
+/* ---------- Quick-fill bar and 1-click bookmarklet clipper ---------- */
+.quickfill-bar {
+  background: var(--paper-2);
+  border: 1px dashed var(--line-strong);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+}
+.quickfill-bar .field { gap: 4px; }
+.quickfill-bar .field-label { align-items: center; display: inline-flex; gap: 6px; }
+.quickfill-bar .field-label .icon { color: var(--accent-ink); height: 15px; width: 15px; }
+.quickfill-row { display: flex; gap: 8px; }
+.quickfill-row input {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--ink);
+  flex: 1 1 auto;
+  min-height: 44px;
+  min-width: 0;
+  padding: 9px 11px;
+}
+.quickfill-row input:focus-visible { border-color: var(--focus); outline: 2px solid color-mix(in srgb, var(--focus) 28%, transparent); }
+.quickfill-row .button.small { flex-shrink: 0; min-height: 44px; padding: 0 14px; }
+.bookmarklet-link { cursor: grab; min-height: 44px; text-decoration: none; }
+.bookmarklet-link:active { cursor: grabbing; }
+

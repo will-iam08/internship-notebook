@@ -12,8 +12,9 @@ import {
   BACKUP_FORMAT, BACKUP_VERSION,
   plural, clamp, dayKey, daysUntil, formatDay, timeAgo, formatDateTime,
   cleanSkills, cleanLink, cleanInterview, cleanMock, collapseHistory, INTERVIEW_NOTE_LIMIT, countBy, reached, sentAt, metrics, weekActivity, agendaItems, attentionItems, matchesQuery, compareBy,
-  previewImport, sanitizeImportedEntry
+  previewImport, sanitizeImportedEntry, buildCsv, parseSpreadsheetImport
 } from "./domain.js";
+import { parseJobClip, parseNewIntent, buildBookmarkletHref } from "./clipper.js";
 import { KEYS, clearConfirmedDraft, clearDraft, readDrafts, storage, writeDraft } from "./storage.js";
 import { api, browserApi, BROWSER_MODE, StorageCorruptedError } from "./api.js";
 import { createCloudClient } from "./cloud.js";
@@ -1092,13 +1093,15 @@ function viewSettings() {
           <p>${BROWSER_MODE
             ? "Pages are stored in this browser profile on this device. Cloud sync only copies them when you choose Sync now in Settings. Anyone using this same unlocked browser profile can see the local copy. Use a separate profile on a shared device, and download backups to keep another copy."
             : "The Java server saves pages to data/applications.tsv in the project folder."}</p></div></div>
-        <div class="setting-row"><div><strong>Backup</strong><p>A single file with every page, including notes and history.</p></div>
+        <div class="setting-row"><div><strong>Backup and import</strong><p>Save every page, note, and timeline in a single .json backup, or import applications from a .json backup or a .csv spreadsheet (Google Sheets, Notion, Simplify, or Excel).</p></div>
           <div class="view-actions">
             <button class="button" type="button" data-action="export-json">${icon("download")}Download backup</button>
-            <button class="button ghost" type="button" data-action="import-json">${icon("upload")}Import backup</button>
+            <button class="button ghost" type="button" data-action="import-json">${icon("upload")}Import backup or CSV</button>
           </div></div>
         <div class="setting-row"><div><strong>Spreadsheet</strong><p>Export a CSV you can open in Excel, Numbers, or Google Sheets.</p></div>
           <button class="button ghost" type="button" data-action="export-csv">${icon("file")}Export CSV</button></div>
+        <div class="setting-row"><div><strong>1-click job clipper</strong><p>Drag this button to your bookmarks bar. Click it on any job posting to open your notebook with the company, role, and link filled in.</p></div>
+          <a class="button ghost bookmarklet-link" data-bookmarklet href="${esc(buildBookmarkletHref(`${window.location.origin}${window.location.pathname}`))}">${icon("sparkle")}<span>Save to Notebook</span></a></div>
         ${BROWSER_MODE ? `<div class="setting-row"><div><strong>Reminders and exports</strong><p>A calendar file with real reminders, a Markdown copy, a printable sheet, and a weekly digest you email to yourself.</p></div>
           <a class="button ghost" href="#/export">${icon("calendar")}<span>Open</span></a></div>` : ""}
       </section>
@@ -1593,9 +1596,12 @@ function viewExport() {
         ${exportCard({ iconName: "notebook", title: "Print or save as PDF",
           copy: "A clean paper copy of what's coming up and every application. Choose Save as PDF in the print dialog to keep a file. Today and All pages also print neatly on their own.",
           actions: `<button class="button" type="button" data-action="print-notebook" ${empty ? "disabled" : ""}>${icon("file")}<span>Print</span></button>` })}
-        ${exportCard({ iconName: "download", title: "Backup file (.json)",
-          copy: "Everything, including history, in one file. Restore it on another device or browser from Settings.",
-          actions: `<button class="button" type="button" data-action="export-json">${icon("download")}<span>Download backup</span></button>` })}
+        ${exportCard({ iconName: "download", title: "Backup file (.json) or CSV spreadsheet",
+          copy: "Everything, including history, in one backup file, or import applications from a .json backup or a .csv spreadsheet (Google Sheets, Notion, Simplify, or Excel).",
+          actions: `<button class="button" type="button" data-action="export-json">${icon("download")}<span>Download backup</span></button><button class="button ghost" type="button" data-action="import-json">${icon("upload")}<span>Import backup or CSV</span></button>` })}
+        ${exportCard({ iconName: "sparkle", title: "1-click job clipper",
+          copy: "Drag this button to your bookmarks bar. Click it on any job posting to open your notebook with the company, role, and link filled in.",
+          actions: `<a class="button ghost bookmarklet-link" data-bookmarklet href="${esc(buildBookmarkletHref(`${window.location.origin}${window.location.pathname}`))}">${icon("sparkle")}<span>Save to Notebook</span></a>` })}
       </div>
       ${printSheet()}
     </div>`;
@@ -2535,8 +2541,25 @@ window.matchMedia("(max-width: 759px)").addEventListener("change", () => {
   if (state.route.view === "board") { state.selected.clear(); rerender(); }
 });
 
+function parseHashNewIntent(hash = window.location.hash) {
+  if (!/^#\/new(?:[/?]|$)/.test(hash)) return null;
+  const queryStart = hash.indexOf("?");
+  const query = queryStart !== -1 ? hash.slice(queryStart + 1) : "";
+  return parseNewIntent(new URLSearchParams(query));
+}
+
+let pendingNewIntent = null;
+
 async function navigate() {
   await flushEntrySave();
+  const hashIntent = parseHashNewIntent(window.location.hash);
+  if (hashIntent) {
+    const fallbackView = state.route?.view && state.route.view !== "welcome" ? state.route.view : "today";
+    window.history.replaceState(null, "", `#/${fallbackView}`);
+    if (state.loaded) openNew(hashIntent.stage, hashIntent.initial);
+    else pendingNewIntent = hashIntent;
+    return;
+  }
   const previous = state.route;
   state.route = parseRoute();
   if (previous.view === "mock" && state.route.view !== "mock") mockView.reset();
@@ -2945,22 +2968,81 @@ function updateSourceOptions() {
   const options = [...used, ...SOURCE_SUGGESTIONS.filter(source => !used.some(item => item.toLowerCase() === source.toLowerCase()))];
   $("#source-options").innerHTML = options.map(source => `<option value="${esc(source)}"></option>`).join("");
 }
+const newQuickfill = $("#new-quickfill");
+const newMoreDetails = $(".more-fields", newForm);
+const newManualFields = new Set();
+const OPTIONAL_NEW_FIELDS = ["deadline", "location", "source", "link", "skills", "notes"];
+
+function applyQuickfill(rawInput, { overwrite = false } = {}) {
+  const text = String(rawInput ?? "").trim();
+  if (!text) return;
+  const clipped = parseJobClip(text);
+  const patch = {
+    company: clipped.company,
+    role: clipped.role,
+    location: clipped.location,
+    source: clipped.source,
+    link: clipped.link,
+    skills: clipped.skills.length ? clipped.skills.join(", ") : ""
+  };
+  let filledOptional = false;
+  for (const [name, value] of Object.entries(patch)) {
+    if (!value || !newForm.elements[name]) continue;
+    const current = newForm.elements[name].value.trim();
+    if (overwrite || (!current && !newManualFields.has(name))) {
+      newForm.elements[name].value = value;
+    }
+    if (OPTIONAL_NEW_FIELDS.includes(name) && newForm.elements[name].value.trim()) {
+      filledOptional = true;
+    }
+  }
+  if (filledOptional && newMoreDetails) newMoreDetails.open = true;
+}
+
 function openNew(stage = "SAVED", initial = {}) {
   newPostingLink = "";
   dialogOpener = document.activeElement;
   closeMenu();
   if ($("#palette").open) $("#palette").close();
   newForm.reset();
-  for (const [name, value] of Object.entries(initial)) {
-    if (newForm.elements[name] && typeof value === "string") newForm.elements[name].value = value;
+  newManualFields.clear();
+  if (newQuickfill) newQuickfill.value = "";
+  let hasOptional = false;
+  for (const [name, rawValue] of Object.entries(initial)) {
+    const value = Array.isArray(rawValue) ? rawValue.join(", ") : rawValue;
+    if (newForm.elements[name] && typeof value === "string" && value) {
+      newForm.elements[name].value = value;
+      if (OPTIONAL_NEW_FIELDS.includes(name)) hasOptional = true;
+    }
   }
+  if (newMoreDetails) newMoreDetails.open = hasOptional;
   newStage = STAGES.includes(stage) ? stage : "SAVED";
   renderStagePicker();
   updateSourceOptions();
   $("#new-error").hidden = true;
-  newDialog.showModal();
+  if (!newDialog.open) newDialog.showModal();
   newForm.elements.company.focus();
 }
+newForm.addEventListener("input", event => {
+  const target = event.target;
+  if (target === newQuickfill) {
+    applyQuickfill(newQuickfill.value, { overwrite: false });
+    return;
+  }
+  if (target.name) {
+    if (target.value.trim()) newManualFields.add(target.name);
+    else newManualFields.delete(target.name);
+    if (target.name === "link" && target.value.trim()) {
+      applyQuickfill(target.value, { overwrite: false });
+    }
+  }
+});
+newQuickfill?.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    applyQuickfill(newQuickfill.value, { overwrite: true });
+  }
+});
 newForm.addEventListener("submit", async event => {
   event.preventDefault();
   const fields = Object.fromEntries(new FormData(newForm).entries());
@@ -2985,6 +3067,10 @@ newForm.addEventListener("submit", async event => {
 newDialog.addEventListener("click", event => {
   if (event.target === newDialog) newDialog.close();
   if (event.target.closest('[data-action="close-new"]')) newDialog.close();
+  if (event.target.closest('[data-action="quickfill"]')) {
+    applyQuickfill(newQuickfill?.value || "", { overwrite: true });
+    return;
+  }
   const option = event.target.closest('[data-action="pick-stage"]');
   if (option) { newStage = option.dataset.stage; renderStagePicker(); $(`[data-stage="${newStage}"]`, $("#new-stage")).focus(); }
 });
@@ -3607,6 +3693,12 @@ actions["toggle-usage"] = () => {
 };
 
 document.addEventListener("click", event => {
+  const bookmarklet = event.target.closest("[data-bookmarklet]");
+  if (bookmarklet) {
+    event.preventDefault();
+    toast("Drag Save to Notebook to your bookmarks bar, then click it on any job posting.");
+    return;
+  }
   const actionTarget = event.target.closest("[data-action]");
   if (actionTarget && !actionTarget.closest("#new-dialog")) {
     const handler = actions[actionTarget.dataset.action];
@@ -3756,11 +3848,7 @@ function download(filename, content, type) {
 
 function exportCsv() {
   if (!state.applications.length) { toast("Nothing to export yet"); return; }
-  const columns = ["Company", "Role", "Stage", "Deadline", "Location", "Source", "Link", "Contact", "Next step", "Next step date", "Skills", "Notes", "Starred", "Created", "Last edited"];
-  // Leading = + - @ would make spreadsheet apps treat a cell as a formula.
-  const cell = value => { let text = String(value ?? ""); if (/^[=+\-@]/.test(text)) text = `'${text}`; return `"${text.replaceAll('"', '""')}"`; };
-  const rows = [...state.applications].sort(compareBy("company")).map(entry => [entry.company, entry.role, LABELS[entry.status], entry.deadline, entry.location, entry.source, entry.link, entry.contact, entry.nextStep, entry.nextStepDate, entry.skills.join(", "), entry.notes, entry.starred ? "Yes" : "", entry.createdAt, entry.updatedAt].map(cell).join(","));
-  download(`internship-notebook-${dayKey()}.csv`, `﻿${[columns.join(","), ...rows].join("\r\n")}`, "text/csv;charset=utf-8");
+  download(`internship-notebook-${dayKey()}.csv`, buildCsv(state.applications), "text/csv;charset=utf-8");
   toast("CSV exported");
 }
 
@@ -3784,12 +3872,25 @@ $("#import-file").addEventListener("change", async event => {
   if (!file) return;
   try {
     if (file.size > 5 * 1024 * 1024) throw new Error("That file is too large to be a notebook backup.");
-    const parsed = JSON.parse(await file.text());
-    const rawEntries = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.applications) ? parsed.applications : null;
-    const rawDeleted = !Array.isArray(parsed) && Array.isArray(parsed?.recentlyDeleted) ? parsed.recentlyDeleted : null;
-    if (!rawEntries && !rawDeleted) throw new Error("That file isn't a My Internship Notebook backup.");
-    const format = Array.isArray(parsed) ? null : parsed?.format;
-    const version = Array.isArray(parsed) ? NaN : Number(parsed?.version);
+    const text = await file.text();
+    const lowerName = (file.name || "").toLowerCase();
+    const isSpreadsheet = lowerName.endsWith(".csv") || lowerName.endsWith(".tsv") || file.type === "text/csv" || file.type === "text/tab-separated-values";
+    let rawEntries = null;
+    let rawDeleted = null;
+    let format = null;
+    let version = NaN;
+    if (isSpreadsheet) {
+      const parsedSheet = parseSpreadsheetImport(text);
+      rawEntries = parsedSheet.entries;
+      rawDeleted = [];
+    } else {
+      const parsed = JSON.parse(text);
+      rawEntries = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.applications) ? parsed.applications : null;
+      rawDeleted = !Array.isArray(parsed) && Array.isArray(parsed?.recentlyDeleted) ? parsed.recentlyDeleted : null;
+      if (!rawEntries && !rawDeleted) throw new Error("That file isn't a My Internship Notebook backup.");
+      format = Array.isArray(parsed) ? null : parsed?.format;
+      version = Array.isArray(parsed) ? NaN : Number(parsed?.version);
+    }
     // Every field goes through the same limits and safety rules as a normal entry (see
     // sanitizeImportedEntry in domain.js) - in particular, a link is only kept if it survives the
     // same http(s)-only check a typed link does, so a backup can never smuggle in an unsafe URL.
@@ -3810,9 +3911,11 @@ $("#import-file").addEventListener("change", async event => {
       linksRemoved ? `${plural(linksRemoved, "link")} could not be verified as safe and will be left blank.` : ""
     ].filter(Boolean);
     const ok = await confirmDialog({
-      eyebrow: "Import backup",
+      eyebrow: isSpreadsheet ? "Import spreadsheet" : "Import backup",
       title: `Add ${plural(total, "page")} to your notebook?`,
-      copy: [`This backup contains ${active.usable.length} active and ${recoverable.length} deleted pages. Your current pages stay as they are. Pages already in your notebook are skipped. Original dates and history are kept, including the seven-day deletion window.`, ...notes].join(" "),
+      copy: isSpreadsheet
+        ? [`This spreadsheet contains ${plural(active.usable.length, "application")}. Your current pages stay as they are. Pages already in your notebook are skipped.`, ...notes].join(" ")
+        : [`This backup contains ${active.usable.length} active and ${recoverable.length} deleted pages. Your current pages stay as they are. Pages already in your notebook are skipped. Original dates and history are kept, including the seven-day deletion window.`, ...notes].join(" "),
       yes: "Import",
       no: "Cancel",
       iconName: "upload",
@@ -3974,18 +4077,20 @@ window.setInterval(() => {
 hydrateStaticIcons();
 applyTheme();
 loadInternships();
-// The installed app's "New application" shortcut opens #/new.
+// The installed app's "New application" shortcut opens #/new, and the 1-click clipper opens #/new?...
 const shared = new URLSearchParams(window.location.search);
-const sharedOnStart = shared.has("share-target") || shared.has("title") || shared.has("text") || shared.has("url");
-const openNewOnStart = window.location.hash === "#/new" || sharedOnStart;
+const sharedOnStart = shared.has("share-target") || shared.has("title") || shared.has("text") || shared.has("url") || shared.has("company") || shared.has("role") || shared.has("link");
+const hashIntentOnStart = parseHashNewIntent(window.location.hash);
+const openNewOnStart = Boolean(hashIntentOnStart) || sharedOnStart;
+const startIntent = hashIntentOnStart || (sharedOnStart ? parseNewIntent(shared) : null);
 if (openNewOnStart) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
 load().then(() => {
   usage.start();
   checkDueSoon(); // opt-in, real notebook only, once a day, and only because the tab is open
-  if (openNewOnStart && state.loaded) openNew("SAVED", sharedOnStart ? {
-    role: (shared.get("title") || "").slice(0, LIMITS.role),
-    link: (shared.get("url") || "").slice(0, LIMITS.link),
-    notes: (shared.get("text") || "").slice(0, LIMITS.notes)
-  } : {});
+  const intent = pendingNewIntent || startIntent;
+  pendingNewIntent = null;
+  if ((openNewOnStart || intent) && state.loaded) {
+    openNew(intent?.stage || "SAVED", intent?.initial || {});
+  }
 });

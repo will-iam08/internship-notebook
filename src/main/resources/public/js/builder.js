@@ -24,7 +24,7 @@ export const DEFAULT_FOCUS_AREAS = Object.freeze(["deadlines"]);
 export const START_MODE_COPY = Object.freeze({
   template: { label: "Start from a template", hint: "A few example pages for what you're looking for. Edit them or delete them." },
   scratch: { label: "Start empty", hint: "A blank notebook. Add your first role when you're ready." },
-  import: { label: "Import my applications", hint: "Restore a .json backup exported from My Internship Notebook." }
+  import: { label: "Import my applications", hint: "Import a CSV spreadsheet or restore a .json backup." }
 });
 export const USE_CASE_COPY = Object.freeze({
   "internship-search": { label: "Internship search", hint: "Summer or term internships." },
@@ -288,7 +288,7 @@ export function buildNotebookPlan(answers = {}, { now = new Date() } = {}) {
   } else if (startMode === "scratch") {
     bullets.push("No pages yet. Add your first role from Today.");
   } else {
-    bullets.push("Once it's created, choose your backup file to import.");
+    bullets.push("Once it's created, choose your backup file or CSV spreadsheet to import.");
   }
   for (const area of focusAreas) bullets.push(FOCUS_COPY[area].hint);
   bullets.push(`Weekly goal: ${weeklyGoal} ${weeklyGoal === 1 ? "application" : "applications"}.`);

@@ -360,17 +360,293 @@ export function matchesQuery(entry, query) {
   return query.toLowerCase().split(/\s+/).every(word => haystack.includes(word));
 }
 
-/* ---------- Backup import: the same rules a normal entry goes through, but forgiving ---------- */
+/* ---------- Backup and spreadsheet import: the same rules a normal entry goes through, but forgiving ---------- */
 const clampText = (value, limit) => String(value ?? "").trim().slice(0, limit);
 
+const MONTH_INDEX = {
+  jan: 1, january: 1, feb: 2, february: 2, mar: 3, march: 3, apr: 4, april: 4,
+  may: 5, jun: 6, june: 6, jul: 7, july: 7, aug: 8, august: 8,
+  sep: 9, sept: 9, september: 9, oct: 10, october: 10, nov: 11, november: 11, dec: 12, december: 12
+};
+
 /**
- * Prepares one record from an imported backup file for saving. It applies the same limits and
- * safety rules cleanChanges applies to a normal edit (see cleanLink in particular: an imported
- * link is validated exactly like a typed one, so a backup can never smuggle in a javascript: or
- * other unsafe scheme), but it is forgiving rather than throwing: the point of an import is to
- * keep as much of the person's own data as possible, so a field that cannot be made safe (an
- * unsafe link, a garbled date) is quietly dropped rather than discarding the whole entry over it.
- * Returns { entry: null } when there is no usable company or role to import.
+ * Converts common spreadsheet date strings (YYYY-MM-DD, MM/DD/YYYY, YYYY/MM/DD, ISO timestamps,
+ * or "MMM D, YYYY" / "D MMM YYYY") into a validated "YYYY-MM-DD" calendar date, or "" if invalid.
+ */
+export function parseFlexibleDate(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (isValidDate(text)) return text;
+  if (/^\d{4}-\d{2}-\d{2}T/.test(text) && isValidDate(text.slice(0, 10))) return text.slice(0, 10);
+
+  const ymd = text.match(/^(\d{4})[/. -](\d{1,2})[/. -](\d{1,2})$/);
+  if (ymd) {
+    const candidate = `${ymd[1]}-${pad(Number(ymd[2]))}-${pad(Number(ymd[3]))}`;
+    return isValidDate(candidate) ? candidate : "";
+  }
+
+  const mdy = text.match(/^(\d{1,2})[/. -](\d{1,2})[/. -](\d{2}|\d{4})$/);
+  if (mdy) {
+    const year = mdy[3].length === 2 ? `20${mdy[3]}` : mdy[3];
+    const candidate = `${year}-${pad(Number(mdy[1]))}-${pad(Number(mdy[2]))}`;
+    return isValidDate(candidate) ? candidate : "";
+  }
+
+  const monthFirst = text.match(/^([a-zA-Z]+)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+|\s*-\s*)(\d{4})$/);
+  if (monthFirst) {
+    const month = MONTH_INDEX[monthFirst[1].toLowerCase()];
+    if (month) {
+      const candidate = `${monthFirst[3]}-${pad(month)}-${pad(Number(monthFirst[2]))}`;
+      return isValidDate(candidate) ? candidate : "";
+    }
+  }
+
+  const dayFirst = text.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([a-zA-Z]+)\.?,?\s+(\d{4})$/);
+  if (dayFirst) {
+    const month = MONTH_INDEX[dayFirst[2].toLowerCase()];
+    if (month) {
+      const candidate = `${dayFirst[3]}-${pad(month)}-${pad(Number(dayFirst[1]))}`;
+      return isValidDate(candidate) ? candidate : "";
+    }
+  }
+
+  return "";
+}
+
+const STAGE_ALIASES = {
+  SAVED: new Set(["saved", "wishlist", "bookmarked", "bookmark", "to apply", "interested", "not applied", "draft", "queued"]),
+  APPLIED: new Set(["applied", "submitted", "sent", "pending", "under review", "in review", "waiting", "screened"]),
+  INTERVIEW: new Set([
+    "interview", "interviewing", "oa", "online assessment", "coding challenge", "hackerrank",
+    "codesignal", "phone screen", "technical", "onsite", "final round", "superday", "assessment"
+  ]),
+  OFFER: new Set(["offer", "offered", "accepted", "offer received"]),
+  REJECTED: new Set(["rejected", "declined", "ghosted", "closed", "withdrawn", "dropped", "no offer", "not selected"])
+};
+
+/**
+ * Maps common spreadsheet status strings into STAGES. Defaults unrecognized or blank values to
+ * "APPLIED" when a Date Applied value is present, or "SAVED" otherwise.
+ */
+export function normalizeImportStage(value, { hasAppliedDate = false } = {}) {
+  const fallback = hasAppliedDate ? "APPLIED" : "SAVED";
+  const cleaned = String(value ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  if (!cleaned) return fallback;
+  const upper = cleaned.toUpperCase();
+  if (STAGES.includes(upper)) return upper;
+  for (const [stage, aliases] of Object.entries(STAGE_ALIASES)) {
+    if (aliases.has(cleaned)) return stage;
+  }
+  if (/\b(no offer|not selected|rejected|declined|ghosted|withdrawn|dropped|closed)\b/.test(cleaned)) return "REJECTED";
+  if (/\b(offer|offered|accepted)\b/.test(cleaned)) return "OFFER";
+  if (/\b(interview|interviewing|oa|online assessment|coding challenge|hackerrank|codesignal|phone screen|technical|onsite|final round|superday|assessment)\b/.test(cleaned)) return "INTERVIEW";
+  if (/\b(applied|submitted|sent|pending|under review|in review|waiting|screened)\b/.test(cleaned)) return "APPLIED";
+  if (/\b(saved|wishlist|bookmarked|bookmark|to apply|interested|not applied|draft|queued)\b/.test(cleaned)) return "SAVED";
+  return fallback;
+}
+
+const SPREADSHEET_HEADERS = {
+  company: ["company", "company name", "employer", "organization", "org", "firm"],
+  role: ["role", "job title", "title", "position", "role title", "internship", "job"],
+  status: ["stage", "status", "application status", "state", "phase"],
+  deadline: ["deadline", "due date", "close date", "closing date", "apply by"],
+  location: ["location", "city", "office", "work location", "place", "region"],
+  source: ["source", "platform", "where found", "job board", "channel", "found via"],
+  link: ["link", "url", "job url", "posting", "application link", "job link", "posting url", "apply link"],
+  contact: ["contact", "recruiter", "referral", "point of contact", "poc", "hiring manager"],
+  nextStep: ["next step", "next action", "follow up", "action", "todo"],
+  nextStepDate: ["next step date", "follow up date", "interview date", "action date"],
+  skills: ["skills", "tags", "tech stack", "keywords", "technologies"],
+  notes: ["notes", "comments", "description", "details", "memo"],
+  starred: ["starred", "favorite", "favourite", "pinned", "important"],
+  createdAt: ["created", "date applied", "applied date", "submitted date", "date added", "applied on", "date"],
+  updatedAt: ["last edited", "updated", "last updated", "modified"]
+};
+
+const APPLIED_DATE_HEADERS = new Set(["date applied", "applied date", "submitted date", "applied on"]);
+const HEADER_TO_FIELD = new Map(
+  Object.entries(SPREADSHEET_HEADERS).flatMap(([field, names]) => names.map(name => [name, field]))
+);
+const STARRED_VALUES = new Set(["yes", "y", "true", "1", "*", "★", "⭐", "starred"]);
+
+function unescapeFormulaCell(value) {
+  const text = String(value ?? "");
+  return /^'[=+\-@]/.test(text) ? text.slice(1) : text;
+}
+
+function detectDelimiter(text) {
+  let inQuotes = false;
+  let commas = 0;
+  let tabs = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (inQuotes && text[i + 1] === '"') i++;
+      else inQuotes = !inQuotes;
+    } else if (!inQuotes) {
+      if (ch === ",") commas++;
+      else if (ch === "\t") tabs++;
+      else if (ch === "\n" || ch === "\r") {
+        if (commas > 0 || tabs > 0) break;
+      }
+    }
+  }
+  return tabs > commas ? "\t" : ",";
+}
+
+/**
+ * RFC 4180 CSV and TSV parser with zero dependencies. Handles UTF-8 BOM, quoted fields, escaped
+ * quotes (""), embedded delimiters, multi-line notes inside quotes, and strips leading single-quote
+ * formula escapes ('=, '+, '-, '@) added by exportCsv().
+ */
+export function parseDelimited(rawText, delimiter) {
+  const text = String(rawText ?? "").replace(/^\uFEFF/, "");
+  if (!text.trim()) return [];
+  const sep = delimiter || detectDelimiter(text);
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let inQuotes = false;
+  let cellQuoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          cell += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else if (ch === "\r" && text[i + 1] === "\n") {
+        cell += "\n";
+        i++;
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"' && !cell && !cellQuoted) {
+      inQuotes = true;
+      cellQuoted = true;
+    } else if (ch === sep) {
+      row.push(unescapeFormulaCell(cell));
+      cell = "";
+      cellQuoted = false;
+    } else if (ch === "\r" || ch === "\n") {
+      if (ch === "\r" && text[i + 1] === "\n") i++;
+      row.push(unescapeFormulaCell(cell));
+      if (row.length > 1 || row[0].trim() !== "") rows.push(row);
+      row = [];
+      cell = "";
+      cellQuoted = false;
+    } else {
+      cell += ch;
+    }
+  }
+
+  if (inQuotes || cell || cellQuoted || row.length) {
+    row.push(unescapeFormulaCell(cell));
+    if (row.length > 1 || row[0].trim() !== "") rows.push(row);
+  }
+  return rows;
+}
+
+function parseTimestampOrDate(value) {
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (/^\d{4}-\d{2}-\d{2}T/.test(text) && isValidIso(text)) return text;
+  const date = parseFlexibleDate(text);
+  return date ? `${date}T12:00:00.000Z` : "";
+}
+
+/**
+ * Parses a CSV or TSV spreadsheet string into raw application objects ready for previewImport().
+ * Throws when no recognizable Company or Role column header is present.
+ */
+export function parseSpreadsheetImport(text, options = {}) {
+  const rows = parseDelimited(text, options.delimiter);
+  if (!rows.length) throw new Error("That file couldn't be read as a backup or spreadsheet.");
+  const headerRow = rows[0].map(cell => String(cell ?? "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim());
+  const columnMap = headerRow.map(name => ({
+    field: HEADER_TO_FIELD.get(name) || null,
+    isAppliedDate: APPLIED_DATE_HEADERS.has(name)
+  }));
+  const mappedFields = new Set(columnMap.map(col => col.field).filter(Boolean));
+  if (!mappedFields.has("company") && !mappedFields.has("role")) {
+    throw new Error("That file couldn't be read as a backup or spreadsheet.");
+  }
+  const hasStatusColumn = mappedFields.has("status");
+  const hasAppliedDateColumn = columnMap.some(col => col.isAppliedDate);
+
+  const entries = [];
+  for (let r = 1; r < rows.length; r++) {
+    const cells = rows[r];
+    if (cells.every(cell => !String(cell ?? "").trim())) continue;
+    const raw = {};
+    let rawStatus = "";
+    let appliedDateValue = "";
+
+    for (let c = 0; c < columnMap.length; c++) {
+      const { field, isAppliedDate } = columnMap[c];
+      if (!field) continue;
+      const val = String(cells[c] ?? "").trim();
+      if (isAppliedDate && val) appliedDateValue = val;
+      if (!val && field in raw) continue;
+      if (field === "status") rawStatus = val;
+      else raw[field] = val;
+    }
+
+    const hasAppliedDate = Boolean(appliedDateValue) || (hasAppliedDateColumn && !hasStatusColumn);
+    raw.status = normalizeImportStage(rawStatus, { hasAppliedDate });
+    if (raw.deadline) raw.deadline = parseFlexibleDate(raw.deadline);
+    if (raw.nextStepDate) raw.nextStepDate = parseFlexibleDate(raw.nextStepDate);
+    if (raw.starred !== undefined) raw.starred = STARRED_VALUES.has(String(raw.starred).trim().toLowerCase());
+    if (raw.skills !== undefined) raw.skills = cleanSkills(String(raw.skills).split(/[,;|]/));
+
+    const createdAt = parseTimestampOrDate(raw.createdAt);
+    if (createdAt) raw.createdAt = createdAt;
+    else delete raw.createdAt;
+
+    const updatedAt = parseTimestampOrDate(raw.updatedAt);
+    if (updatedAt) raw.updatedAt = updatedAt;
+    else delete raw.updatedAt;
+
+    entries.push(raw);
+  }
+  return entries;
+}
+
+export const CSV_COLUMNS = [
+  "Company", "Role", "Stage", "Deadline", "Location", "Source", "Link", "Contact",
+  "Next step", "Next step date", "Skills", "Notes", "Starred", "Created", "Last edited"
+];
+
+/** Builds the UTF-8 BOM + CRLF CSV string for a list of applications, escaping formula prefixes. */
+export function buildCsv(applications) {
+  const cell = value => {
+    let text = String(value ?? "");
+    if (/^[=+\-@]/.test(text)) text = `'${text}`;
+    return `"${text.replaceAll('"', '""')}"`;
+  };
+  const rows = [...applications]
+    .sort(compareBy("company"))
+    .map(entry => [
+      entry.company, entry.role, LABELS[entry.status] || entry.status, entry.deadline,
+      entry.location, entry.source, entry.link, entry.contact, entry.nextStep, entry.nextStepDate,
+      (entry.skills || []).join(", "), entry.notes, entry.starred ? "Yes" : "",
+      entry.createdAt, entry.updatedAt
+    ].map(cell).join(","));
+  return `\uFEFF${[CSV_COLUMNS.join(","), ...rows].join("\r\n")}`;
+}
+
+/**
+ * Prepares one record from an imported backup or spreadsheet file for saving. It applies the same
+ * limits and safety rules cleanChanges applies to a normal edit (see cleanLink in particular: an
+ * imported link is validated exactly like a typed one, so a backup can never smuggle in a
+ * javascript: or other unsafe scheme), but it is forgiving rather than throwing: the point of an
+ * import is to keep as much of the person's own data as possible, so a field that cannot be made
+ * safe (an unsafe link, a garbled date) is quietly dropped rather than discarding the whole entry
+ * over it. Returns { entry: null } when there is no usable company or role to import.
  */
 export function sanitizeImportedEntry(raw) {
   const company = clampText(raw?.company, LIMITS.company);
@@ -380,11 +656,15 @@ export function sanitizeImportedEntry(raw) {
   const rawLink = String(raw?.link ?? "").trim();
   let link = "";
   try { link = cleanLink(rawLink); } catch { if (rawLink) issues.push("link"); }
-  const deadline = isValidDate(String(raw?.deadline ?? "")) ? raw.deadline : "";
-  const nextStepDate = isValidDate(String(raw?.nextStepDate ?? "")) ? raw.nextStepDate : "";
+  const deadline = parseFlexibleDate(raw?.deadline);
+  const nextStepDate = parseFlexibleDate(raw?.nextStepDate);
+  const status = raw?.status && !STAGES.includes(String(raw.status))
+    ? normalizeImportStage(raw.status)
+    : raw?.status;
   const entry = normalize({
     ...raw,
     company, role, link, deadline, nextStepDate,
+    ...(status ? { status } : {}),
     location: clampText(raw?.location, LIMITS.location),
     source: clampText(raw?.source, LIMITS.source),
     notes: clampText(raw?.notes, LIMITS.notes),
