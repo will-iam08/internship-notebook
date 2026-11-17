@@ -42,6 +42,8 @@
 }
 
 * { box-sizing: border-box; }
+/* Rules below set display on .found and .check, which would otherwise override the hidden attribute. */
+[hidden] { display: none !important; }
 html, body { margin: 0; }
 body { background: var(--paper); color: var(--ink); font: 14px/1.45 var(--sans); width: 360px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }

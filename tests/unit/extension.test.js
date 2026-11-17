@@ -229,6 +229,7 @@ test("the popup loads only its own files, and page-reader.js stands alone", () =
   assert.equal(/<script(?![^>]*\bsrc=)[^>]*>/.test(html), false, "no inline script (extension pages forbid it)");
   assert.equal(/\bon[a-z]+=/i.test(html), false, "no inline event handlers");
   assert.equal(/https?:\/\/(?!internshipnotebook\.app)/.test(html.replace(/<p class="privacy">[\s\S]*?<\/p>/, "")), false, "no remote resources");
+  assert.match(extensionFile("popup.css"), /\[hidden\]\s*\{\s*display:\s*none\s*!important;?\s*\}/, "the popup hides elements with the hidden attribute even when a rule gives them a display");
   const reader = extensionFile("page-reader.js");
   assert.equal(/^\s*import\s/m.test(reader), false, "the browser runs readJobPage on its own, so it cannot import anything");
   assert.equal(/fetch\(|XMLHttpRequest|sendBeacon|WebSocket/.test(reader), false, "reading a page never sends anything");
