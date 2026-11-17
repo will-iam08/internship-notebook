@@ -117,7 +117,8 @@ test.describe("1. Hero section", () => {
       els.map(el => ({ src: el.getAttribute("src"), type: el.getAttribute("type") }))
     );
     expect(sources).toEqual([
-      { src: "media/demo-tour.webm", type: "video/webm" },
+      // The codec is named so browsers that can't decode VP8 (WebKit on Linux) skip straight to the MP4.
+      { src: "media/demo-tour.webm", type: 'video/webm; codecs="vp8"' },
       { src: "media/demo-tour.mp4", type: "video/mp4" }
     ]);
 
