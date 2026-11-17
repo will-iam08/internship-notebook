@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Save to My Internship Notebook</title>
+  <link rel="stylesheet" href="popup.css" />
+  <script type="module" src="popup.js"></script>
+</head>
+<body>
+  <header class="head">
+    <img class="logo" src="icons/icon-48.png" width="28" height="28" alt="" />
+    <div>
+      <p class="eyebrow">My Internship Notebook</p>
+      <h1>Save this job</h1>
+    </div>
+  </header>
+
+  <main>
+    <p class="status" id="status" role="status">Reading this page…</p>
+
+    <dl class="found" id="found" hidden>
+      <div><dt>Company</dt><dd data-field="company"></dd></div>
+      <div><dt>Role</dt><dd data-field="role"></dd></div>
+      <div><dt>Location</dt><dd data-field="location"></dd></div>
+      <div><dt>Closing date</dt><dd data-field="deadline"></dd></div>
+      <div><dt>Found on</dt><dd data-field="source"></dd></div>
+      <div><dt>Skills</dt><dd data-field="skills"></dd></div>
+    </dl>
+
+    <label class="check" id="keep-description-row" hidden>
+      <input type="checkbox" id="keep-description" />
+      <span>Keep a copy of the job description in the page's notes, in case the posting comes down</span>
+    </label>
+
+    <button class="button primary" type="button" id="save" disabled>Save to Notebook</button>
+    <p class="hint">Opens your notebook in a new tab with this job filled in. Check it there, then add the page.</p>
+
+    <details class="settings">
+      <summary>Notebook address</summary>
+      <form id="settings-form" novalidate>
+        <label class="field" for="notebook-url">Open jobs in this notebook</label>
+        <input id="notebook-url" type="url" inputmode="url" autocomplete="off" spellcheck="false" />
+        <div class="settings-actions">
+          <button class="button" type="submit">Save address</button>
+          <button class="button ghost" type="button" id="reset-url">Use internshipnotebook.app</button>
+        </div>
+        <p class="settings-status" id="settings-status" role="status"></p>
+      </form>
+    </details>
+
+    <p class="privacy">The job details go straight from this page to your notebook tab. This extension has no server and sends nothing anywhere else.</p>
+  </main>
+</body>
+</html>

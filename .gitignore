@@ -6,3 +6,5 @@ node_modules
 _site/
 test-results/
 playwright-report/
+_extension/
+_extension.zip

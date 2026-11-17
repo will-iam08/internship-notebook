@@ -8,7 +8,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const folders = ["src/main/resources/public", "scripts", "tests"];
+const folders = ["src/main/resources/public", "extension", "scripts", "tests"];
 
 function scripts(folder) {
   return readdirSync(folder, { withFileTypes: true }).flatMap(entry => {
