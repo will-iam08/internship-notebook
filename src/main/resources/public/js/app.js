@@ -39,6 +39,18 @@ import {
   upcomingActions, dueSoon, dueSoonMessage, buildIcs, buildMarkdownNotebook, buildEmailDigest, digestMailto, shortDate
 } from "./reminders.js";
 import { COUNTRIES, COUNTRY_LABELS, matchesRegionIn, countryCounts, regionCountsFor } from "./listings.js";
+import {
+  REDIRECT_DELAY_MS,
+  evaluatePasswordStrength,
+  validateLandingAuth,
+  clampScrollDuration,
+  easeInOutCubic,
+  readActiveSession,
+  clearActiveSession,
+  registerLocalAccount,
+  authenticateLocalAccount,
+  shouldGateWithLanding
+} from "./landing.js";
 import { icon, LOGO } from "./ui/icons.js";
 
 /* ==========================================================================
@@ -2462,14 +2474,58 @@ async function completeSetup() {
    ========================================================================== */
 const viewRoot = $("#view");
 const page = $("#page");
+const landingShell = $("#landing-shell");
+const landingMain = $("#landing-main");
+const appShell = $("#app");
+const skipLink = $(".skip-link");
 const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup, export: viewExport, mock: viewMock };
 
-// The skip link targets #view directly with JS, not a "#view" hash change: every hash change
-// goes through the router below, and "view" isn't a route name, so letting the browser's default
-// anchor jump happen would fire hashchange -> parseRoute() -> fall back to Today, sending
-// keyboard and screen-reader users away from the page they meant to skip into.
-$(".skip-link").addEventListener("click", event => {
+function isLandingGated() {
+  if (!BROWSER_MODE) return false;
+  if (state.corrupted || state.loadError) return false;
+  const session = readActiveSession(storage);
+  if (session) return false;
+  if (state.prefs.started) return false;
+  let record;
+  if (state.loaded) {
+    record = { applications: state.applications, recentlyDeleted: state.deleted };
+  } else {
+    try {
+      const raw = storage.get(KEYS.data);
+      record = raw ? JSON.parse(raw) : { applications: [], recentlyDeleted: [] };
+    } catch {
+      return false;
+    }
+  }
+  return shouldGateWithLanding({
+    browserMode: BROWSER_MODE,
+    record,
+    drafts: readDrafts(),
+    started: state.prefs.started,
+    session
+  });
+}
+
+function syncShellVisibility() {
+  const gated = isLandingGated();
+  if (landingShell) landingShell.hidden = !gated;
+  if (appShell) appShell.hidden = gated;
+  if (skipLink) skipLink.setAttribute("href", gated ? "#landing-main" : "#view");
+  if (gated) {
+    document.title = "My Internship Notebook";
+    if (selectionBar) selectionBar.hidden = true;
+  }
+  return gated;
+}
+
+// The skip link targets #landing-main when on the standalone landing page and #view inside the notebook.
+skipLink?.addEventListener("click", event => {
   event.preventDefault();
+  if (landingShell && !landingShell.hidden && landingMain) {
+    landingMain.focus({ preventScroll: false });
+    landingMain.scrollIntoView({ block: "start" });
+    return;
+  }
   viewRoot.focus({ preventScroll: false });
   viewRoot.scrollIntoView({ block: "start" });
 });
@@ -2490,6 +2546,9 @@ function settleWelcomeHash() {
 }
 
 function render({ animate = false, keepScroll = true } = {}) {
+  if (syncShellVisibility()) {
+    return;
+  }
   const { view, id } = state.route;
   const scrollTop = page.scrollTop;
   const windowScroll = window.scrollY;
@@ -2551,6 +2610,10 @@ function parseHashNewIntent(hash = window.location.hash) {
 let pendingNewIntent = null;
 
 async function navigate() {
+  if (syncShellVisibility()) {
+    handleLandingHashNavigation(window.location.hash);
+    return;
+  }
   await flushEntrySave();
   const hashIntent = parseHashNewIntent(window.location.hash);
   if (hashIntent) {
@@ -3816,6 +3879,7 @@ viewRoot.addEventListener("keydown", event => {
    21. Keyboard shortcuts
    ========================================================================== */
 document.addEventListener("keydown", event => {
+  if (landingShell && !landingShell.hidden) return;
   const typing = event.target.closest?.("input, textarea, select, [contenteditable]");
   const dialogOpen = $$("dialog").some(dialog => dialog.open);
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -3833,6 +3897,386 @@ document.addEventListener("keydown", event => {
   else if (event.key.toLowerCase() === "n") { event.preventDefault(); openNew(); }
   else if (["1", "2", "3", "4"].includes(event.key)) go(["#/today", "#/board", "#/notebook", "#/insights"][Number(event.key) - 1]);
 });
+
+/* ==========================================================================
+   21b. Standalone Marketing & Onboarding Landing Page Controllers
+   ========================================================================== */
+let landingAuthMode = "signup";
+let landingSubmitting = false;
+let landingRedirectTimer = 0;
+let activeScrollFrame = 0;
+const landingTouched = new Set();
+
+function smoothScrollToSection(targetId, { duration = 560 } = {}) {
+  const element = document.getElementById(targetId);
+  if (!element) return;
+  if (activeScrollFrame) window.cancelAnimationFrame(activeScrollFrame);
+  const headerHeight = $(".landing-header")?.offsetHeight || 72;
+  const startY = window.scrollY || window.pageYOffset || 0;
+  const targetRect = element.getBoundingClientRect();
+  const targetY = Math.max(0, startY + targetRect.top - (targetId === "hero" ? headerHeight : headerHeight - 4));
+  const distance = targetY - startY;
+  const clampedDuration = clampScrollDuration(duration);
+  if (reducedMotion() || Math.abs(distance) < 2) {
+    window.scrollTo(0, targetY);
+    return;
+  }
+  const startTime = performance.now();
+  const step = now => {
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / clampedDuration);
+    const eased = easeInOutCubic(progress);
+    window.scrollTo(0, Math.round(startY + distance * eased));
+    if (progress < 1) {
+      activeScrollFrame = window.requestAnimationFrame(step);
+    } else {
+      activeScrollFrame = 0;
+    }
+  };
+  activeScrollFrame = window.requestAnimationFrame(step);
+}
+
+function setLandingAuthMode(mode) {
+  landingAuthMode = mode === "signin" ? "signin" : "signup";
+  const heading = $("#signup-title");
+  const lead = $("#signup-lead");
+  const nameGroup = $("#signup-name-group");
+  const nameInput = $("#signup-name");
+  const passwordInput = $("#signup-password");
+  const submitBtn = $("#signup-submit span") || $("#signup-submit");
+  const promptText = $("#auth-switch-prompt");
+  const toggleLink = $("#toggle-signin");
+  const formError = $("#signup-form-error");
+
+  if (heading) {
+    heading.textContent = landingAuthMode === "signin"
+      ? "Sign in to your notebook."
+      : "Create your notebook account.";
+  }
+  if (lead) {
+    lead.textContent = landingAuthMode === "signin"
+      ? "Welcome back. Enter your email and password to open your saved internship applications and interview prep."
+      : "Open your personal internship notebook in seconds. Import an existing spreadsheet or start fresh with one-click job clipping.";
+  }
+  if (nameGroup) {
+    nameGroup.hidden = landingAuthMode === "signin";
+  }
+  if (nameInput) {
+    nameInput.required = landingAuthMode === "signup";
+  }
+  if (passwordInput) {
+    passwordInput.autocomplete = landingAuthMode === "signin" ? "current-password" : "new-password";
+  }
+  if (submitBtn) {
+    submitBtn.textContent = landingAuthMode === "signin" ? "Sign In" : "Create Account";
+  }
+  if (promptText) {
+    promptText.textContent = landingAuthMode === "signin"
+      ? "Need a new notebook account?"
+      : "Already have a notebook account?";
+  }
+  if (toggleLink) {
+    toggleLink.textContent = landingAuthMode === "signin" ? "Create Account" : "Sign In";
+    toggleLink.setAttribute("href", landingAuthMode === "signin" ? "#signup" : "#signin");
+  }
+  if (formError) {
+    formError.hidden = true;
+    formError.textContent = "";
+  }
+  renderLandingFieldErrors({});
+}
+
+function getLandingFormValues() {
+  return {
+    fullName: $("#signup-name")?.value ?? "",
+    email: $("#signup-email")?.value ?? "",
+    password: $("#signup-password")?.value ?? ""
+  };
+}
+
+function updateLandingPasswordStrength() {
+  const passwordInput = $("#signup-password");
+  const strengthBox = $("#password-strength");
+  const strengthText = $("#password-strength-text");
+  if (!passwordInput || !strengthBox || !strengthText) return;
+  const strength = evaluatePasswordStrength(passwordInput.value);
+  strengthBox.dataset.strengthLevel = String(strength.score);
+  strengthText.textContent = strength.label;
+  $('[data-rule="length"]', strengthBox)?.classList.toggle("is-met", strength.checks.hasMinLength);
+  $('[data-rule="letter"]', strengthBox)?.classList.toggle("is-met", strength.checks.hasLetter);
+  $('[data-rule="number"]', strengthBox)?.classList.toggle("is-met", strength.checks.hasNumber);
+}
+
+function renderLandingFieldErrors(errors = {}, { onlyTouched = false } = {}) {
+  const mapping = [
+    ["fullName", "#signup-name", "#error-fullName"],
+    ["email", "#signup-email", "#error-email"],
+    ["password", "#signup-password", "#error-password"]
+  ];
+  for (const [field, inputSelector, errorSelector] of mapping) {
+    const inputEl = $(inputSelector);
+    const errorEl = $(errorSelector);
+    if (!inputEl || !errorEl) continue;
+    if (onlyTouched && !landingTouched.has(field)) continue;
+    const message = errors[field] || "";
+    if (message) {
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+      inputEl.setAttribute("aria-invalid", "true");
+    } else {
+      errorEl.textContent = "";
+      errorEl.hidden = true;
+      inputEl.removeAttribute("aria-invalid");
+    }
+  }
+}
+
+function handleLandingHashNavigation(hash = window.location.hash) {
+  if (!landingShell || landingShell.hidden) return;
+  const clean = String(hash || "").replace(/^#\/?/, "");
+  if (clean === "signin") {
+    setLandingAuthMode("signin");
+    smoothScrollToSection("signup");
+    return;
+  }
+  if (clean === "signup") {
+    setLandingAuthMode("signup");
+    smoothScrollToSection("signup");
+    return;
+  }
+  if (clean === "features" || clean === "hero") {
+    smoothScrollToSection(clean);
+    return;
+  }
+  if (clean && clean !== "welcome" && clean !== "landing") {
+    // Any attempt to access a notebook route while unauthenticated stays gated on the landing page.
+    window.history.replaceState(null, "", "#signup");
+    smoothScrollToSection("signup");
+  }
+}
+
+function syncHeroVideoState(video) {
+  const frame = video?.closest?.("[data-hero-video-frame]");
+  if (!frame) return;
+  const playing = !video.paused && !video.ended;
+  frame.classList.toggle("is-playing", playing);
+  const toggle = $("#hero-video-toggle", frame);
+  if (toggle) {
+    toggle.setAttribute("aria-label", playing ? "Pause demo video" : "Play demo video");
+  }
+}
+
+function markHeroVideoFailed(video) {
+  const frame = video?.closest?.("[data-hero-video-frame]");
+  if (!frame) return;
+  frame.classList.add("is-failed");
+  frame.classList.remove("is-playing");
+}
+
+function initLandingPage() {
+  if (!landingShell) return;
+
+  const heroVideo = $("#hero-video", landingShell);
+  if (heroVideo) {
+    heroVideo.addEventListener("play", () => syncHeroVideoState(heroVideo));
+    heroVideo.addEventListener("pause", () => syncHeroVideoState(heroVideo));
+    heroVideo.addEventListener("error", () => markHeroVideoFailed(heroVideo));
+    $$("source", heroVideo).forEach(source => {
+      source.addEventListener("error", () => markHeroVideoFailed(heroVideo));
+    });
+    if (reducedMotion()) {
+      heroVideo.pause();
+      syncHeroVideoState(heroVideo);
+    } else {
+      const playPromise = heroVideo.play();
+      if (playPromise && typeof playPromise.then === "function") {
+        playPromise.then(() => syncHeroVideoState(heroVideo)).catch(() => syncHeroVideoState(heroVideo));
+      } else {
+        syncHeroVideoState(heroVideo);
+      }
+    }
+  }
+
+  landingShell.addEventListener("click", event => {
+    const videoToggle = event.target.closest?.('[data-action="toggle-hero-video"]');
+    if (videoToggle && heroVideo) {
+      if (heroVideo.paused) {
+        heroVideo.play().catch(() => markHeroVideoFailed(heroVideo));
+      } else {
+        heroVideo.pause();
+      }
+      return;
+    }
+
+    const passwordToggle = event.target.closest?.('[data-action="toggle-password-visibility"]');
+    if (passwordToggle) {
+      const passwordInput = $("#signup-password");
+      if (!passwordInput) return;
+      const showing = passwordInput.type === "text";
+      passwordInput.type = showing ? "password" : "text";
+      passwordToggle.textContent = showing ? "Show" : "Hide";
+      passwordToggle.setAttribute("aria-pressed", String(!showing));
+      passwordToggle.setAttribute("aria-label", showing ? "Show password" : "Hide password");
+      return;
+    }
+
+    const modeTrigger = event.target.closest?.("[data-auth-mode-trigger]");
+    if (modeTrigger) {
+      setLandingAuthMode(modeTrigger.dataset.authModeTrigger);
+    }
+
+    const switchAuth = event.target.closest?.('[data-action="switch-auth-mode"]');
+    if (switchAuth) {
+      event.preventDefault();
+      const nextMode = landingAuthMode === "signup" ? "signin" : "signup";
+      setLandingAuthMode(nextMode);
+      window.history.replaceState(null, "", nextMode === "signin" ? "#signin" : "#signup");
+      $(nextMode === "signin" ? "#signup-email" : "#signup-name")?.focus();
+      return;
+    }
+
+    const scrollTrigger = event.target.closest?.("[data-scroll-to]");
+    if (scrollTrigger) {
+      event.preventDefault();
+      const targetId = scrollTrigger.dataset.scrollTo;
+      const hash = scrollTrigger.getAttribute("href") || `#${targetId}`;
+      if (window.location.hash !== hash) {
+        window.history.pushState(null, "", hash);
+      }
+      smoothScrollToSection(targetId, { duration: 560 });
+    }
+  });
+
+  const authForm = $("#landing-auth-form", landingShell);
+  if (authForm) {
+    authForm.addEventListener("input", event => {
+      const target = event.target;
+      if (target?.name === "password") {
+        updateLandingPasswordStrength();
+      }
+      if (target?.name && landingTouched.has(target.name)) {
+        const check = validateLandingAuth(getLandingFormValues(), { mode: landingAuthMode });
+        renderLandingFieldErrors(check.errors, { onlyTouched: true });
+      }
+      const formError = $("#signup-form-error");
+      if (formError && !formError.hidden) {
+        formError.hidden = true;
+        formError.textContent = "";
+      }
+    });
+
+    authForm.addEventListener("focusout", event => {
+      const target = event.target;
+      if (!target?.name || !["fullName", "email", "password"].includes(target.name)) return;
+      if (!target.value) return;
+      landingTouched.add(target.name);
+      const check = validateLandingAuth(getLandingFormValues(), { mode: landingAuthMode });
+      renderLandingFieldErrors(check.errors, { onlyTouched: true });
+    });
+
+    authForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (landingSubmitting) return;
+      ["fullName", "email", "password"].forEach(field => landingTouched.add(field));
+      const values = getLandingFormValues();
+      updateLandingPasswordStrength();
+      const check = validateLandingAuth(values, { mode: landingAuthMode });
+      renderLandingFieldErrors(check.errors);
+      const formError = $("#signup-form-error");
+      if (formError) {
+        formError.hidden = true;
+        formError.textContent = "";
+      }
+
+      if (!check.ok) {
+        const firstInvalid = $("#landing-auth-form [aria-invalid='true']");
+        firstInvalid?.focus();
+        return;
+      }
+
+      const result = landingAuthMode === "signin"
+        ? authenticateLocalAccount(storage, values)
+        : registerLocalAccount(storage, values);
+
+      if (!result.ok) {
+        renderLandingFieldErrors(result.errors || {});
+        if (formError) {
+          formError.textContent = result.message || "Could not complete authentication. Please check your details.";
+          formError.hidden = false;
+        }
+        const firstInvalid = $("#landing-auth-form [aria-invalid='true']");
+        firstInvalid?.focus();
+        return;
+      }
+
+      landingSubmitting = true;
+      const submitBtn = $("#signup-submit");
+      if (submitBtn) submitBtn.disabled = true;
+
+      if (cloud.enabled) {
+        const cloudOp = landingAuthMode === "signin"
+          ? cloud.signIn(values.email, values.password)
+          : cloud.signUp(values.email, values.password);
+        cloudOp.catch(() => {});
+      }
+
+      try {
+        if (result.account.fullName) {
+          state.prefs.name = result.account.fullName.slice(0, 40);
+        }
+        if (result.account.email && !state.prefs.digestEmail) {
+          state.prefs.digestEmail = result.account.email.slice(0, 254);
+        }
+        state.prefs.started = true;
+        savePrefs();
+        if (!hasExistingWork(browserApi.read(), readDrafts())) {
+          await commitStarterNotebook(browserApi, []);
+        }
+        if (inDemo()) exitDemoMode();
+      } catch (error) {
+        clearActiveSession(storage);
+        state.prefs.started = false;
+        landingSubmitting = false;
+        if (submitBtn) submitBtn.disabled = false;
+        if (formError) {
+          formError.textContent = error?.message || "Your notebook could not be initialized on this browser.";
+          formError.hidden = false;
+        }
+        return;
+      }
+
+      const successBox = $("#signup-success");
+      const successTitle = $("#signup-success-title");
+      const successCopy = $("#signup-success-copy");
+      authForm.hidden = true;
+      if (successTitle) {
+        successTitle.textContent = landingAuthMode === "signin" ? "Signed in!" : "Account created!";
+      }
+      if (successCopy) {
+        const displayName = result.account.fullName || result.account.email;
+        successCopy.textContent = landingAuthMode === "signin"
+          ? `Welcome back, ${displayName}. Redirecting you to your notebook...`
+          : `Account created for ${displayName}. Redirecting you to your notebook...`;
+      }
+      if (successBox) {
+        successBox.hidden = false;
+        restartAnimation(successBox, "is-visible");
+      }
+
+      window.clearTimeout(landingRedirectTimer);
+      landingRedirectTimer = window.setTimeout(async () => {
+        landingSubmitting = false;
+        if (submitBtn) submitBtn.disabled = false;
+        await load();
+        window.history.replaceState(null, "", "#/today");
+        state.route = parseRoute();
+        render({ animate: true, keepScroll: false });
+        window.scrollTo(0, 0);
+        viewRoot.focus({ preventScroll: true });
+      }, REDIRECT_DELAY_MS);
+    });
+  }
+}
 
 /* ==========================================================================
    22. Export, backup, and import
@@ -4016,31 +4460,16 @@ async function load() {
     state.applications = applications;
     state.deleted = deleted;
     state.loaded = true;
+    if (!isLandingGated() && isNewVisitor({ applications, recentlyDeleted: deleted })) {
+      enterDemoMode();
+    }
     retryPendingDrafts();
-    maybeEnterDemo();
     settleWelcomeHash();
   } catch (error) {
     if (error instanceof StorageCorruptedError) state.corrupted = error;
     else state.loadError = error.message;
   }
   render({ animate: true, keepScroll: false });
-}
-
-/** Decides first-run routing after a successful real-notebook read. A new visitor (browser edition,
- *  no existing work, not started) lands on the welcome page in demo mode; everyone else keeps their
- *  real notebook. If the demo dataset cannot be built, fall back to the real (empty) notebook. */
-function maybeEnterDemo() {
-  if (state.demoMode) return;
-  if (!BROWSER_MODE) return;
-  const record = { applications: state.applications, recentlyDeleted: state.deleted };
-  if (!isNewVisitor(record)) return;
-  enterDemoMode(); // on failure this returns false and we simply stay on the real empty notebook
-  if (shouldLandOnWelcome({ browserMode: BROWSER_MODE, newVisitor: true, demoActive: inDemo(), hash: window.location.hash, launchIntent: openNewOnStart })) {
-    // replaceState, not go(): the welcome page IS the first page, so Back should leave the site
-    // rather than bounce to a Today screen the visitor never saw.
-    window.history.replaceState(null, "", "#/welcome");
-    state.route = parseRoute();
-  }
 }
 
 function hydrateStaticIcons() {
@@ -4070,12 +4499,14 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 // Keep relative times ("2 min ago", "3 days left") fresh. Entry, welcome, builder and practice skip
 // refreshes so media and control focus stay intact.
 window.setInterval(() => {
+  if (landingShell && !landingShell.hidden) return;
   const typing = document.activeElement?.closest?.("#view input, #view textarea, #view select");
   if (state.loaded && !["entry", "welcome", "build", "mock"].includes(state.route.view) && !typing && !$$("dialog").some(dialog => dialog.open) && menu.hidden) rerender();
 }, 60000);
 
 hydrateStaticIcons();
 applyTheme();
+initLandingPage();
 loadInternships();
 // The installed app's "New application" shortcut opens #/new, and the 1-click clipper opens #/new?...
 const shared = new URLSearchParams(window.location.search);
@@ -4083,10 +4514,17 @@ const sharedOnStart = shared.has("share-target") || shared.has("title") || share
 const hashIntentOnStart = parseHashNewIntent(window.location.hash);
 const openNewOnStart = Boolean(hashIntentOnStart) || sharedOnStart;
 const startIntent = hashIntentOnStart || (sharedOnStart ? parseNewIntent(shared) : null);
-if (openNewOnStart) window.history.replaceState(null, "", "#/today");
+if (sharedOnStart && !state.prefs.started) {
+  state.prefs.started = true;
+}
+if (openNewOnStart && !isLandingGated()) window.history.replaceState(null, "", "#/today");
 state.route = parseRoute();
 load().then(() => {
   usage.start();
+  if (isLandingGated()) {
+    handleLandingHashNavigation(window.location.hash);
+    return;
+  }
   checkDueSoon(); // opt-in, real notebook only, once a day, and only because the tab is open
   const intent = pendingNewIntent || startIntent;
   pendingNewIntent = null;

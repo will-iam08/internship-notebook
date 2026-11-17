@@ -65,19 +65,30 @@ export async function savedNotebook(page) {
   return page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null"), DATA_KEY);
 }
 
-/**
- * Opens the site the way a brand-new visitor does (no hash) and waits for the welcome page. With
- * no seeded data and no started flag, the website edition lands on #/welcome in front of the demo.
- */
-export async function openWelcome(page) {
-  // Wait for the DOM, not the window "load" event: load also waits for the tour video, which a test
-  // may deliberately hold open (WebKit counts a pending autoplay video toward "load").
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.locator("#view .welcome-page").waitFor();
+export const SESSION_KEY = "my-internship-notebook-session-v1";
+
+/** Seeds an active session so notebook E2E tests enter the app without touching DATA_KEY. */
+export async function seedSession(page, session = { email: "student@example.edu", fullName: "Alex Rivera", signedInAt: new Date().toISOString() }) {
+  await page.addInitScript(([key, value]) => {
+    if (!sessionStorage.getItem("session_seeded")) {
+      if (!localStorage.getItem(key)) localStorage.setItem(key, value);
+      sessionStorage.setItem("session_seeded", "1");
+    }
+  }, [SESSION_KEY, JSON.stringify(session)]);
 }
 
-/** Opens the notebook builder (#/build) as a new visitor, with the demo running behind it. */
+/**
+ * Opens the site the way a brand-new unauthenticated visitor does and waits for the standalone
+ * landing page (#landing-shell).
+ */
+export async function openWelcome(page) {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.locator("#landing-shell").waitFor({ state: "visible" });
+}
+
+/** Opens the notebook builder (#/build) with an active session and the demo running behind it. */
 export async function openBuilder(page) {
+  await seedSession(page);
   await page.goto("/#/build", { waitUntil: "domcontentloaded" });
   await page.locator("#build-form").waitFor();
 }
@@ -87,8 +98,9 @@ export async function savedPrefs(page) {
   return page.evaluate(key => JSON.parse(localStorage.getItem(key) || "null"), PREFS_KEY);
 }
 
-/** Opens the app at a route and waits until the notebook has loaded. */
+/** Opens the app at a route with an active session and waits until the notebook has loaded. */
 export async function openApp(page, route = "#/today") {
+  await seedSession(page);
   await page.goto(`/${route}`);
   await page.locator("#view .view-head, #view .entry, #view .recovery").first().waitFor();
 }

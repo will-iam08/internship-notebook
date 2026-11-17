@@ -3,9 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G/Lv6KExRZYvmtQffHGKasiDyIiLxdzaxEaFJnUGbHk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-src 'none'; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G/Lv6KExRZYvmtQffHGKasiDyIiLxdzaxEaFJnUGbHk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co; frame-src 'none'; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'" />
     <meta name="referrer" content="no-referrer" />
-    <meta name="description" content="Track internship applications and browse fresh openings in a private, offline-ready web app that installs on any device." />
+    <meta name="description" content="Track internship applications, clip job postings in one click, import spreadsheets, and practice role-matched interviews in a private, offline-ready notebook." />
     <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14110d" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
@@ -14,19 +14,17 @@
     <meta name="apple-mobile-web-app-title" content="Notebook" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>My Internship Notebook</title>
-    <!-- Canonical: this app is also mirrored on Render (see README); this points searches and
-         social previews at one address instead of splitting signal across both. -->
     <link rel="canonical" href="https://internshipnotebook.app/" />
     <link rel="icon" href="favicon-20260915-v4.ico" type="image/x-icon" sizes="32x32" />
     <link rel="icon" href="favicon-20260915-v4.png" type="image/png" sizes="32x32" />
     <link rel="shortcut icon" href="favicon-20260915-v4.ico" type="image/x-icon" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180" />
     <link rel="manifest" href="manifest.webmanifest" />
-    <!-- Open Graph / social share previews (Slack, iMessage, Facebook, LinkedIn) -->
+    <link rel="preload" as="image" href="media/demo-tour-poster.jpg" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="My Internship Notebook" />
     <meta property="og:title" content="My Internship Notebook" />
-    <meta property="og:description" content="Track internship applications and browse fresh openings in a private, offline-ready web app that installs on any device." />
+    <meta property="og:description" content="Track internship applications, clip job postings in one click, import spreadsheets, and practice role-matched interviews in a private, offline-ready notebook." />
     <meta property="og:url" content="https://internshipnotebook.app/" />
     <meta property="og:image" content="https://internshipnotebook.app/icon-512.png" />
     <meta property="og:image:width" content="512" />
@@ -34,13 +32,8 @@
     <meta property="og:image:alt" content="My Internship Notebook logo: a notebook with a bookmark, on a dark blue cover" />
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="My Internship Notebook" />
-    <meta name="twitter:description" content="Track internship applications and browse fresh openings in a private, offline-ready web app that installs on any device." />
+    <meta name="twitter:description" content="Track internship applications, clip job postings in one click, import spreadsheets, and practice role-matched interviews in a private, offline-ready notebook." />
     <meta name="twitter:image" content="https://internshipnotebook.app/icon-512.png" />
-    <!-- Structured data: this is a free web app with no storefront or physical
-         location, so WebApplication is the accurate schema.org type. It is deliberately not
-         marked up as a LocalBusiness (no address, hours, or phone number exist to be accurate
-         about) or an Organization (there is no company behind it) - a false business listing
-         would be misleading, not helpful, structured data. -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -58,8 +51,478 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <a class="skip-link" href="#view">Skip to content</a>
-    <div class="app" id="app">
+    <a class="skip-link" id="skip-link" href="#landing-main">Skip to content</a>
+
+    <!-- Standalone Marketing & Onboarding Landing Page (sole entry point when unauthenticated) -->
+    <div class="landing-shell" id="landing-shell">
+      <header class="landing-header">
+        <div class="landing-header-inner">
+          <a class="landing-brand" href="#hero" data-scroll-to="hero" aria-label="My Internship Notebook home">
+            <span class="cover-logo" aria-hidden="true"></span>
+            <span class="landing-brand-copy">
+              <strong>My Internship Notebook</strong>
+              <span>Applications &amp; Interview Prep</span>
+            </span>
+          </a>
+          <nav class="landing-nav" aria-label="Landing page navigation">
+            <a class="landing-nav-link" href="#hero" data-scroll-to="hero">Overview</a>
+            <a class="landing-nav-link" href="#features" data-scroll-to="features">Features</a>
+            <a class="landing-nav-link" href="#signup" data-scroll-to="signup" data-auth-mode-trigger="signup">Create Account</a>
+            <a class="landing-nav-link landing-nav-signin" href="#signup" data-scroll-to="signup" data-auth-mode-trigger="signin">Sign In</a>
+            <button class="icon-button landing-theme-toggle" type="button" data-action="cycle-theme" aria-label="Change theme" title="Change theme">
+              <span data-theme-icon></span>
+            </button>
+          </nav>
+        </div>
+      </header>
+
+      <main class="landing-main" id="landing-main" tabindex="-1">
+        <!-- 1. Hero Section (full viewport height, above the fold) -->
+        <section class="landing-hero" id="hero" aria-labelledby="hero-title">
+          <div class="landing-hero-inner">
+            <div class="landing-hero-copy">
+              <p class="eyebrow landing-eyebrow">Private Student &amp; Co-op Application Tracker</p>
+              <h1 class="landing-hero-title" id="hero-title">Every internship application, one calm notebook.</h1>
+              <p class="landing-hero-sub" id="hero-sub">Built for students and co-op applicants to track deadlines, stages, and interview prep in a private, offline-ready workspace with one-click job clipping.</p>
+              <div class="landing-hero-actions">
+                <a class="button primary large landing-btn-primary" href="#signup" data-scroll-to="signup" data-auth-mode-trigger="signup">
+                  <span data-icon="plus"></span><span>Create Account</span>
+                </a>
+                <a class="button ghost large landing-btn-secondary" href="#features" data-scroll-to="features">
+                  <span>See How It Works</span>
+                </a>
+              </div>
+              <ul class="landing-hero-highlights" aria-label="Key capabilities">
+                <li><span data-icon="check"></span><span>1-click ATS &amp; job board clipper</span></li>
+                <li><span data-icon="check"></span><span>Google Sheets, Notion &amp; Simplify CSV import</span></li>
+                <li><span data-icon="check"></span><span>62 role-matched interview prep questions</span></li>
+              </ul>
+            </div>
+
+            <div class="landing-hero-media">
+              <figure class="hero-video-figure">
+                <div class="hero-video-chrome" aria-hidden="true">
+                  <div class="chrome-dots"><span></span><span></span><span></span></div>
+                  <div class="chrome-address">internshipnotebook.app</div>
+                  <span class="chrome-badge">Live Prototype Workflows</span>
+                </div>
+                <div class="hero-video-viewport" data-hero-video-frame>
+                  <video
+                    id="hero-video"
+                    class="landing-video"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    preload="metadata"
+                    poster="media/demo-tour-poster.jpg"
+                    src="media/demo-tour.mp4"
+                    width="1280"
+                    height="720"
+                    aria-label="Demonstration video showing four core workflows: Today deadline radar, five-stage Kanban pipeline board, ruled application pages with interview prep, and search analytics"
+                  >
+                    <source src="media/demo-tour.webm" type="video/webm" />
+                    <source src="media/demo-tour.mp4" type="video/mp4" />
+                    <img src="media/demo-tour-poster.jpg" alt="My Internship Notebook interface showing Today dashboard, five-stage Kanban board, application page, and search insights" width="1280" height="720" />
+                  </video>
+                  <button class="hero-video-control" id="hero-video-toggle" type="button" data-action="toggle-hero-video" aria-label="Pause demo video">
+                    <span class="when-playing"><span data-icon="pause"></span><span>Pause</span></span>
+                    <span class="when-paused"><span data-icon="play"></span><span>Play</span></span>
+                  </button>
+                </div>
+                <figcaption class="hero-video-caption">
+                  <ol class="hero-workflow-pills" aria-label="Workflows shown in demo video">
+                    <li><strong>01</strong> Today &amp; Deadlines</li>
+                    <li><strong>02</strong> 5-Stage Kanban Board</li>
+                    <li><strong>03</strong> Application &amp; Prep Page</li>
+                    <li><strong>04</strong> Response Analytics</li>
+                  </ol>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. Features Section (6 distinct features ordered by user-perceived value) -->
+        <section class="landing-features" id="features" aria-labelledby="features-title">
+          <div class="landing-section-inner">
+            <header class="landing-section-head">
+              <p class="eyebrow">Built for high-volume recruiting seasons</p>
+              <h2 class="landing-section-title" id="features-title">Everything your spreadsheet is missing, with none of the clutter.</h2>
+              <p class="landing-section-sub">Ordered by what saves students the most time every day, from instant job capture to timed mock interviews.</p>
+            </header>
+
+            <div class="features-list" id="features-list">
+              <!-- Feature 1: One-Click Job Clipper and Paste Autofill -->
+              <article class="feature-card feature-row" data-feature-id="clipper">
+                <div class="feature-copy">
+                  <div class="feature-meta">
+                    <span class="feature-icon" aria-hidden="true" data-icon="sparkle"></span>
+                    <span class="feature-badge">01 · Fastest daily capture</span>
+                  </div>
+                  <h3 class="feature-title">One-Click Job Clipper and Paste Autofill</h3>
+                  <p class="feature-description">Save openings from Greenhouse, Lever, Ashby, Workday, LinkedIn, and Simplify in a single click. Paste any job URL or posting snippet to fill company, role, location, source, and technical skills automatically. Spend your energy tailoring resumes instead of copying fields by hand.</p>
+                  <ul class="feature-annotations-list" aria-label="Key highlights">
+                    <li><span data-icon="check"></span><span>Auto-detects ATS &amp; job board URLs</span></li>
+                    <li><span data-icon="check"></span><span>Extracts skills &amp; location instantaneously</span></li>
+                  </ul>
+                </div>
+                <figure class="feature-visual" role="img" aria-label="Annotated preview of the Quick Fill job clipper extracting Stripe, Software Engineer Intern, Seattle, and Python from a pasted Greenhouse URL.">
+                  <div class="annotated-screen">
+                    <div class="screen-bar">
+                      <span class="screen-title">Quick Fill Clipper</span>
+                      <span class="screen-Annotation-tag">1-Click Autofill</span>
+                    </div>
+                    <div class="screen-body">
+                      <div class="screen-input-mock">
+                        <code>https://boards.greenhouse.io/stripe/jobs/98765</code>
+                        <span class="screen-pill-accent">Filled 5 fields</span>
+                      </div>
+                      <div class="screen-grid-mock">
+                        <div class="screen-field-mock"><small>Company</small><strong>Stripe</strong></div>
+                        <div class="screen-field-mock"><small>Role</small><strong>Software Engineer Intern</strong></div>
+                        <div class="screen-field-mock"><small>Location</small><strong>Seattle, WA</strong></div>
+                        <div class="screen-field-mock"><small>Skills</small><strong>Python, Go, SQL</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                  <figcaption class="sr-only">Pasting a job URL populates company, role, location, source, and skills in one step.</figcaption>
+                </figure>
+              </article>
+
+              <!-- Feature 2: Kanban Pipeline and Dated Stage History -->
+              <article class="feature-card feature-row feature-row-reverse" data-feature-id="pipeline">
+                <div class="feature-copy">
+                  <div class="feature-meta">
+                    <span class="feature-icon" aria-hidden="true" data-icon="board"></span>
+                    <span class="feature-badge">02 · Visual stage tracking</span>
+                  </div>
+                  <h3 class="feature-title">Kanban Pipeline and Dated Stage History</h3>
+                  <p class="feature-description">Move applications across Saved, Applied, Interview, Offer, and Rejected columns as your search progresses. Every stage change is stamped automatically on a dated timeline so you always know when you applied and when a recruiter replied. Filter by company, skill, or stage in real time on desktop or phone.</p>
+                  <ul class="feature-annotations-list" aria-label="Key highlights">
+                    <li><span data-icon="check"></span><span>5 color-vision-safe pipeline stages</span></li>
+                    <li><span data-icon="check"></span><span>Automatic dated move history</span></li>
+                  </ul>
+                </div>
+                <figure class="feature-visual" role="img" aria-label="Annotated preview of the five-stage Kanban pipeline board with color-vision-checked stage badges and dated history stamps.">
+                  <div class="annotated-screen">
+                    <div class="screen-bar">
+                      <span class="screen-title">Pipeline Board</span>
+                      <span class="screen-Annotation-tag">Drag &amp; Drop + Touch</span>
+                    </div>
+                    <div class="screen-body screen-kanban-mock">
+                      <div class="kanban-col-mock">
+                        <span class="pill st-SAVED"><i></i>Saved (4)</span>
+                        <div class="kanban-card-mock"><strong>Figma</strong><small>Product Design Intern · Due Fri</small></div>
+                      </div>
+                      <div class="kanban-col-mock">
+                        <span class="pill st-APPLIED"><i></i>Applied (12)</span>
+                        <div class="kanban-card-mock"><strong>Shopify</strong><small>Backend Intern · Sent 3d ago</small></div>
+                      </div>
+                      <div class="kanban-col-mock">
+                        <span class="pill st-INTERVIEW"><i></i>Interview (3)</span>
+                        <div class="kanban-card-mock"><strong>Linear</strong><small>Full-Stack Intern · Technical Thu</small></div>
+                      </div>
+                    </div>
+                  </div>
+                  <figcaption class="sr-only">Applications organized across Saved, Applied, and Interview columns with automatic timestamps.</figcaption>
+                </figure>
+              </article>
+
+              <!-- Feature 3: Universal Spreadsheet and Backup Import -->
+              <article class="feature-card feature-row" data-feature-id="import">
+                <div class="feature-copy">
+                  <div class="feature-meta">
+                    <span class="feature-icon" aria-hidden="true" data-icon="upload"></span>
+                    <span class="feature-badge">03 · Zero switching cost</span>
+                  </div>
+                  <h3 class="feature-title">Universal Spreadsheet and Backup Import</h3>
+                  <p class="feature-description">Bring your existing tracker from Google Sheets, Notion, Simplify, Excel, or WaterlooWorks without retyping a single row. Smart header detection maps columns, normalizes stages, and validates links automatically before anything is added. Full JSON and CSV exports ensure your records are always portable.</p>
+                  <ul class="feature-annotations-list" aria-label="Key highlights">
+                    <li><span data-icon="check"></span><span>RFC 4180 CSV, TSV &amp; JSON support</span></li>
+                    <li><span data-icon="check"></span><span>Lossless round-trip export &amp; undo</span></li>
+                  </ul>
+                </div>
+                <figure class="feature-visual" role="img" aria-label="Annotated preview of universal CSV and TSV spreadsheet import mapping columns from Google Sheets, Notion, and Simplify.">
+                  <div class="annotated-screen">
+                    <div class="screen-bar">
+                      <span class="screen-title">Universal CSV &amp; TSV Importer</span>
+                      <span class="screen-Annotation-tag">Smart Column Mapping</span>
+                    </div>
+                    <div class="screen-body">
+                      <div class="import-map-mock">
+                        <div class="import-map-row"><span>"Employer"</span><span class="import-arrow">-&gt;</span><strong>Company</strong></div>
+                        <div class="import-map-row"><span>"Job Title"</span><span class="import-arrow">-&gt;</span><strong>Role</strong></div>
+                        <div class="import-map-row"><span>"Online Assessment"</span><span class="import-arrow">-&gt;</span><span class="pill st-INTERVIEW"><i></i>Interview</span></div>
+                        <div class="import-map-row"><span>"11/15/2026"</span><span class="import-arrow">-&gt;</span><strong>2026-11-15</strong></div>
+                      </div>
+                    </div>
+                  </div>
+                  <figcaption class="sr-only">Spreadsheet headers and stage names map automatically into validated notebook entries.</figcaption>
+                </figure>
+              </article>
+
+              <!-- Feature 4: Role-Matched Interview Prep and Timed Mock Sessions -->
+              <article class="feature-card feature-row feature-row-reverse" data-feature-id="interview">
+                <div class="feature-copy">
+                  <div class="feature-meta">
+                    <span class="feature-icon" aria-hidden="true" data-icon="check"></span>
+                    <span class="feature-badge">04 · Walk in prepared</span>
+                  </div>
+                  <h3 class="feature-title">Role-Matched Interview Prep and Timed Mock Sessions</h3>
+                  <p class="feature-description">Practice from a curated bank of 62 behavioral and technical questions matched to each application's role and stage. Run timed mock interviews with live STAR structure checks, filler-word detection, and speaking-pace feedback. Review your score trends and weakest areas before walking into the real call.</p>
+                  <ul class="feature-annotations-list" aria-label="Key highlights">
+                    <li><span data-icon="check"></span><span>62 role-aware practice questions</span></li>
+                    <li><span data-icon="check"></span><span>Live STAR &amp; pacing feedback</span></li>
+                  </ul>
+                </div>
+                <figure class="feature-visual" role="img" aria-label="Annotated preview of the timed mock interview workspace showing STAR structure coverage, speaking pace, and 88/100 readiness score.">
+                  <div class="annotated-screen">
+                    <div class="screen-bar">
+                      <span class="screen-title">Timed Mock Interview</span>
+                      <span class="screen-Annotation-tag">STAR + Pace Analysis</span>
+                    </div>
+                    <div class="screen-body">
+                      <div class="mock-score-row">
+                        <div class="mock-score-badge"><strong>88</strong><small>/ 100</small></div>
+                        <div class="mock-score-details">
+                          <strong>Tell me about a time you debugged a production issue.</strong>
+                          <span>STAR structure complete · 138 words/min · 0 filler phrases</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <figcaption class="sr-only">Mock interview scoring evaluates STAR structure, timing, filler words, and speaking pace.</figcaption>
+                </figure>
+              </article>
+
+              <!-- Feature 5: Deadline Radar and Calendar Reminders -->
+              <article class="feature-card feature-row" data-feature-id="reminders">
+                <div class="feature-copy">
+                  <div class="feature-meta">
+                    <span class="feature-icon" aria-hidden="true" data-icon="calendar"></span>
+                    <span class="feature-badge">05 · Never miss a deadline</span>
+                  </div>
+                  <h3 class="feature-title">Deadline Radar and Calendar Reminders</h3>
+                  <p class="feature-description">See overdue items, upcoming application deadlines, and quiet applications that need a follow-up nudge on your Today page. Export a standard calendar file (.ics) to put every deadline and interview onto Google Calendar, Apple Calendar, or Outlook with two-stage alerts. Generate a self-addressed weekly email digest in one click.</p>
+                  <ul class="feature-annotations-list" aria-label="Key highlights">
+                    <li><span data-icon="check"></span><span>One-click .ics calendar alerts</span></li>
+                    <li><span data-icon="check"></span><span>7-day quiet application follow-up nudges</span></li>
+                  </ul>
+                </div>
+                <figure class="feature-visual" role="img" aria-label="Annotated preview of the Today deadline radar and .ics calendar reminder export with 24-hour and 2-hour alerts.">
+                  <div class="annotated-screen">
+                    <div class="screen-bar">
+                      <span class="screen-title">Deadline Radar &amp; .ics Alerts</span>
+                      <span class="screen-Annotation-tag">24h &amp; 2h Reminders</span>
+                    </div>
+                    <div class="screen-body">
+                      <div class="agenda-mock-list">
+                        <div class="agenda-mock-item">
+                          <span class="pill st-INTERVIEW"><i></i>Tomorrow</span>
+                          <div><strong>Technical interview with Harbour Health</strong><small>Calendar alert set for 24h and 2h before</small></div>
+                        </div>
+                        <div class="agenda-mock-item">
+                          <span class="pill st-SAVED"><i></i>In 2 days</span>
+                          <div><strong>Apply to Northwind Labs</strong><small>Backend Developer Intern · Toronto</small></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <figcaption class="sr-only">Upcoming interviews and application deadlines with calendar export alerts.</figcaption>
+                </figure>
+              </article>
+
+              <!-- Feature 6: Offline-First Notebook and Search Analytics -->
+              <article class="feature-card feature-row feature-row-reverse" data-feature-id="insights">
+                <div class="feature-copy">
+                  <div class="feature-meta">
+                    <span class="feature-icon" aria-hidden="true" data-icon="insights"></span>
+                    <span class="feature-badge">06 · Private by design</span>
+                  </div>
+                  <h3 class="feature-title">Offline-First Notebook and Search Analytics</h3>
+                  <p class="feature-description">Your application records live locally in your browser with an automatic draft retry queue that works on subway commutes and campus Wi-Fi. Spot patterns across your search with response-rate funnels, weekly application rhythm charts, and top employer skill bars. Optional end-to-end user-owned cloud sync keeps your devices in step when you choose.</p>
+                  <ul class="feature-annotations-list" aria-label="Key highlights">
+                    <li><span data-icon="check"></span><span>100% offline-capable PWA storage</span></li>
+                    <li><span data-icon="check"></span><span>Response funnel &amp; skill frequency charts</span></li>
+                  </ul>
+                </div>
+                <figure class="feature-visual" role="img" aria-label="Annotated preview of the Insights dashboard displaying response-rate funnel, weekly application goal chart, and top requested skills.">
+                  <div class="annotated-screen">
+                    <div class="screen-bar">
+                      <span class="screen-title">Search Insights &amp; Funnel</span>
+                      <span class="screen-Annotation-tag">Local Analytics</span>
+                    </div>
+                    <div class="screen-body">
+                      <div class="insights-mock-bars">
+                        <div class="insight-bar-row"><span>Saved (24)</span><div class="insight-bar-track"><i style="width: 100%"></i></div></div>
+                        <div class="insight-bar-row"><span>Applied (18)</span><div class="insight-bar-track"><i style="width: 75%"></i></div></div>
+                        <div class="insight-bar-row"><span>Interview (6)</span><div class="insight-bar-track"><i style="width: 33%"></i></div></div>
+                        <div class="insight-bar-row"><span>Offer (2)</span><div class="insight-bar-track"><i style="width: 14%"></i></div></div>
+                      </div>
+                    </div>
+                  </div>
+                  <figcaption class="sr-only">Pipeline conversion funnel calculated locally in your browser.</figcaption>
+                </figure>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. Signup Section (immediately before the footer) -->
+        <section class="landing-signup" id="signup" aria-labelledby="signup-title">
+          <div class="landing-section-inner">
+            <div class="signup-shell">
+              <div class="signup-intro">
+                <p class="eyebrow" id="signup-eyebrow">Start your search organized</p>
+                <h2 class="landing-section-title" id="signup-title" data-auth-heading>Create your notebook account.</h2>
+                <p class="signup-lead" id="signup-lead" data-auth-lead>Open your personal internship notebook in seconds. Import an existing spreadsheet or start fresh with one-click job clipping.</p>
+                <ul class="signup-perks" aria-label="Included with your account">
+                  <li>
+                    <span class="perk-icon" aria-hidden="true" data-icon="lock"></span>
+                    <div>
+                      <strong>Private, local-first storage</strong>
+                      <p>Your applications stay in your browser with automatic draft protection and optional cloud sync.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span class="perk-icon" aria-hidden="true" data-icon="upload"></span>
+                    <div>
+                      <strong>Instant CSV, TSV, and JSON import</strong>
+                      <p>Bring your Google Sheets, Notion, or Simplify tracker without retyping a single row.</p>
+                    </div>
+                  </li>
+                  <li>
+                    <span class="perk-icon" aria-hidden="true" data-icon="calendar"></span>
+                    <div>
+                      <strong>Works offline on any device</strong>
+                      <p>Installable PWA with calendar alerts (.ics), Markdown export, and role-matched interview prep.</p>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="signup-card card">
+                <form id="landing-auth-form" class="signup-form" novalidate aria-labelledby="signup-title">
+                  <div class="signup-field" id="signup-name-group">
+                    <label class="field-label" for="signup-name">Full name <span class="req" aria-hidden="true">*</span></label>
+                    <input
+                      id="signup-name"
+                      name="fullName"
+                      type="text"
+                      required
+                      maxlength="80"
+                      autocomplete="name"
+                      placeholder="Alex Rivera"
+                      aria-describedby="error-fullName"
+                    />
+                    <p class="field-error" id="error-fullName" data-error-for="fullName" role="alert" hidden></p>
+                  </div>
+
+                  <div class="signup-field">
+                    <label class="field-label" for="signup-email">Email address <span class="req" aria-hidden="true">*</span></label>
+                    <input
+                      id="signup-email"
+                      name="email"
+                      type="email"
+                      required
+                      maxlength="254"
+                      autocomplete="email"
+                      inputmode="email"
+                      placeholder="alex@university.edu"
+                      aria-describedby="error-email"
+                    />
+                    <p class="field-error" id="error-email" data-error-for="email" role="alert" hidden></p>
+                  </div>
+
+                  <div class="signup-field">
+                    <label class="field-label" for="signup-password">Password <span class="req" aria-hidden="true">*</span></label>
+                    <div class="password-input-wrap">
+                      <input
+                        id="signup-password"
+                        name="password"
+                        type="password"
+                        required
+                        minlength="8"
+                        maxlength="128"
+                        autocomplete="new-password"
+                        placeholder="Minimum 8 characters, 1 letter, 1 number"
+                        aria-describedby="password-strength error-password"
+                      />
+                      <button
+                        class="button ghost small password-toggle-btn"
+                        id="password-visibility-toggle"
+                        type="button"
+                        data-action="toggle-password-visibility"
+                        aria-label="Show password"
+                        aria-pressed="false"
+                      >Show</button>
+                    </div>
+
+                    <div class="password-strength" id="password-strength" data-strength-level="0" role="status" aria-live="polite">
+                      <div class="strength-bars" aria-hidden="true">
+                        <span></span><span></span><span></span><span></span>
+                      </div>
+                      <div class="strength-summary">
+                        <span class="strength-label">Password strength: <strong id="password-strength-text" data-strength-text>Enter a password</strong></span>
+                        <ul class="strength-checks" aria-label="Password requirements">
+                          <li data-rule="length">8+ chars</li>
+                          <li data-rule="letter">1+ letter</li>
+                          <li data-rule="number">1+ number</li>
+                        </ul>
+                      </div>
+                    </div>
+                    <p class="field-error" id="error-password" data-error-for="password" role="alert" hidden></p>
+                  </div>
+
+                  <p class="form-error" id="signup-form-error" role="alert" hidden></p>
+
+                  <button class="button primary large signup-submit-btn" id="signup-submit" type="submit">
+                    <span>Create Account</span>
+                  </button>
+
+                  <p class="signup-secondary-row">
+                    <span id="auth-switch-prompt">Already have a notebook account?</span>
+                    <a href="#signin" id="toggle-signin" class="signup-signin-link" data-action="switch-auth-mode">Sign In</a>
+                  </p>
+                </form>
+
+                <div class="signup-success" id="signup-success" role="status" aria-live="polite" hidden>
+                  <div class="signup-success-badge" aria-hidden="true">
+                    <span data-icon="check"></span>
+                  </div>
+                  <h3 class="signup-success-title" id="signup-success-title">Account created!</h3>
+                  <p class="signup-success-copy" id="signup-success-copy">Your internship notebook is ready. Redirecting you to your workspace...</p>
+                  <div class="signup-success-bar" aria-hidden="true"><i></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="landing-footer">
+        <div class="landing-footer-inner">
+          <div class="landing-footer-brand">
+            <span class="cover-logo small" aria-hidden="true"></span>
+            <div>
+              <strong>My Internship Notebook</strong>
+              <p>A calm, private workspace for student internship and co-op searches.</p>
+            </div>
+          </div>
+          <nav class="landing-footer-nav" aria-label="Footer navigation">
+            <a href="#hero" data-scroll-to="hero">Overview</a>
+            <a href="#features" data-scroll-to="features">Features</a>
+            <a href="#signup" data-scroll-to="signup">Create Account</a>
+            <a href="privacy.html">Privacy Policy</a>
+            <a href="delete-account.html">Delete Account</a>
+          </nav>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Notebook Application Interface (gated until authenticated) -->
+    <div class="app" id="app" hidden>
       <aside class="cover" aria-label="Notebook">
         <a class="cover-label" href="#/today" aria-label="My Internship Notebook, go to Today">
           <span class="cover-logo" aria-hidden="true"></span>
@@ -117,7 +580,6 @@
     <div class="selection-bar" id="selection-bar" role="toolbar" aria-label="Selected applications" hidden></div>
 
     <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
-    <!-- Lives outside #view so a re-render never replaces it mid-announcement (see announce() in app.js). -->
     <p class="sr-only" id="announcer" aria-live="polite"></p>
     <div class="chart-tip" id="chart-tip" role="tooltip" hidden></div>
     <div class="menu" id="menu" role="menu" hidden></div>

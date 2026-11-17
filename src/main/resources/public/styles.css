@@ -2170,3 +2170,1197 @@ a:not([class]):active { opacity: .65; }
 .bookmarklet-link { cursor: grab; min-height: 44px; text-decoration: none; }
 .bookmarklet-link:active { cursor: grabbing; }
 
+/* ==========================================================================
+   Standalone Marketing & Onboarding Landing Page (#landing-shell)
+   ========================================================================== */
+html {
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+.landing-shell {
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-8: 64px;
+  --space-10: 80px;
+  --space-12: 96px;
+  background:
+    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 36%),
+    radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--st-applied) 8%, transparent), transparent 40%),
+    linear-gradient(180deg, var(--paper) 0%, var(--paper-2) 52%, var(--paper) 100%);
+  color: var(--ink);
+  font: 16px/1.6 var(--sans);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Sticky Header & Navigation ---------- */
+.landing-header {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.landing-header-inner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1360px;
+  min-height: 72px;
+  padding: var(--space-1) var(--space-3);
+  width: 100%;
+}
+
+.landing-brand {
+  align-items: center;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 4px 8px 4px 0;
+  text-decoration: none;
+}
+
+.landing-brand-copy {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.landing-brand-copy strong {
+  font: 600 1.05rem/1.2 var(--serif);
+  letter-spacing: -0.01em;
+}
+
+.landing-brand-copy span {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.landing-nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.landing-nav-link {
+  align-items: center;
+  border-radius: 10px;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 550;
+  min-height: 44px;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.landing-nav-signin {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.landing-theme-toggle {
+  border: 1px solid var(--line);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (hover: hover) {
+  .landing-nav-link:hover {
+    background: var(--wash-strong);
+    color: var(--ink);
+  }
+  .landing-nav-signin:hover {
+    border-color: var(--primary);
+  }
+}
+
+.landing-main {
+  flex: 1 1 auto;
+}
+
+.landing-main:focus {
+  outline: none;
+}
+
+/* ---------- 1. Hero Section (full viewport height, above the fold) ---------- */
+.landing-hero {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  min-height: calc(100vh - 72px);
+  min-height: calc(100svh - 72px);
+  padding: var(--space-6) var(--space-3);
+}
+
+.landing-hero-inner {
+  align-items: center;
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1360px;
+  width: 100%;
+}
+
+.landing-hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 640px;
+}
+
+.landing-eyebrow {
+  color: var(--accent-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.landing-hero-title {
+  color: var(--ink);
+  font: 700 clamp(2.25rem, 4.2vw, 3.5rem)/1.1 var(--serif);
+  letter-spacing: -0.025em;
+}
+
+.landing-hero-sub {
+  color: var(--ink-2);
+  font-size: clamp(1.05rem, 1.35vw, 1.2rem);
+  line-height: 1.6;
+  max-width: 58ch;
+}
+
+.landing-hero-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+}
+
+.landing-btn-primary,
+.landing-btn-secondary {
+  font-size: 1rem;
+  min-height: 48px;
+  padding: 12px 24px;
+  text-decoration: none;
+}
+
+.landing-hero-highlights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-3);
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+}
+
+.landing-hero-highlights li {
+  align-items: center;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 500;
+  gap: var(--space-1);
+}
+
+.landing-hero-highlights [data-icon] {
+  color: var(--good);
+}
+
+/* Hero 16:9 Demo Video Stage */
+.landing-hero-media {
+  min-width: 0;
+  width: 100%;
+}
+
+.hero-video-figure {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  margin: 0;
+  overflow: hidden;
+}
+
+.hero-video-chrome {
+  align-items: center;
+  background: var(--cover);
+  color: var(--cover-ink);
+  display: flex;
+  gap: var(--space-2);
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.chrome-dots {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.chrome-dots span {
+  background: rgba(255, 255, 255, 0.28);
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+}
+
+.chrome-dots span:first-child { background: #e36d5a; }
+.chrome-dots span:nth-child(2) { background: #eab857; }
+.chrome-dots span:nth-child(3) { background: #4cb782; }
+
+.chrome-address {
+  background: rgba(255, 255, 255, 0.09);
+  border-radius: 8px;
+  color: var(--cover-ink);
+  font: 500 1rem/1.2 var(--mono);
+  padding: 4px 16px;
+}
+
+.chrome-badge {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--cover-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 4px 12px;
+}
+
+.hero-video-viewport {
+  aspect-ratio: 16 / 9;
+  background: var(--paper-2) url("media/demo-tour-poster.jpg") center / cover no-repeat;
+  position: relative;
+  width: 100%;
+}
+
+.landing-video {
+  aspect-ratio: 16 / 9;
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.hero-video-viewport.is-failed .landing-video {
+  opacity: 0;
+}
+
+.hero-video-control {
+  align-items: center;
+  background: rgba(24, 34, 45, 0.84);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  bottom: var(--space-2);
+  color: #fbf8f1;
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 600;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  position: absolute;
+  right: var(--space-2);
+  z-index: 2;
+}
+
+.hero-video-viewport.is-playing .hero-video-control .when-paused,
+.hero-video-viewport:not(.is-playing) .hero-video-control .when-playing {
+  display: none;
+}
+
+.hero-video-control .when-playing,
+.hero-video-control .when-paused {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.hero-video-caption {
+  background: var(--paper-2);
+  border-top: 1px solid var(--line);
+  padding: var(--space-2);
+}
+
+.hero-workflow-pills {
+  display: grid;
+  gap: var(--space-1);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-workflow-pills li {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-2);
+  display: flex;
+  font-size: 1rem;
+  font-weight: 550;
+  gap: var(--space-1);
+  padding: 8px 12px;
+}
+
+.hero-workflow-pills strong {
+  color: var(--accent-ink);
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+/* ---------- 2. Features Section ---------- */
+.landing-features {
+  border-bottom: 1px solid var(--line);
+  padding: var(--space-10) var(--space-3);
+}
+
+.landing-section-inner {
+  margin: 0 auto;
+  max-width: 1360px;
+  width: 100%;
+}
+
+.landing-section-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 auto var(--space-8);
+  max-width: 760px;
+  text-align: center;
+}
+
+.landing-section-title {
+  color: var(--ink);
+  font: 700 clamp(1.85rem, 3.2vw, 2.75rem)/1.16 var(--serif);
+  letter-spacing: -0.02em;
+}
+
+.landing-section-sub {
+  color: var(--ink-2);
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.features-list {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.feature-card {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-4);
+}
+
+.feature-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.feature-meta {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.feature-icon {
+  align-items: center;
+  background: var(--accent-soft);
+  border-radius: 12px;
+  color: var(--accent-ink);
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.feature-icon .icon {
+  height: 22px;
+  width: 22px;
+}
+
+.feature-badge {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+  font: 600 1rem/1.2 var(--mono);
+  padding: 6px 14px;
+}
+
+.feature-title {
+  color: var(--ink);
+  font: 650 clamp(1.35rem, 2.2vw, 1.75rem)/1.25 var(--serif);
+}
+
+.feature-description {
+  color: var(--ink-2);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.feature-annotations-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+}
+
+.feature-annotations-list li {
+  align-items: center;
+  color: var(--ink);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 600;
+  gap: 8px;
+}
+
+.feature-annotations-list [data-icon] {
+  color: var(--good);
+}
+
+/* Annotated UI Previews inside Feature Cards */
+.feature-visual {
+  margin: 0;
+  min-width: 0;
+}
+
+.annotated-screen {
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.screen-bar {
+  align-items: center;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  justify-content: space-between;
+  padding: 12px 16px;
+}
+
+.screen-title {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.screen-Annotation-tag {
+  background: var(--accent-soft);
+  border-radius: 999px;
+  color: var(--accent-ink);
+  font-size: 1rem;
+  font-weight: 650;
+  padding: 4px 12px;
+}
+
+.screen-body {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
+.screen-input-mock {
+  align-items: center;
+  background: var(--card);
+  border: 1px dashed var(--line-strong);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.screen-input-mock code {
+  color: var(--ink-2);
+  font: 500 1rem/1.4 var(--mono);
+  overflow-wrap: anywhere;
+}
+
+.screen-pill-accent {
+  background: var(--st-saved-bg);
+  border-radius: 999px;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 650;
+  padding: 4px 12px;
+}
+
+.screen-grid-mock {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.screen-field-mock {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.screen-field-mock small {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.screen-field-mock strong {
+  color: var(--ink);
+  font-size: 1rem;
+}
+
+.screen-kanban-mock {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.kanban-col-mock {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: 12px;
+}
+
+.kanban-card-mock {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+}
+
+.kanban-card-mock small {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.import-map-mock {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.import-map-row {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  justify-content: space-between;
+  padding: 10px 16px;
+}
+
+.import-arrow {
+  color: var(--accent-ink);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.mock-score-row {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.mock-score-badge {
+  align-items: baseline;
+  background: var(--st-saved-bg);
+  border-radius: 10px;
+  color: var(--ink);
+  display: inline-flex;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.mock-score-badge strong {
+  font: 700 1.75rem/1 var(--serif);
+}
+
+.mock-score-details {
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mock-score-details span {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.agenda-mock-list {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.agenda-mock-item {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: 12px;
+}
+
+.agenda-mock-item div {
+  display: flex;
+  flex-direction: column;
+}
+
+.agenda-mock-item small {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.insights-mock-bars {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.insight-bar-row {
+  align-items: center;
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: 112px minmax(0, 1fr);
+}
+
+.insight-bar-track {
+  background: var(--paper-2);
+  border-radius: 999px;
+  height: 16px;
+  overflow: hidden;
+}
+
+.insight-bar-track i {
+  background: var(--primary);
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+}
+
+/* ---------- 3. Signup Section (immediately before footer) ---------- */
+.landing-signup {
+  background: linear-gradient(180deg, var(--paper-2) 0%, var(--paper) 100%);
+  border-bottom: 1px solid var(--line);
+  padding: var(--space-10) var(--space-3);
+}
+
+.signup-shell {
+  align-items: start;
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.signup-intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.signup-lead {
+  color: var(--ink-2);
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.signup-perks {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.signup-perks li {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.perk-icon {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  color: var(--accent-ink);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.signup-perks strong {
+  color: var(--ink);
+  display: block;
+  font-size: 1.05rem;
+}
+
+.signup-perks p {
+  color: var(--ink-2);
+  font-size: 1rem;
+  margin-top: 4px;
+}
+
+.signup-card {
+  background: var(--card);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-4);
+}
+
+.signup-form {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.signup-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.signup-field .field-label {
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.signup-field input {
+  background: var(--paper);
+  border: 1.5px solid var(--line-strong);
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 1rem;
+  min-height: 48px;
+  padding: 12px 16px;
+  transition: border-color 0.16s, box-shadow 0.16s;
+  width: 100%;
+}
+
+.signup-field input:focus-visible {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 22%, transparent);
+  outline: none;
+}
+
+.signup-field input[aria-invalid="true"] {
+  border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger-soft) 35%, var(--paper));
+}
+
+.password-input-wrap {
+  align-items: center;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.password-input-wrap input {
+  flex: 1 1 auto;
+}
+
+.button.password-toggle-btn {
+  flex-shrink: 0;
+  font-size: 1rem;
+  min-height: 48px;
+  min-width: 72px;
+  padding: 0 16px;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  gap: var(--space-1);
+  margin-top: 4px;
+  padding: 12px;
+}
+
+.strength-bars {
+  display: grid;
+  gap: var(--space-1);
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.strength-bars span {
+  background: var(--line-strong);
+  border-radius: 999px;
+  height: 6px;
+  transition: background-color 0.2s var(--ease);
+}
+
+.password-strength[data-strength-level="1"] .strength-bars span:nth-child(1) {
+  background: var(--danger);
+}
+.password-strength[data-strength-level="2"] .strength-bars span:nth-child(-n+2) {
+  background: var(--warn-ink);
+}
+.password-strength[data-strength-level="3"] .strength-bars span:nth-child(-n+3) {
+  background: var(--st-applied);
+}
+.password-strength[data-strength-level="4"] .strength-bars span {
+  background: var(--good);
+}
+
+.strength-summary {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  justify-content: space-between;
+}
+
+.strength-label {
+  color: var(--ink-2);
+  font-size: 1rem;
+}
+
+.strength-label strong {
+  color: var(--ink);
+}
+
+.strength-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.strength-checks li {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 550;
+  padding: 2px 10px;
+}
+
+.strength-checks li.is-met {
+  background: var(--st-saved-bg);
+  border-color: var(--st-saved);
+  color: var(--ink);
+}
+
+.signup-submit-btn {
+  font-size: 1.05rem;
+  justify-content: center;
+  min-height: 48px;
+  width: 100%;
+}
+
+.signup-secondary-row {
+  align-items: center;
+  color: var(--ink-2);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 1rem;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+.signup-signin-link {
+  align-items: center;
+  border-radius: 8px;
+  color: var(--accent-ink);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 44px;
+  padding: 8px 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Animated Success State */
+.signup-success {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3);
+  text-align: center;
+}
+
+.signup-success.is-visible {
+  animation: signupSuccessEnter 0.42s var(--ease) both;
+}
+
+.signup-success-badge {
+  align-items: center;
+  background: var(--st-saved-bg);
+  border: 2px solid var(--st-saved);
+  border-radius: 50%;
+  color: var(--good);
+  display: inline-flex;
+  height: 64px;
+  justify-content: center;
+  width: 64px;
+}
+
+.signup-success-badge .icon {
+  height: 32px;
+  width: 32px;
+}
+
+.signup-success-title {
+  font: 700 1.65rem/1.2 var(--serif);
+}
+
+.signup-success-copy {
+  color: var(--ink-2);
+  font-size: 1rem;
+  max-width: 42ch;
+}
+
+.signup-success-bar {
+  background: var(--paper-2);
+  border-radius: 999px;
+  height: 8px;
+  margin-top: var(--space-1);
+  max-width: 280px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.signup-success-bar i {
+  animation: signupRedirectBar 2s linear forwards;
+  background: var(--good);
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+}
+
+@keyframes signupSuccessEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes signupRedirectBar {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* ---------- 4. Footer ---------- */
+.landing-footer {
+  background: var(--paper-2);
+  padding: var(--space-6) var(--space-3);
+}
+
+.landing-footer-inner {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1360px;
+  width: 100%;
+}
+
+.landing-footer-brand {
+  align-items: center;
+  display: flex;
+  gap: var(--space-2);
+}
+
+.landing-footer-brand strong {
+  font: 600 1.05rem/1.2 var(--serif);
+}
+
+.landing-footer-brand p {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.landing-footer-nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.landing-footer-nav a {
+  align-items: center;
+  border-radius: 8px;
+  color: var(--ink-2);
+  display: inline-flex;
+  font-size: 1rem;
+  font-weight: 550;
+  min-height: 44px;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .landing-footer-nav a:hover {
+    background: var(--wash-strong);
+    color: var(--ink);
+  }
+}
+
+/* ---------- Responsive Breakpoints (360px, 768px, 1024px, 1440px, 1920px) ---------- */
+@media (max-width: 767px) {
+  .landing-header-inner {
+    padding: var(--space-1) var(--space-2);
+  }
+  .landing-nav-link {
+    padding: 8px 10px;
+  }
+  .landing-hero {
+    padding: var(--space-4) var(--space-2);
+  }
+  .landing-features,
+  .landing-signup {
+    padding: var(--space-8) var(--space-2);
+  }
+  .feature-card,
+  .signup-card {
+    padding: var(--space-3);
+  }
+  .hero-workflow-pills {
+    grid-template-columns: 1fr;
+  }
+  .chrome-badge {
+    display: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .hero-workflow-pills {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-hero-inner {
+    grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.18fr);
+    gap: var(--space-6);
+  }
+  .feature-card.feature-row {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    padding: var(--space-5);
+  }
+  .feature-card.feature-row.feature-row-reverse .feature-copy {
+    order: 2;
+  }
+  .feature-card.feature-row.feature-row-reverse .feature-visual {
+    order: 1;
+  }
+  .signup-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
+    gap: var(--space-8);
+  }
+}
+
+@media (min-width: 1440px) {
+  .landing-header-inner,
+  .landing-hero-inner,
+  .landing-section-inner,
+  .landing-footer-inner {
+    max-width: 1400px;
+  }
+  .landing-hero {
+    padding: var(--space-8) var(--space-6);
+  }
+}
+
+@media (min-width: 1920px) {
+  .landing-header-inner,
+  .landing-hero-inner,
+  .landing-section-inner,
+  .landing-footer-inner {
+    max-width: 1600px;
+  }
+}
+
+/* Shared press feedback for landing controls */
+:is(.landing-nav-link, .landing-brand, .hero-video-control, .password-toggle-btn, .signup-signin-link, .landing-footer-nav a) {
+  transition: background-color .16s, border-color .16s, color .16s, box-shadow .16s, opacity .16s, translate .16s var(--ease), scale .16s var(--ease);
+}
+:is(.landing-nav-link, .landing-brand, .hero-video-control, .password-toggle-btn, .signup-signin-link, .landing-footer-nav a):active {
+  scale: .98;
+  translate: 0 1px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.landing-nav-link, .landing-brand, .hero-video-control, .password-toggle-btn, .signup-signin-link, .landing-footer-nav a) {
+    transition-property: background-color, border-color, color, box-shadow, opacity;
+  }
+  :is(.landing-nav-link, .landing-brand, .hero-video-control, .password-toggle-btn, .signup-signin-link, .landing-footer-nav a):active {
+    scale: none;
+    translate: none;
+  }
+  .signup-success.is-visible,
+  .signup-success-bar i {
+    animation: none;
+  }
+}
+

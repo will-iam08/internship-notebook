@@ -14,12 +14,10 @@ async function fillDetails(page, { name = "Jordan", role = "Software Engineering
 }
 
 test.describe("building a notebook", () => {
-  test("welcome CTA -> template, internship search, deadlines -> a real, started notebook on Today", async ({ page }) => {
+  test("builder wizard -> template, internship search, deadlines -> a real, started notebook on Today", async ({ page }) => {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.route("**/media/demo-tour.mp4", route => route.abort());
-    await openWelcome(page);
-    await page.locator(".welcome-hero").getByRole("link", { name: "Build my notebook" }).click();
+    await openBuilder(page);
     await expect(page).toHaveURL(/#\/build$/);
     await expect(page.locator(".demo-banner")).toHaveCount(0);
 
