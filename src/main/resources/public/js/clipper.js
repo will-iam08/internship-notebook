@@ -1,4 +1,4 @@
-import { LIMITS, SKILL_LIMIT, STAGES, cleanLink, cleanSkills } from "./domain.js";
+import { LIMITS, SKILL_LIMIT, STAGES, cleanLink, cleanSkills, parseFlexibleDate } from "./domain.js";
 
 const KNOWN_COMPANY_NAMES = Object.freeze({
   stripe: "Stripe",
@@ -690,6 +690,8 @@ export function parseNewIntent(searchParams) {
   const explicitLink = params.get("link") || params.get("url") || "";
   const explicitSkills = params.get("skills") || "";
   const explicitNotes = params.get("notes") || "";
+  // A closing date from the browser extension or a shared link; anything that is not a real day is dropped.
+  const deadline = parseFlexibleDate(params.get("deadline") || "");
   const explicitStage = (params.get("stage") || params.get("status") || "SAVED").toUpperCase();
   const title = params.get("title") || "";
   const text = params.get("text") || "";
@@ -721,7 +723,8 @@ export function parseNewIntent(searchParams) {
       source: clampField(explicitSource || clipped.source, LIMITS.source),
       link: safeHttpUrl(explicitLink) || clipped.link,
       skills: mergedSkills,
-      notes: String(notesValue ?? "").trim().slice(0, LIMITS.notes)
+      notes: String(notesValue ?? "").trim().slice(0, LIMITS.notes),
+      deadline
     }
   };
 }
