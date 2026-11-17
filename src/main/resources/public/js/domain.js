@@ -613,6 +613,7 @@ export function parseSpreadsheetImport(text, options = {}) {
 
     entries.push(raw);
   }
+  Object.defineProperty(entries, "entries", { value: entries, enumerable: false });
   return entries;
 }
 

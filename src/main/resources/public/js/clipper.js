@@ -194,7 +194,7 @@ const LOCATION_PATTERNS = [
   /\b(?:Toronto|Waterloo|Vancouver|Montreal|Montr\u00e9al|Ottawa|Calgary|Edmonton|Mississauga|Markham|Kitchener|kanata|Halifax|Victoria|Winnipeg|Quebec\s+City),?\s*(?:ON|BC|QC|AB|MB|NS|NB|SK|NL|PE|Ontario|British\s+Columbia|Quebec|Alberta|Canada)\b/i,
   /\b(?:San\s+Francisco|New\s+York(?:\s+City)?|NYC|Seattle|Austin|Boston|Chicago|Los\s+Angeles|Mountain\s+View|Palo\s+Alto|Sunnyvale|Menlo\s+Park|Cupertino|San\s+Jose|Santa\s+Clara|Redmond|Bellevue|Atlanta|Denver|Boulder|Miami|Washington|Pittsburgh|Philadelphia|Dallas|Houston|Raleigh|Durham|Cambridge|Somerville|San\s+Diego|Irvine|San\s+Mateo),?\s*(?:CA|NY|WA|TX|MA|IL|GA|CO|FL|DC|PA|NC|VA|MD|NJ|OH|MI|MN|OR|AZ|UT)(?:\b|\s*\((?:Hybrid|Remote|On-?site)\))?/i,
   /\b(?:London,\s*UK|Dublin,\s*Ireland|Berlin,\s*Germany|Amsterdam,\s*Netherlands|Singapore|Tokyo,\s*Japan|Sydney,\s*Australia|Zurich,\s*Switzerland|Paris,\s*France)\b/i,
-  /\bRemote(?:\s*\((?:US|USA|Canada|US\s*&\s*Canada|North\s+America|Global)\)|\s*-\s*(?:US|USA|Canada))?\b/i,
+  /\bRemote(?:\s*\((?:US|USA|Canada|US\s*&\s*Canada|North\s+America|Global)\)|\s*-\s*(?:US|USA|Canada)\b|\b)/i,
   /\bHybrid\b/i
 ];
 
@@ -204,6 +204,20 @@ function clampField(value, max) {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, max);
+}
+
+function safeHttpUrl(rawUrl) {
+  const text = String(rawUrl ?? "").trim();
+  if (!text || /\s/.test(text)) return "";
+  try {
+    const cleaned = cleanLink(text);
+    if (!cleaned) return "";
+    const parsed = new URL(cleaned);
+    if (parsed.hostname !== "localhost" && !parsed.hostname.includes(".")) return "";
+    return cleaned;
+  } catch {
+    return "";
+  }
 }
 
 export function humanizeSlug(slug) {
@@ -263,7 +277,7 @@ function firstCompanySegment(segments) {
 
 export function parseJobUrl(rawUrl) {
   const empty = { company: "", role: "", location: "", source: "", link: "" };
-  const cleanedUrl = cleanLink(rawUrl);
+  const cleanedUrl = safeHttpUrl(rawUrl);
   if (!cleanedUrl) return empty;
 
   let parsed;
@@ -450,26 +464,31 @@ export function extractSkillsFromText(text) {
   return cleanSkills(found);
 }
 
+function matchKnownLocation(text) {
+  for (const pattern of LOCATION_PATTERNS) {
+    const match = String(text ?? "").match(pattern);
+    if (match) return clampField(match[0], LIMITS.location);
+  }
+  return "";
+}
+
 export function extractLocationFromText(text) {
   const raw = String(text ?? "");
   if (!raw.trim()) return "";
 
   const labeledMatch = raw.match(/(?:^|\n)\s*(?:location|office|city|workplace(?:\s+type)?)\s*[:\-]\s*([^\n|]{2,60})/i);
   if (labeledMatch) {
-    return clampField(labeledMatch[1], LIMITS.location);
+    const candidate = labeledMatch[1].trim();
+    return matchKnownLocation(candidate) || clampField(candidate, LIMITS.location);
   }
 
-  for (const pattern of LOCATION_PATTERNS) {
-    const match = raw.match(pattern);
-    if (match) {
-      return clampField(match[0], LIMITS.location);
-    }
-  }
-  return "";
+  return matchKnownLocation(raw);
 }
 
 function stripSiteSuffix(line) {
-  let cleaned = String(line ?? "").trim();
+  let cleaned = String(line ?? "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .trim();
   let detectedSource = "";
   for (const [pattern, sourceName] of SITE_SUFFIX_SOURCES) {
     if (pattern.test(cleaned)) {
@@ -494,7 +513,10 @@ function parseTitleLine(rawLine) {
   if (hiringMatch) {
     company = hiringMatch[1].trim();
     role = hiringMatch[2].trim();
-    if (hiringMatch[3]) location = hiringMatch[3].trim();
+    if (hiringMatch[3]) {
+      const rawLoc = hiringMatch[3].replace(/\s*\([^)]*\)\s*$/, "").trim();
+      location = matchKnownLocation(rawLoc) || rawLoc;
+    }
     return { company, role, location, source: detectedSource || "LinkedIn" };
   }
 
@@ -502,19 +524,22 @@ function parseTitleLine(rawLine) {
   const ghMatch = cleaned.match(/^(?:job\s+)?application\s+for\s+(.+?)\s+at\s+(.+)$/i);
   if (ghMatch) {
     role = ghMatch[1].trim();
-    company = ghMatch[2].trim();
+    company = ghMatch[2].replace(/\s*\([^)]*\)\s*$/, "").trim();
     return { company, role, location, source: detectedSource || "Company website" };
   }
 
   // Pattern 3: "<Role> at <Company> in <Location>" or "<Role> at/@ <Company>"
-  const atMatch = cleaned.match(/^(.+?)\s+(?:at|@)\s+(.+?)(?:\s+in\s+([A-Z][A-Za-z\s,]+))?$/);
+  const atMatch = cleaned.match(/^(.+?)\s+(?:at|@)\s+(.+?)(?:\s+in\s+([A-Z][A-Za-z\s,]+?))?(?:\s*\([^)]*\))?$/);
   if (atMatch) {
     const left = atMatch[1].trim();
-    const right = atMatch[2].trim();
+    const right = atMatch[2].replace(/\s*\([^)]*\)\s*$/, "").trim();
     if (left && right) {
       role = left;
       company = right;
-      if (atMatch[3]) location = atMatch[3].trim();
+      if (atMatch[3]) {
+        const rawLoc = atMatch[3].trim();
+        location = matchKnownLocation(rawLoc) || rawLoc;
+      }
       return { company, role, location, source: detectedSource };
     }
   }
@@ -579,7 +604,8 @@ function parseLabeledText(text) {
     }
     const locMatch = line.match(/^(?:location|office|city)\s*[:\-]\s*(.+)$/i);
     if (locMatch && !result.location) {
-      result.location = locMatch[1].trim();
+      const candidate = locMatch[1].trim();
+      result.location = matchKnownLocation(candidate) || candidate;
       continue;
     }
     const sourceMatch = line.match(/^(?:source|platform|job\s*board)\s*[:\-]\s*(.+)$/i);
@@ -607,7 +633,7 @@ export function parseJobClip(input) {
 
   // Check if the whole text is just a URL
   const singleLineText = !rawTitle && !rawText.includes("\n") ? rawText : "";
-  const detectedUrl = explicitUrl || (cleanLink(singleLineText) ? singleLineText : "") || findFirstUrl(rawText) || findFirstUrl(rawTitle);
+  const detectedUrl = explicitUrl || (safeHttpUrl(singleLineText) ? singleLineText : "") || findFirstUrl(rawText) || findFirstUrl(rawTitle);
 
   const urlParts = detectedUrl ? parseJobUrl(detectedUrl) : { company: "", role: "", location: "", source: "", link: "" };
   const labeled = parseLabeledText(rawText);
@@ -615,11 +641,11 @@ export function parseJobClip(input) {
   let titleParts = { company: "", role: "", location: "", source: "" };
   if (rawTitle) {
     titleParts = parseTitleLine(rawTitle);
-  } else if (rawText && !cleanLink(rawText)) {
+  } else if (rawText && !safeHttpUrl(rawText)) {
     const nonUrlLines = rawText
       .split(/\r?\n/)
       .map(line => line.trim())
-      .filter(line => line && !cleanLink(line) && !/^(?:company|employer|organization|role|position|job\s*title|title|location|office|city|source|platform)\s*[:\-]/i.test(line));
+      .filter(line => line && !safeHttpUrl(line) && !/^(?:company|employer|organization|role|position|job\s*title|title|location|office|city|source|platform)\s*[:\-]/i.test(line));
     if (nonUrlLines.length > 0) {
       titleParts = parseTitleLine(nonUrlLines[0]);
       if (!titleParts.company && nonUrlLines.length >= 2 && ROLE_KEYWORDS.test(nonUrlLines[0]) && nonUrlLines[1].length <= 50) {
@@ -693,7 +719,7 @@ export function parseNewIntent(searchParams) {
       role: clampField(explicitRole || clipped.role || fallbackRole, LIMITS.role),
       location: clampField(explicitLocation || clipped.location, LIMITS.location),
       source: clampField(explicitSource || clipped.source, LIMITS.source),
-      link: cleanLink(explicitLink) || clipped.link,
+      link: safeHttpUrl(explicitLink) || clipped.link,
       skills: mergedSkills,
       notes: String(notesValue ?? "").trim().slice(0, LIMITS.notes)
     }

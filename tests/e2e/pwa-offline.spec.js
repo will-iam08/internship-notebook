@@ -32,6 +32,42 @@ test("a shared job opens a safely prefilled new-application sheet", async ({ pag
   await expect(page.getByLabel("Notes")).toHaveValue("Shared from a job site");
 });
 
+test("deep-link #/new?... and quick-fill input bar autofill company, role, location, source, link, and skills", async ({ page }) => {
+  await seedStarted(page);
+  await page.goto("/#/new?url=https%3A%2F%2Fboards.greenhouse.io%2Ffigma%2Fjobs%2F12345&title=Job%20Application%20for%20Product%20Design%20Intern%20at%20Figma&text=Location%3A%20San%20Francisco%2C%20CA%20using%20Figma%20and%20React");
+  await expect(page.getByRole("heading", { name: "Add an application" })).toBeVisible();
+  await expect(page.locator("#new-form").getByLabel("Company")).toHaveValue("Figma");
+  await expect(page.locator("#new-form").getByLabel("Role")).toHaveValue("Product Design Intern");
+  await expect(page.locator("#new-form").getByLabel("Location")).toHaveValue("San Francisco, CA");
+  await expect(page.locator("#new-form").getByLabel("Where you found it")).toHaveValue("Company website");
+  await expect(page.locator("#new-form").getByLabel("Job posting link")).toHaveValue("https://boards.greenhouse.io/figma/jobs/12345");
+  await expect(page.locator("#new-form").getByLabel("Skills")).toHaveValue("React, Figma");
+  await page.locator('#new-dialog [data-action="close-new"]').first().click();
+
+  // Open empty New dialog and use the quick-fill bar directly
+  await page.locator('[data-action="new"]').first().click();
+  await expect(page.locator("#new-dialog")).toBeVisible();
+  await page.locator("#new-quickfill").fill("Software Engineer Intern at Stripe in Seattle, WA (Python, Go, SQL) https://boards.greenhouse.io/stripe/jobs/98765");
+  await expect(page.locator("#new-form").getByLabel("Company")).toHaveValue("Stripe");
+  await expect(page.locator("#new-form").getByLabel("Role")).toHaveValue("Software Engineer Intern");
+  await expect(page.locator("#new-form").getByLabel("Location")).toHaveValue("Seattle, WA");
+  await expect(page.locator("#new-form").getByLabel("Where you found it")).toHaveValue("Company website");
+  await expect(page.locator("#new-form").getByLabel("Job posting link")).toHaveValue("https://boards.greenhouse.io/stripe/jobs/98765");
+  await expect(page.locator("#new-form").getByLabel("Skills")).toHaveValue("Python, SQL");
+  await page.locator('#new-form [type="submit"]').click();
+  await expect(page.locator("#toasts")).toContainText("Stripe added to your notebook");
+
+  // Verify the 1-click bookmarklet is rendered in Settings and safely handles in-app clicks
+  await page.goto("/#/settings");
+  const bookmarklet = page.locator("[data-bookmarklet]");
+  await expect(bookmarklet).toBeVisible();
+  const href = await bookmarklet.getAttribute("href");
+  expect(href).toContain("javascript:");
+  expect(href).toContain("#/new?");
+  await bookmarklet.click();
+  await expect(page.locator("#toasts")).toContainText("Drag Save to Notebook to your bookmarks bar");
+});
+
 test("privacy and account-deletion pages are public", async ({ page }) => {
   await page.goto("/privacy.html");
   await expect(page.getByRole("heading", { name: "Privacy policy" })).toBeVisible();

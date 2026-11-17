@@ -187,4 +187,53 @@ test.describe("backup import", () => {
     await page.setInputFiles("#import-file", { name: "notes.json", mimeType: "application/json", buffer: Buffer.from("not json") });
     await expect(page.locator("#toasts")).toContainText("couldn't be read as a backup");
   });
+
+  test("imports a CSV spreadsheet with header/stage/date normalization, strips unsafe links, and supports Undo", async ({ page }) => {
+    await seedStarted(page);
+    await openApp(page);
+
+    const csv = [
+      "Employer,Job Title,Application Status,Close Date,City,Platform,Job URL,Tech Stack,Comments",
+      "Stripe,Software Engineer Intern,Online Assessment,11/30/2026,\"San Francisco, CA\",Simplify,https://boards.greenhouse.io/stripe/jobs/123,\"Python, Go\",'=Referral from Sam",
+      "Shady Corp,Security Intern,Wishlist,12/15/2026,Remote,LinkedIn,javascript:alert(1),Rust,Unsafe link row",
+      ",Missing Company Intern,Applied,,,,,,"
+    ].join("\r\n");
+
+    await page.setInputFiles("#import-file", {
+      name: "applications.csv",
+      mimeType: "text/csv",
+      buffer: Buffer.from(csv, "utf8")
+    });
+
+    const dialog = page.locator("#confirm-dialog");
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText("Add 2 pages");
+    await expect(dialog).toContainText("1 entry without a company and role will be skipped");
+    await expect(dialog).toContainText("1 link could not be verified as safe");
+    await dialog.getByRole("button", { name: "Import" }).click();
+
+    await expect(page.locator("#toasts")).toContainText("Imported 2 pages");
+    const data = await savedNotebook(page);
+    const stripe = data.applications.find(entry => entry.company === "Stripe");
+    expect(stripe).toBeTruthy();
+    expect(stripe.role).toBe("Software Engineer Intern");
+    expect(stripe.status).toBe("INTERVIEW");
+    expect(stripe.deadline).toBe("2026-11-30");
+    expect(stripe.location).toBe("San Francisco, CA");
+    expect(stripe.source).toBe("Simplify");
+    expect(stripe.link).toBe("https://boards.greenhouse.io/stripe/jobs/123");
+    expect(stripe.skills).toEqual(["Python", "Go"]);
+    expect(stripe.notes).toBe("=Referral from Sam");
+
+    const shady = data.applications.find(entry => entry.company === "Shady Corp");
+    expect(shady).toBeTruthy();
+    expect(shady.status).toBe("SAVED");
+    expect(shady.link).toBe("");
+
+    await page.locator("#toasts .toast").getByRole("button", { name: "Undo" }).click();
+    const afterUndo = await savedNotebook(page);
+    expect(afterUndo.applications.some(entry => entry.company === "Stripe")).toBe(false);
+    expect(afterUndo.recentlyDeleted.some(entry => entry.company === "Stripe")).toBe(true);
+  });
 });
+
