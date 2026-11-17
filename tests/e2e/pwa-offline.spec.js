@@ -45,7 +45,8 @@ test("deep-link #/new?... and quick-fill input bar autofill company, role, locat
   await page.locator('#new-dialog [data-action="close-new"]').first().click();
 
   // Open empty New dialog and use the quick-fill bar directly
-  await page.locator('[data-action="new"]').first().click();
+  // The sidebar's New button is hidden on a phone; use whichever one this screen shows.
+  await page.locator('[data-action="new"]:visible').first().click();
   await expect(page.locator("#new-dialog")).toBeVisible();
   await page.locator("#new-quickfill").fill("Software Engineer Intern at Stripe in Seattle, WA (Python, Go, SQL) https://boards.greenhouse.io/stripe/jobs/98765");
   await expect(page.locator("#new-form").getByLabel("Company")).toHaveValue("Stripe");

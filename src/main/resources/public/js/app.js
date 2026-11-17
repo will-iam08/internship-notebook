@@ -4079,6 +4079,15 @@ function initLandingPage() {
   const HERO_CHAPTERS = [0, 4.5, 9, 13.5];
   const chapterPills = $$(".hero-workflow-pill", landingShell);
   let pendingChapterTime = null;
+  // After a chapter click, the clicked chapter stays highlighted until the video has really
+  // moved there. Safari can report the old position for a moment after a seek (or after play()
+  // starts), and without this hold a playback tick would snap the highlight back to chapter 1.
+  let chapterHold = null;
+  const holdingChapter = time => {
+    if (!chapterHold) return false;
+    if (Math.abs(time - chapterHold.time) < 1 || Date.now() > chapterHold.until) { chapterHold = null; return false; }
+    return true;
+  };
 
   function syncHeroChapters(currentTime = 0) {
     if (!chapterPills.length) return;
@@ -4099,9 +4108,11 @@ function initLandingPage() {
     heroVideo.addEventListener("play", () => syncHeroVideoState(heroVideo));
     heroVideo.addEventListener("pause", () => syncHeroVideoState(heroVideo));
     heroVideo.addEventListener("timeupdate", () => {
-      if (!heroVideo.seeking) syncHeroChapters(heroVideo.currentTime);
+      if (!heroVideo.seeking && !holdingChapter(heroVideo.currentTime)) syncHeroChapters(heroVideo.currentTime);
     });
-    heroVideo.addEventListener("seeked", () => syncHeroChapters(heroVideo.currentTime));
+    heroVideo.addEventListener("seeked", () => {
+      if (!holdingChapter(heroVideo.currentTime)) syncHeroChapters(heroVideo.currentTime);
+    });
     heroVideo.addEventListener("loadedmetadata", () => {
       if (pendingChapterTime !== null) {
         heroVideo.currentTime = pendingChapterTime;
@@ -4146,6 +4157,7 @@ function initLandingPage() {
     if (chapterTrigger && heroVideo) {
       const targetTime = Number(chapterTrigger.dataset.chapterTime);
       if (Number.isFinite(targetTime)) {
+        chapterHold = { time: targetTime, until: Date.now() + 2000 };
         if (heroVideo.readyState >= 1) {
           heroVideo.currentTime = targetTime;
           pendingChapterTime = null;
