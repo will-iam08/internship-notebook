@@ -2480,34 +2480,16 @@ const appShell = $("#app");
 const skipLink = $(".skip-link");
 const renderers = { welcome: viewWelcome, today: viewToday, board: viewBoard, notebook: viewNotebook, insights: viewInsights, deleted: viewDeleted, settings: viewSettings, setup: viewSetup, build: viewBuild, signup: viewSignup, export: viewExport, mock: viewMock };
 
+/** True while the landing page stands in front of the notebook: in the website edition, until the
+ *  visitor signs in or signs up. Damaged storage skips it so the recovery screen can be shown. */
 function isLandingGated() {
-  if (!BROWSER_MODE) return false;
   if (state.corrupted || state.loadError) return false;
-  const session = readActiveSession(storage);
-  if (session) return false;
-  if (state.prefs.started) return false;
-  let record;
-  if (state.loaded) {
-    record = { applications: state.applications, recentlyDeleted: state.deleted };
-  } else {
-    try {
-      const raw = storage.get(KEYS.data);
-      record = raw ? JSON.parse(raw) : { applications: [], recentlyDeleted: [] };
-    } catch {
-      return false;
-    }
-  }
-  return shouldGateWithLanding({
-    browserMode: BROWSER_MODE,
-    record,
-    drafts: readDrafts(),
-    started: state.prefs.started,
-    session
-  });
+  return shouldGateWithLanding({ browserMode: BROWSER_MODE, session: readActiveSession(storage) });
 }
 
 function syncShellVisibility() {
   const gated = isLandingGated();
+  document.documentElement.dataset.shell = gated ? "landing" : "notebook";
   if (landingShell) landingShell.hidden = !gated;
   if (appShell) appShell.hidden = gated;
   if (skipLink) skipLink.setAttribute("href", gated ? "#landing-main" : "#view");
@@ -4052,11 +4034,11 @@ function handleLandingHashNavigation(hash = window.location.hash) {
     return;
   }
   if (clean && clean !== "welcome" && clean !== "landing") {
-    // Any attempt to access a notebook route while unauthenticated stays gated on the landing page.
+    // A notebook address (#/today, #/new?..., an old bookmark) while signed out stays on the landing
+    // page where it is: the address is tidied, but the page is not scrolled for the visitor.
     // A job sent by the browser extension or clipper (#/new?...) is kept and opened after sign-up.
     landingHeldIntent = parseHashNewIntent(hash) || landingHeldIntent;
-    window.history.replaceState(null, "", "#signup");
-    smoothScrollToSection("signup");
+    window.history.replaceState(null, "", window.location.pathname + window.location.search);
   }
 }
 
@@ -4614,7 +4596,10 @@ state.route = parseRoute();
 load().then(() => {
   usage.start();
   if (isLandingGated()) {
+    // A job shared to the app (?title=...&url=...) waits for sign-up the same way a #/new?... one does.
+    landingHeldIntent = startIntent;
     handleLandingHashNavigation(window.location.hash);
+    if (sharedOnStart) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
     return;
   }
   checkDueSoon(); // opt-in, real notebook only, once a day, and only because the tab is open

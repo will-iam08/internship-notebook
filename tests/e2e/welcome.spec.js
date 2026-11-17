@@ -33,7 +33,8 @@ test.describe("entry gate and decoupling from notebook", () => {
   test("a job sent by the browser extension before signing up is kept and opens after sign-up", async ({ page }) => {
     await page.goto("/#/new?company=Acme%20Robotics&role=Firmware%20Intern&location=Waterloo%2C%20ON", { waitUntil: "domcontentloaded" });
     await expect(page.locator("#landing-shell")).toBeVisible();
-    await expect(page).toHaveURL(/#signup$/);
+    // The notebook address is tidied away, but the visitor is not scrolled anywhere.
+    await expect(page).toHaveURL(/\/$/);
 
     await page.locator("#signup-name").fill("Jordan Rivera");
     await page.locator("#signup-email").fill("jordan@waterloo.ca");
@@ -43,6 +44,57 @@ test.describe("entry gate and decoupling from notebook", () => {
     await expect(page.locator("#new-dialog")).toBeVisible({ timeout: 5000 });
     await expect(page.locator("#new-form").getByLabel("Company")).toHaveValue("Acme Robotics");
     await expect(page.locator("#new-form").getByLabel("Role")).toHaveValue("Firmware Intern");
+  });
+
+  test("acceptance: a signed-out visitor stays on the landing page, free to look around, with no redirect or forced scroll", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const startedAt = Date.now();
+    await openWelcome(page);
+    // Watch for 6 seconds: nothing moves the page, opens the notebook, or changes the address.
+    await page.waitForTimeout(6000);
+    expect(Date.now() - startedAt).toBeGreaterThanOrEqual(6000);
+    await expect(page.locator("#landing-shell")).toBeVisible();
+    await expect(page.locator("#app")).toBeHidden();
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    await expect(page).toHaveURL(/\/$/);
+
+    // Scrolling to sign-up happens only when the visitor asks for it, and it is a smooth scroll.
+    await page.locator('.landing-btn-primary[data-scroll-to="signup"]').click();
+    await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 3000 }).toBeGreaterThan(0);
+    await expect(page.locator("#signup")).toBeInViewport();
+    await expect(page.locator("#signup-name")).toBeFocused();
+  });
+
+  test("notebook data or an old started flag in this browser is not a sign-in: the landing page still shows", async ({ page }) => {
+    await page.addInitScript(([dataKey, prefsKey]) => {
+      localStorage.setItem(dataKey, JSON.stringify({ nextId: 2, recentlyDeleted: [], applications: [{
+        id: 1, company: "Acme", role: "Intern", status: "SAVED", createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+        location: "", source: "", deadline: "", notes: "", skills: [], link: "", contact: "", nextStep: "", nextStepDate: "", starred: false,
+        history: [{ status: "SAVED", at: new Date().toISOString() }]
+      }] }));
+      localStorage.setItem(prefsKey, JSON.stringify({ started: true }));
+    }, ["my-internship-notebook-browser-data-v1", "my-internship-notebook-prefs-v1"]);
+    await page.goto("/#/today");
+    await expect(page.locator("#landing-shell")).toBeVisible();
+    await expect(page.locator("#app")).toBeHidden();
+  });
+
+  test("a signed-in visitor goes straight to the notebook and never sees the landing page flash", async ({ page }) => {
+    await seedNotebook(page);
+    // From the very first frame, record whether the landing page was ever on screen.
+    await page.addInitScript(() => {
+      window.__landingSeen = false;
+      const check = () => {
+        const shell = document.getElementById("landing-shell");
+        if (shell && !shell.hidden && getComputedStyle(shell).display !== "none") window.__landingSeen = true;
+        if (!document.querySelector("#view .view-head")) requestAnimationFrame(check);
+      };
+      requestAnimationFrame(check);
+    });
+    await page.goto("/");
+    await page.locator("#view .view-head").waitFor();
+    await expect(page.locator("#landing-shell")).toBeHidden();
+    expect(await page.evaluate(() => window.__landingSeen)).toBe(false);
   });
 
   test("authenticated or returning visitors bypass the landing page and open their notebook directly", async ({ page }) => {

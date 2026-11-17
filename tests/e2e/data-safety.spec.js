@@ -1,7 +1,7 @@
 // Covers: autosave failure and retry, drafts surviving a refresh, corrupted-storage recovery,
 // and backup import (validation, unsafe-link stripping, duplicates, undo).
 import { expect, test } from "./fixtures.js";
-import { DATA_KEY, openApp, savedNotebook, seedNotebook, seedStarted } from "./helpers.js";
+import { DATA_KEY, openApp, savedNotebook, seedNotebook, seedSession, seedStarted } from "./helpers.js";
 
 const DRAFTS_KEY = "my-internship-notebook-drafts-v1";
 
@@ -121,6 +121,7 @@ test.describe("autosave", () => {
 
 test.describe("corrupted storage recovery", () => {
   test("garbled data never gets silently replaced with an empty notebook", async ({ page }) => {
+    await seedSession(page);
     await page.addInitScript(key => localStorage.setItem(key, "{ this is not valid json at all"), DATA_KEY);
     await page.goto("/");
     await expect(page.getByText("could not be read")).toBeVisible();

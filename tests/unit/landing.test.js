@@ -215,3 +215,10 @@ test("shouldGateWithLanding gates unauthenticated browser visitors and allows au
     session: null
   }), false);
 });
+
+test("shouldGateWithLanding: notebook data or a started flag without a session still shows the landing page", () => {
+  const work = { applications: [{ id: 1, company: "Acme", role: "Intern" }] };
+  assert.equal(shouldGateWithLanding({ browserMode: true, record: work, drafts: {}, started: true, session: null }), true);
+  assert.equal(shouldGateWithLanding({ browserMode: true, record: work, drafts: {}, started: true, session: { email: "  " } }), true);
+  assert.equal(shouldGateWithLanding({ browserMode: true, session: { email: "jordan@waterloo.ca" } }), false);
+});

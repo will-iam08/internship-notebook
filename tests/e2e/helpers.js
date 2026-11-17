@@ -42,6 +42,7 @@ export async function seedNotebook(page, applications = sampleApplications(), ex
       sessionStorage.setItem("seeded", "1");
     }
   }, [DATA_KEY, JSON.stringify(data)]);
+  await seedSession(page); // a notebook only opens for someone signed in; signed out, the landing page shows
 }
 
 /**
@@ -58,6 +59,7 @@ export async function seedStarted(page, prefs = {}) {
       sessionStorage.setItem("seeded", "1");
     }
   }, [DATA_KEY, PREFS_KEY, JSON.stringify({ started: true, ...prefs })]);
+  await seedSession(page);
 }
 
 /** Reads the saved notebook straight from browser storage. */

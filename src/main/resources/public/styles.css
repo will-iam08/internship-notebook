@@ -2181,6 +2181,9 @@ html:has(#landing-shell:not([hidden])) {
   }
 }
 
+/* Set before first paint by js/theme-init.js: a signed-in visitor never sees the landing page flash. */
+:root[data-shell="notebook"] #landing-shell { display: none; }
+
 .landing-shell {
   --space-1: 8px;
   --space-2: 16px;

@@ -7,7 +7,6 @@
  * local account store operation is unit-testable with node --test.
  */
 import { LIMITS } from "./domain.js";
-import { hasExistingWork } from "./onboarding.js";
 
 export const ACCOUNT_STORAGE_KEY = "my-internship-notebook-accounts-v1";
 export const SESSION_STORAGE_KEY = "my-internship-notebook-session-v1";
@@ -440,13 +439,11 @@ export function authenticateLocalAccount(store, input, { now = new Date() } = {}
 
 /**
  * Determines whether the visitor must be gated at the standalone landing page.
- * Unauthenticated visitors in the browser edition never load directly into the notebook;
- * they are always gated at the standalone landing page until they sign up or sign in.
+ * In the browser edition, anyone who is not signed in sees the landing page, every visit. Notebook
+ * data or a "started" flag left in this browser does not count as signing in: the data stays
+ * where it is and opens after the visitor signs in or signs up.
  */
-export function shouldGateWithLanding({ browserMode, record, drafts, started, session }) {
+export function shouldGateWithLanding({ browserMode, session }) {
   if (!browserMode) return false;
-  if (session && typeof session.email === "string" && session.email.trim()) return false;
-  if (started === true) return false;
-  if (hasExistingWork(record, drafts)) return false;
-  return true;
+  return !(session && typeof session.email === "string" && session.email.trim());
 }
