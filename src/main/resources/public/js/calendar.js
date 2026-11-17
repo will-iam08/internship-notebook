@@ -12,8 +12,8 @@ function compactDay(day) { return day.replaceAll("-", ""); }
 
 export function entryCalendar(entry) {
   const events = [
-    entry.deadline && { day: entry.deadline, label: `Application deadline: ${entry.company} — ${entry.role}` },
-    entry.nextStepDate && { day: entry.nextStepDate, label: `${entry.nextStep || "Application next step"}: ${entry.company} — ${entry.role}` }
+    entry.deadline && { day: entry.deadline, label: `Application deadline: ${entry.company} - ${entry.role}` },
+    entry.nextStepDate && { day: entry.nextStepDate, label: `${entry.nextStep || "Application next step"}: ${entry.company} - ${entry.role}` }
   ].filter(Boolean);
   if (!events.length) return "";
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");

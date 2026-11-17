@@ -342,7 +342,7 @@ function resolvedTheme() { return state.prefs.theme === "system" ? (darkQuery.ma
 function applyTheme() {
   const theme = resolvedTheme();
   document.documentElement.dataset.theme = theme;
-  $$('meta[name="theme-color"]').forEach(meta => meta.setAttribute("content", theme === "dark" ? "#14110d" : "#f3eee4"));
+  $$('meta[name="theme-color"]').forEach(meta => meta.setAttribute("content", theme === "dark" ? "#0f131c" : "#faf9f6"));
   const iconName = state.prefs.theme === "system" ? "system" : theme === "dark" ? "moon" : "sun";
   $$("[data-theme-icon]").forEach(element => { element.innerHTML = icon(iconName); });
   $$(".cover-theme").forEach(button => button.setAttribute("title", `Theme: ${themeLabel()} (click to change)`));
@@ -4076,28 +4076,91 @@ function markHeroVideoFailed(video) {
 function initLandingPage() {
   if (!landingShell) return;
 
+  const HERO_CHAPTERS = [0, 4.5, 9, 13.5];
+  const chapterPills = $$(".hero-workflow-pill", landingShell);
+  let pendingChapterTime = null;
+
+  function syncHeroChapters(currentTime = 0) {
+    if (!chapterPills.length) return;
+    const t = Number.isFinite(currentTime) && currentTime >= 0 ? currentTime : 0;
+    let activeIndex = 0;
+    for (let i = 0; i < HERO_CHAPTERS.length; i++) {
+      if (t + 0.05 >= HERO_CHAPTERS[i]) activeIndex = i;
+    }
+    chapterPills.forEach((pillBtn, index) => {
+      const active = index === activeIndex;
+      pillBtn.classList.toggle("is-active", active);
+      pillBtn.setAttribute("aria-pressed", String(active));
+    });
+  }
+
   const heroVideo = $("#hero-video", landingShell);
   if (heroVideo) {
     heroVideo.addEventListener("play", () => syncHeroVideoState(heroVideo));
     heroVideo.addEventListener("pause", () => syncHeroVideoState(heroVideo));
+    heroVideo.addEventListener("timeupdate", () => {
+      if (!heroVideo.seeking) syncHeroChapters(heroVideo.currentTime);
+    });
+    heroVideo.addEventListener("seeked", () => syncHeroChapters(heroVideo.currentTime));
+    heroVideo.addEventListener("loadedmetadata", () => {
+      if (pendingChapterTime !== null) {
+        heroVideo.currentTime = pendingChapterTime;
+        syncHeroChapters(pendingChapterTime);
+        pendingChapterTime = null;
+      } else {
+        syncHeroChapters(heroVideo.currentTime);
+      }
+    });
     heroVideo.addEventListener("error", () => markHeroVideoFailed(heroVideo));
     $$("source", heroVideo).forEach(source => {
       source.addEventListener("error", () => markHeroVideoFailed(heroVideo));
     });
-    if (reducedMotion()) {
-      heroVideo.pause();
-      syncHeroVideoState(heroVideo);
+    if (heroVideo.error || heroVideo.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+      markHeroVideoFailed(heroVideo);
     } else {
-      const playPromise = heroVideo.play();
-      if (playPromise && typeof playPromise.then === "function") {
-        playPromise.then(() => syncHeroVideoState(heroVideo)).catch(() => syncHeroVideoState(heroVideo));
-      } else {
+      syncHeroChapters(heroVideo.currentTime || 0);
+      if (reducedMotion()) {
+        heroVideo.pause();
         syncHeroVideoState(heroVideo);
+      } else {
+        const playPromise = heroVideo.play();
+        if (playPromise && typeof playPromise.then === "function") {
+          playPromise
+            .then(() => syncHeroVideoState(heroVideo))
+            .catch(err => {
+              if (heroVideo.error || heroVideo.networkState === HTMLMediaElement.NETWORK_NO_SOURCE || err?.name === "NotSupportedError") {
+                markHeroVideoFailed(heroVideo);
+              } else {
+                syncHeroVideoState(heroVideo);
+              }
+            });
+        } else {
+          syncHeroVideoState(heroVideo);
+        }
       }
     }
   }
 
   landingShell.addEventListener("click", event => {
+    const chapterTrigger = event.target.closest?.("[data-chapter-time]");
+    if (chapterTrigger && heroVideo) {
+      const targetTime = Number(chapterTrigger.dataset.chapterTime);
+      if (Number.isFinite(targetTime)) {
+        if (heroVideo.readyState >= 1) {
+          heroVideo.currentTime = targetTime;
+          pendingChapterTime = null;
+        } else {
+          pendingChapterTime = targetTime;
+          try { heroVideo.currentTime = targetTime; } catch { /* wait for loadedmetadata */ }
+        }
+        syncHeroChapters(targetTime);
+        if (!reducedMotion() && heroVideo.paused) {
+          heroVideo.play().catch(() => {});
+        }
+      }
+      return;
+    }
+
     const videoToggle = event.target.closest?.('[data-action="toggle-hero-video"]');
     if (videoToggle && heroVideo) {
       if (heroVideo.paused) {

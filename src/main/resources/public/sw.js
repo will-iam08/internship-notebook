@@ -3,7 +3,7 @@
  * Network first, so a new deploy shows up on the next visit; the cached copy is
  * only used when the device is offline. API requests (Java server mode) are never cached.
  */
-const CACHE = "internship-notebook-v35";
+const CACHE = "internship-notebook-v36";
 const SHELL = [
   "./",
   "index.html",
@@ -41,7 +41,7 @@ const SHELL = [
   "apple-touch-icon.png",
   "favicon-20260915-v4.png",
   // The welcome tour's poster is small and keeps the offline welcome page looking finished. The
-  // video itself (~2.7 MB) is deliberately not precached: it would cost every install that much.
+  // video itself (~1 MB) is deliberately not precached: it would cost every install that much.
   "media/demo-tour-poster.jpg"
 ];
 

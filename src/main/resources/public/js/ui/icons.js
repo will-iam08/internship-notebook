@@ -44,7 +44,7 @@ export const ICONS = {
   file: '<path d="M14 3.5H7A2.5 2.5 0 0 0 4.5 6v12A2.5 2.5 0 0 0 7 20.5h10a2.5 2.5 0 0 0 2.5-2.5V9L14 3.5Z"/><path d="M14 3.5V9h5.5M8.5 13h7M8.5 16.5h5"/>',
   inbox: '<path d="M3.5 13.5 6 5.5A2 2 0 0 1 8 4h8a2 2 0 0 1 2 1.5l2.5 8M3.5 13.5V18a2.5 2.5 0 0 0 2.5 2.5h12a2.5 2.5 0 0 0 2.5-2.5v-4.5M3.5 13.5h5l1.5 2.5h4l1.5-2.5h5"/>'
 };
-export const LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="9" fill="#1f3447"/><rect x="10" y="8.5" width="21" height="24" rx="3" fill="#fbf8f1"/><path d="M14.5 16h11M14.5 20.5h11M14.5 25h7" stroke="#9fb1bd" stroke-width="1.8" stroke-linecap="round"/><path d="M25 8.5h4.5v10l-2.25-1.8L25 18.5Z" fill="#e0663f"/><g fill="#1f3447"><circle cx="10" cy="13" r="1.4"/><circle cx="10" cy="19" r="1.4"/><circle cx="10" cy="25" r="1.4"/></g></svg>';
+export const LOGO = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="3" width="34" height="34" rx="9" fill="#0f172a"/><rect x="10" y="8.5" width="21" height="24" rx="3" fill="#faf9f6"/><path d="M14.5 16h11M14.5 20.5h11M14.5 25h7" stroke="#94a3b8" stroke-width="1.8" stroke-linecap="round"/><path d="M25 8.5h4.5v10l-2.25-1.8L25 18.5Z" fill="#b33812"/><g fill="#0f172a"><circle cx="10" cy="13" r="1.4"/><circle cx="10" cy="19" r="1.4"/><circle cx="10" cy="25" r="1.4"/></g></svg>';
 
 export function icon(name, className = "") {
   return `<svg class="icon ${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${ICONS[name] || ""}</svg>`;

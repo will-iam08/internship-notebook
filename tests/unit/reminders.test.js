@@ -117,7 +117,7 @@ test("TEXT values escape backslashes, commas, semicolons, and every kind of newl
 });
 
 test("lines are folded at 75 octets, counting UTF-8 bytes and never splitting a character", () => {
-  const long = page(1, { status: "SAVED", deadline: day(2), company: "Ünïcödé Ünïversity Research Lab, Montréal".repeat(3), role: "Développeuse — stage d’été" });
+  const long = page(1, { status: "SAVED", deadline: day(2), company: "Ünïcödé Ünïversity Research Lab, Montréal".repeat(3), role: "Développeuse - stage d’été" });
   const ics = buildIcs([long], { now: NOW });
   const encoder = new TextEncoder();
   for (const line of ics.split("\r\n")) assert.ok(encoder.encode(line).length <= 75, `${encoder.encode(line).length}: ${line}`);

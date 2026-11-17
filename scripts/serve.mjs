@@ -35,7 +35,35 @@ createServer(async (request, response) => {
     if (!file.startsWith(folder)) throw new Error("outside");
     if ((await stat(file)).isDirectory()) file = path.join(file, "index.html");
     const body = await readFile(file);
-    response.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-store" });
+    const contentType = TYPES[path.extname(file)] || "application/octet-stream";
+    const rangeHeader = request.headers.range;
+    if (rangeHeader && /^bytes=\d*-\d*$/.test(rangeHeader)) {
+      const [rawStart, rawEnd] = rangeHeader.replace("bytes=", "").split("-");
+      const total = body.length;
+      const start = rawStart === "" ? Math.max(0, total - Number(rawEnd)) : Number(rawStart);
+      const end = rawEnd === "" || rawStart === "" ? total - 1 : Math.min(total - 1, Number(rawEnd));
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= total) {
+        response.writeHead(416, { "Content-Range": `bytes */${total}` });
+        response.end();
+        return;
+      }
+      const chunk = body.subarray(start, end + 1);
+      response.writeHead(206, {
+        "Content-Type": contentType,
+        "Content-Range": `bytes ${start}-${end}/${total}`,
+        "Content-Length": String(chunk.length),
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "no-store"
+      });
+      response.end(chunk);
+      return;
+    }
+    response.writeHead(200, {
+      "Content-Type": contentType,
+      "Content-Length": String(body.length),
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "no-store"
+    });
     response.end(body);
   } catch {
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });

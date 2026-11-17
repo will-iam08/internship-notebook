@@ -135,6 +135,50 @@ test.describe("1. Hero section", () => {
     await expect(page.locator("[data-hero-video-frame]")).toHaveClass(/is-failed/);
     await expect(page.locator("[data-hero-video-frame]")).toHaveCSS("background-image", /demo-tour-poster\.jpg/);
   });
+
+  test("synchronizes hero workflow pills with video playback and seeks on click", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await openWelcome(page);
+
+    const video = page.locator("video#hero-video");
+    const pills = page.locator(".hero-workflow-pills .hero-workflow-pill");
+    await expect(pills).toHaveCount(4);
+
+    await page.waitForFunction(() => {
+      const el = document.getElementById("hero-video");
+      return Boolean(el && el.readyState >= 1);
+    });
+
+    const expectedTimes = [0, 4.5, 9, 13.5];
+    for (let index = expectedTimes.length - 1; index >= 0; index--) {
+      await pills.nth(index).click();
+      await expect(pills.nth(index)).toHaveAttribute("aria-pressed", "true");
+      await expect(pills.nth(index)).toHaveClass(/is-active/);
+      for (let other = 0; other < expectedTimes.length; other++) {
+        if (other !== index) {
+          await expect(pills.nth(other)).toHaveAttribute("aria-pressed", "false");
+        }
+      }
+      const currentTime = await video.evaluate(el => el.currentTime);
+      expect(Math.abs(currentTime - expectedTimes[index])).toBeLessThan(1.0);
+    }
+
+    // Verify timeupdate keeps the active chapter pill in sync with playback position
+    await video.evaluate(el => {
+      el.pause();
+      el.currentTime = 10.2;
+      el.dispatchEvent(new Event("timeupdate"));
+    });
+    await expect(pills.nth(2)).toHaveAttribute("aria-pressed", "true");
+    await expect(pills.nth(2)).toHaveClass(/is-active/);
+
+    await video.evaluate(el => {
+      el.currentTime = 14.5;
+      el.dispatchEvent(new Event("timeupdate"));
+    });
+    await expect(pills.nth(3)).toHaveAttribute("aria-pressed", "true");
+    await expect(pills.nth(2)).toHaveAttribute("aria-pressed", "false");
+  });
 });
 
 test.describe("2. Features section", () => {

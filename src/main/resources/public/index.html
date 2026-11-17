@@ -6,8 +6,8 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G/Lv6KExRZYvmtQffHGKasiDyIiLxdzaxEaFJnUGbHk='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; media-src 'self'; connect-src 'self' https://*.supabase.co; frame-src 'none'; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'" />
     <meta name="referrer" content="no-referrer" />
     <meta name="description" content="Track internship applications, clip job postings in one click, import spreadsheets, and practice role-matched interviews in a private, offline-ready notebook." />
-    <meta name="theme-color" content="#f3eee4" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#14110d" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#faf9f6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f131c" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -119,7 +119,7 @@
                     src="media/demo-tour.mp4"
                     width="1280"
                     height="720"
-                    aria-label="Demonstration video showing four core workflows: Today deadline radar, five-stage Kanban pipeline board, ruled application pages with interview prep, and search analytics"
+                    aria-label="Demonstration video showing four core workflows: 1-click job clipper, five-stage Kanban pipeline board, role-matched interview prep with timed mock feedback, and deadline radar with response insights"
                   >
                     <source src="media/demo-tour.webm" type="video/webm" />
                     <source src="media/demo-tour.mp4" type="video/mp4" />
@@ -132,10 +132,10 @@
                 </div>
                 <figcaption class="hero-video-caption">
                   <ol class="hero-workflow-pills" aria-label="Workflows shown in demo video">
-                    <li><strong>01</strong> Today &amp; Deadlines</li>
-                    <li><strong>02</strong> 5-Stage Kanban Board</li>
-                    <li><strong>03</strong> Application &amp; Prep Page</li>
-                    <li><strong>04</strong> Response Analytics</li>
+                    <li><button type="button" class="hero-workflow-pill is-active" data-chapter-index="0" data-chapter-time="0" aria-pressed="true"><strong>01</strong><span>1-Click Job Clipper</span></button></li>
+                    <li><button type="button" class="hero-workflow-pill" data-chapter-index="1" data-chapter-time="4.5" aria-pressed="false"><strong>02</strong><span>Kanban Pipeline Board</span></button></li>
+                    <li><button type="button" class="hero-workflow-pill" data-chapter-index="2" data-chapter-time="9" aria-pressed="false"><strong>03</strong><span>Interview Prep &amp; Mock</span></button></li>
+                    <li><button type="button" class="hero-workflow-pill" data-chapter-index="3" data-chapter-time="13.5" aria-pressed="false"><strong>04</strong><span>Deadlines &amp; Insights</span></button></li>
                   </ol>
                 </figcaption>
               </figure>
